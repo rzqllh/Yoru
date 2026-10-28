@@ -154,3 +154,14 @@ test('real HLS playback writes progress to IndexedDB and keeps it after reload',
  expect(saved.episode).toBe(1)
  expect(saved.seconds).toBeGreaterThan(0.75)
 })
+
+test('settings reports a degraded provider while keeping healthy providers listed',async({page})=>{
+ await page.route('**/api/providers',async route=>route.fulfill({json:{
+  providers:[{id:'local',name:'Configured local source',animeCount:2}],
+  warnings:['stremio']
+ }}))
+ await page.goto('/')
+ await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
+ await expect(page.getByText('Configured local source')).toBeVisible()
+ await expect(page.locator('.config-error')).toContainText('stremio')
+})

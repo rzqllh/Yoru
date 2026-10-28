@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import {combineProviderResults} from '../pipeline/provider-aggregation.js'
 import { createHealthPayload } from '../pipeline/status.js'
 import { getAnime, getAnimeEpisodes, getDiscover, searchAnime } from '../pipeline/jikan.js'
 import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../providers/local.js'
@@ -30,12 +31,24 @@ app.get('/api/anime/:id/episodes',async c=>{
  try{return c.json(await getAnimeEpisodes(id,positive(c.req.query('page'),1000)))}catch(e){return c.json({error:'EPISODES_UNAVAILABLE',message:(e as Error).message},503)}
 })
 app.get('/api/providers',async c=>{
- try{const [local,stremio]=await Promise.all([getLocalProvider(),getStremioConfig()]);return c.json({providers:[...(local?[{id:local.id,name:local.name,animeCount:local.anime.length}]:[]),...(stremio?.addons??[]).map(a=>({id:`stremio-${a.id}`,name:a.name,animeCount:a.anime.length}))]})}
- catch{return c.json({error:'INVALID_PROVIDER_CONFIG'},422)}
+ const results=await Promise.allSettled([
+  getLocalProvider().then(local=>local?[{id:local.id,name:local.name,animeCount:local.anime.length}]:[]),
+  getStremioConfig().then(config=>(config?.addons??[]).map(addon=>({
+   id:`stremio-${addon.id}`,name:addon.name,animeCount:addon.anime.length
+  })))
+ ])
+ const result=combineProviderResults(results,['local','stremio'])
+ return c.json({providers:result.items,warnings:result.warnings},result.allFailed?422:200)
 })
 app.get('/api/anime/:id/provider-episodes',async c=>{
  const id=validId(c.req.param('id'));if(!id)return c.json({error:'INVALID_ID'},400)
- try{const animeId=`mal:${id}`;const [local,stremio]=await Promise.all([getProviderEpisodes(animeId),getStremioEpisodes(animeId)]);return c.json({items:[...local,...stremio]})}catch{return c.json({error:'INVALID_PROVIDER_CONFIG'},422)}
+ const animeId=`mal:${id}`
+ const results=await Promise.allSettled([
+  getProviderEpisodes(animeId),
+  getStremioEpisodes(animeId)
+ ])
+ const result=combineProviderResults(results,['local','stremio'])
+ return c.json({items:result.items,warnings:result.warnings},result.allFailed?422:200)
 })
 app.get('/api/streams',async c=>{
  const ref=c.req.query('episodeRef')||''
