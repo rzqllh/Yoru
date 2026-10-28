@@ -2,7 +2,7 @@
 
 Local-first anime discovery and streaming PWA built with React, Vite, TypeScript and a Hono backend. It includes Jikan anime metadata, season/top/upcoming catalogs, search, anime details and episode guide, local provider configuration, HLS/MP4 playback, subtitle tracks, personal library, resume progress, data backup, and offline-capable PWA shell.
 
-**Status:** Source project. Core logic tests and local HLS fixture checked. A full dependency installation, React production build, UI browser playback, and real-provider playback have **not** been verified in the creation environment because the npm registry was unreachable. Do not treat this as production-certified or native-app-ready.
+**Status:** Application source with passing GitHub Actions CI (lint, typecheck, 7 unit tests, and frontend/backend production build). Real-provider playback, browser UI flows, and iOS/native packaging are **not** yet validated. Do not treat this as production-certified or native-app-ready. The source does not bundle unverified anime streaming providers.
 
 ## Requirements
 

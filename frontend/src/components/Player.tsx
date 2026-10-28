@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react'
-import Hls from 'hls.js'
+import type Hls from 'hls.js'
 import {ArrowLeft, MonitorPlay, Subtitles, Info, AlertTriangle} from 'lucide-react'
 import type {Anime,Stream} from '../types'
 import {getProgress,saveProgress} from '../lib/db'
@@ -19,11 +19,15 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
   setError('');setReady(false)
   if(stream.format==='hls'){
    if(element.canPlayType('application/vnd.apple.mpegurl')){element.src=stream.url}
-   else if(Hls.isSupported()){
-    hls=new Hls({enableWorker:true})
-    hls.loadSource(stream.url);hls.attachMedia(element)
-    hls.on(Hls.Events.ERROR,(_event,data)=>{if(data.fatal)setError(`HLS: ${data.details}`)})
-   }else setError('Perangkat ini tidak mendukung HLS.')
+   else {
+    void import('hls.js').then(({default:Hls})=>{
+     if(!alive)return
+     if(!Hls.isSupported()){setError('Perangkat ini tidak mendukung HLS.');return}
+     hls=new Hls({enableWorker:true})
+     hls.loadSource(stream.url);hls.attachMedia(element)
+     hls.on(Hls.Events.ERROR,(_event,data)=>{if(data.fatal&&alive)setError(`HLS: ${data.details}`)})
+    }).catch(()=>{if(alive)setError('Modul HLS tidak dapat dimuat.')})
+   }
   }else element.src=stream.url
   const onError=()=>setError('Video tidak dapat dimuat. Periksa koneksi atau sumber stream.')
   element.addEventListener('error',onError)
