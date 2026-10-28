@@ -1,5 +1,6 @@
 import {openDB, type DBSchema} from 'idb'
 import type {Anime,LibraryEntry,LibraryStatus,ProgressEntry} from '../types'
+import {validateBackup} from './backup'
 
 interface AppSchema extends DBSchema {
  library:{key:string;value:LibraryEntry}
@@ -32,13 +33,7 @@ export async function getProgress(id:string){const db=await open();return db.get
 export async function setPreference(key:string,value:string){const db=await open();await db.put('preferences',{key,value});notify()}
 export async function getPreference(key:string,fallback=''){const db=await open();return (await db.get('preferences',key))?.value??fallback}
 export async function exportUserData(){return {version:1,exportedAt:new Date().toISOString(),library:await listLibrary(),progress:await listProgress()}}
-export function validateBackup(value:unknown):value is {version:number;library:LibraryEntry[];progress:ProgressEntry[]}{
- if(!value||typeof value!=='object')return false
- const data=value as Record<string,unknown>
- return data.version===1&&Array.isArray(data.library)&&Array.isArray(data.progress)&&data.library.length<=10000&&data.progress.length<=10000 &&
-  data.library.every(e=>e&&typeof e.anime?.id==='string'&&['watching','planned','completed'].includes(e.status)) &&
-  data.progress.every(e=>e&&typeof e.anime?.id==='string'&&Number.isFinite(e.seconds)&&Number.isFinite(e.episode))
-}
+export {validateBackup} from './backup'
 export async function importUserData(value:unknown){
  if(!validateBackup(value))throw new Error('Format backup tidak valid')
  const db=await open();const tx=db.transaction(['library','progress'],'readwrite')
