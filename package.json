@@ -1,0 +1,31 @@
+{
+  "name": "yoru-anime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:frontend": "npm run dev -w frontend",
+    "dev:backend": "npm run dev -w backend",
+    "lint": "biome lint --max-diagnostics=200 frontend/src backend/api backend/pipeline backend/providers frontend/vite.config.ts tests scripts",
+    "typecheck": "npm run typecheck -w backend && npm run typecheck -w frontend",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "build": "npm run build -w frontend && npm run build -w backend",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "start": "node scripts/start.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.3",
+    "typescript": "^5.9.3",
+    "tsx": "^4.23.15",
+    "@types/node": "^22.15.0"
+  }
+}

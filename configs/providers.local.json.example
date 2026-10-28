@@ -1,0 +1,25 @@
+{
+  "id": "my-streams",
+  "name": "My configured streams",
+  "anime": [
+    {
+      "malId": 1,
+      "title": "My configured anime",
+      "episodes": [
+        {
+          "number": 1,
+          "title": "Episode 1",
+          "streams": [
+            {
+              "format": "hls",
+              "url": "https://media.example.org/authorized/episode-1.m3u8",
+              "quality": "Auto",
+              "subtitleMode": "soft",
+              "tracks": [{"lang":"id","label":"Bahasa Indonesia","url":"https://media.example.org/subtitles/episode-1.vtt"}]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

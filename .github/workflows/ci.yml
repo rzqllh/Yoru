@@ -1,0 +1,32 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main, 'feat/**']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Lint, typecheck, unit tests and production build
+        run: npm run check
+      - name: Smoke-test compiled HTTP server and local HLS fixture
+        shell: bash
+        run: |
+          node scripts/start.mjs > /tmp/yoru-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8787/api/health > /tmp/yoru-health.json; then break; fi
+            sleep 1
+          done
+          node -e "const fs=require('fs'); const h=JSON.parse(fs.readFileSync('/tmp/yoru-health.json','utf8'));if(h.status!=='ok')process.exit(1)"
+          curl --fail --silent --show-error http://127.0.0.1:8787/ | grep -q '<div id="root"'
+          curl --fail --silent --show-error http://127.0.0.1:8787/demo/stream.m3u8 | grep -q 'segment-000.ts'
