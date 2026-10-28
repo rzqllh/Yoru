@@ -11,6 +11,7 @@ const staticRoot = existsSync(resolve(process.cwd(), 'frontend/dist'))
 if (production) {
   if (!existsSync(staticRoot)) throw new Error('Frontend dist missing: run npm run build first')
   app.use('/*', serveStatic({ root: staticRoot }))
+  app.get('/api/*', c => c.json({ error: 'NOT_FOUND' }, 404))
   app.get('*', serveStatic({ path: resolve(staticRoot, 'index.html') }))
 }
 const port = Number(process.env.PORT || 8787)
