@@ -1,9 +1,14 @@
-# Yoru — Quick start
+# Dokumentasi Yoru
 
-Run `npm install`, `npm run check`, then `npm run dev`. Open http://127.0.0.1:5173.
+Mulai dari **[Panduan mulai](getting-started.md)** jika ini pertama kali menjalankan Yoru. Semua halaman ini menjelaskan **fitur yang sudah ada** pada web preview; bukan roadmap yang diperlakukan sebagai fitur aktif.
 
-Watchlist and resume use browser IndexedDB. To check playback without any anime source, open Settings → Test player for the bundled original HLS clip and Indonesian sample captions. To play anime, create `configs/providers.local.json` from the example and provide valid HTTPS media URLs and MAL/episode IDs.
+| Dokumen | Tujuan |
+| --- | --- |
+| [Mulai di komputer](getting-started.md) | Install Node, unduh source, jalankan demo dan PWA |
+| [Menggunakan Yoru](using-yoru.md) | Cari anime, detail, episode, koleksi, progress, backup |
+| [Menambahkan sumber video](providers.md) | File provider lokal, addon Stremio dan Sub Indo |
+| [Troubleshooting](troubleshooting.md) | Diagnosis cepat jika halaman/video gagal |
+| [Untuk developer](development.md) | Repo, command, struktur kode, test |
+| [Status rilis & distribusi](releases.md) | Source vs hasil build vs installer native |
 
-For a service-worker PWA, run `npm run build && npm start`; open the local site, then install from the browser UI. Browser local HTTP may count as a secure context; a remote iPhone requires HTTPS when not using localhost.
-
-Build and iOS playback have not been verified on the original development environment. Read the root README for the manual verification checklist.
+**Perlu diketahui:** Source video anime tidak otomatis tersedia. Demo video dan subtitle Indonesia dapat dicoba melalui **Pengaturan → Test player** setelah aplikasi berjalan. Lihat [README utama](../../README.md) untuk status fitur dan penghargaan kepada proyek referensi.
