@@ -1,5 +1,5 @@
 /* Offline app shell. API and external images are never cached. */
-const VERSION='yoru-shell-v1'
+const VERSION='yoru-shell-v2'
 const SHELL=['/','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/demo-id.vtt','/demo/stream.m3u8','/demo/segment-000.ts','/demo/segment-001.ts','/demo/segment-002.ts']
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(VERSION).then(async cache=>{
@@ -7,7 +7,7 @@ self.addEventListener('install',event=>{
  }).then(()=>self.skipWaiting()))
 })
 self.addEventListener('activate',event=>{
- event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==VERSION).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))
+ event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('yoru-shell-')&&key!==VERSION).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))
 })
 self.addEventListener('fetch',event=>{
  const request=event.request

@@ -36,3 +36,11 @@ test('provider config retains optional searchable anime title',()=>{
  const cfg=validateProviderConfig({id:'hello',name:'Hello',anime:[{malId:4,title:'Cowboy Bebop',episodes:[]}]})
  assert.equal(cfg.anime[0].title,'Cowboy Bebop')
 })
+
+test('provider config rejects ambiguous anime and episode identifiers',()=>{
+ const stream={format:'mp4',url:'https://media.example.org/watch.mp4',subtitleMode:'unknown',tracks:[]}
+ const ep={number:1,streams:[stream]}
+ const anime={malId:101,episodes:[ep]}
+ assert.throws(()=>validateProviderConfig({id:'dub',name:'Duplicate Anime',anime:[anime,{...anime}]}),/duplicate/i)
+ assert.throws(()=>validateProviderConfig({id:'dub',name:'Duplicate Episodes',anime:[{malId:101,episodes:[ep,{...ep}]}]}),/duplicate/i)
+})

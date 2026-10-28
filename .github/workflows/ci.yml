@@ -5,9 +5,13 @@ on:
     branches: [main, 'feat/**']
 permissions:
   contents: read
+concurrency:
+  group: yoru-ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,8 +19,16 @@ jobs:
           node-version-file: .nvmrc
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Preserve dependency lockfile for reproducible builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-lock
+          path: package-lock.json
+          if-no-files-found: error
       - name: Lint, typecheck, unit tests and production build
         run: npm run check
+      - name: Check production dependencies for high-severity advisories
+        run: npm audit --omit=dev --audit-level=high
       - name: Smoke-test compiled HTTP server and local HLS fixture
         shell: bash
         run: |
@@ -30,3 +42,16 @@ jobs:
           node -e "const fs=require('fs'); const h=JSON.parse(fs.readFileSync('/tmp/yoru-health.json','utf8'));if(h.status!=='ok')process.exit(1)"
           curl --fail --silent --show-error http://127.0.0.1:8787/ | grep -q '<div id="root"'
           curl --fail --silent --show-error http://127.0.0.1:8787/demo/stream.m3u8 | grep -q 'segment-000.ts'
+          test "$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8787/api/anime/search?q=')" = 400
+          test "$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8787/api/streams?episodeRef=bad')" = 400
+          test "$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8787/api/unknown')" = 404
+          curl --fail --silent --show-error http://127.0.0.1:8787/api/providers | grep -q 'providers'
+      - name: Upload production build from validated commit
+        uses: actions/upload-artifact@v4
+        with:
+          name: yoru-production
+          path: |
+            frontend/dist/
+            backend/dist/
+          if-no-files-found: error
+          retention-days: 14
