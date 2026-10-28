@@ -63,6 +63,7 @@ export function validateStremioConfig(value:unknown):StremioConfig{
 export function stremioStreamPath(addon:StremioAddon,stremioId:string,season:number,episode:number):URL{
  return new URL(`stream/series/${encodeURIComponent(`${stremioId}:${season}:${episode}`)}.json`,addon.manifestUrl)
 }
+const mediaHostAllowed=(host:string)=>/^(?=.{4,253}$)[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)&&!/(?:\.local|\.localhost|\.internal|\.invalid)$/.test(host)
 export function parseStremioStreams(payload:unknown,providerId:string):AddonStream[]{
  const root=object(payload)
  if(!Array.isArray(root.streams)||root.streams.length>50)throw new Error('Invalid stream response')
@@ -70,14 +71,14 @@ export function parseStremioStreams(payload:unknown,providerId:string):AddonStre
  for(const raw of root.streams){
   try{
    const obj=object(raw),url=new URL(nonempty(obj.url,2048))
-   if(url.protocol!=='https:'||url.username||url.password||url.hostname==='localhost'||!url.hostname.includes('.'))continue
+   if(url.protocol!=='https:'||url.username||url.password||!mediaHostAllowed(url.hostname))continue
    const format=url.pathname.toLowerCase().endsWith('.m3u8')?'hls':url.pathname.toLowerCase().endsWith('.mp4')?'mp4':null
    if(!format)continue
    const tracks:AddonTrack[]=[]
    if(Array.isArray(obj.subtitles))for(const rawTrack of obj.subtitles.slice(0,20)){
     try{
      const sub=object(rawTrack),lang=nonempty(sub.lang,15).toLowerCase(),subUrl=new URL(nonempty(sub.url,2048))
-     if(!/^[a-z]{2,3}(?:-[a-z0-9]+)*$/.test(lang)||subUrl.protocol!=='https:'||subUrl.username||subUrl.password)continue
+     if(!/^[a-z]{2,3}(?:-[a-z0-9]+)*$/.test(lang)||subUrl.protocol!=='https:'||subUrl.username||subUrl.password||!mediaHostAllowed(subUrl.hostname))continue
      tracks.push({lang,label:lang==='id'?'Bahasa Indonesia':lang,url:subUrl.toString()})
     }catch{continue}
    }
