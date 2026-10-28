@@ -3,6 +3,7 @@ import type Hls from 'hls.js'
 import {ArrowLeft, MonitorPlay, Subtitles, Info, AlertTriangle} from 'lucide-react'
 import type {Anime,Stream} from '../types'
 import {getProgress,saveProgress} from '../lib/db'
+import {useDialogFocus} from '../lib/useDialogFocus'
 
 type Props={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;onClose:()=>void}
 export default function Player({anime,episode,stream,demo=false,onClose}:Props){
@@ -11,6 +12,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
  const [ready,setReady]=useState(false)
  const [resumeAt,setResumeAt]=useState(0)
  const lastSave=useRef(0)
+ const dialogRef=useDialogFocus()
  useEffect(()=>{
   const element=video.current;if(!element)return
   let alive=true
@@ -40,7 +42,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
   if(!Number.isFinite(v.currentTime)||v.currentTime<0)return
   void saveProgress({anime,episode,seconds:v.currentTime,duration:Number.isFinite(v.duration)?v.duration:0,updatedAt:Date.now()}).catch(()=>{})
  }
- return <div className="player-overlay" role="dialog" aria-modal="true" aria-label="Video player">
+ return <div ref={dialogRef} tabIndex={-1} className="player-overlay" role="dialog" aria-modal="true" aria-label="Video player">
   <div className="player-top">
    <button type="button" className="icon-button glass" onClick={onClose} aria-label="Kembali"><ArrowLeft size={20}/></button>
    <div className="player-heading"><span>{demo?'DEMO PLAYBACK':'SEDANG DIPUTAR'}</span><strong>{demo?'Video pengujian HLS':anime?.title}</strong><small>{demo?'Sampel video publik':`Episode ${episode}`}</small></div>
