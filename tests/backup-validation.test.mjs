@@ -34,3 +34,32 @@ test('rejects corrupt or malicious backup rows before any IndexedDB write',()=>{
 test('accepts a legacy backup with additional anime metadata',()=>{
  assert.equal(validateBackup({...backup,library:[{...row,anime:{...anime,year:2009,score:9.5,poster:null,genres:[]}}]}),true)
 })
+
+test('legacy backup anime metadata gets normalized before entering IndexedDB',async()=>{
+ const {normalizeBackupAnime}=await import('../frontend/src/lib/backup.ts')
+ const normalized=normalizeBackupAnime({id:'mal:100',malId:100,title:'Fullmetal Alchemist'})
+ assert.deepEqual(normalized.genres,[])
+ assert.deepEqual(normalized.studios,[])
+ assert.equal(normalized.poster,null)
+ assert.equal(normalized.score,null)
+ assert.equal(normalized.englishTitle,null)
+ assert.equal(normalized.episodes,null)
+ assert.equal(normalized.synopsis,'')
+})
+test('corrupt optional backup metadata cannot be carried into app rendering',async()=>{
+ const {normalizeBackupAnime}=await import('../frontend/src/lib/backup.ts')
+ const normalized=normalizeBackupAnime({
+  id:'mal:100',malId:100,title:'Fullmetal Alchemist',genres:['Action',33,null],
+  studios:'not-array',poster:404,score:Infinity,episodes:'?',year:0,
+  synopsis:{value:'bad'},trailerYoutubeId:{value:'bad'},status:null,type:33
+ })
+ assert.deepEqual(normalized.genres,['Action'])
+ assert.deepEqual(normalized.studios,[])
+ assert.equal(normalized.poster,null)
+ assert.equal(normalized.score,null)
+ assert.equal(normalized.episodes,null)
+ assert.equal(normalized.year,null)
+ assert.equal(normalized.synopsis,'')
+ assert.equal(normalized.trailerYoutubeId,null)
+ assert.equal(normalized.status,'Unknown')
+})

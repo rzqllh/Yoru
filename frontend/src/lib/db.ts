@@ -1,6 +1,6 @@
 import {openDB, type DBSchema} from 'idb'
 import type {Anime,LibraryEntry,LibraryStatus,ProgressEntry} from '../types'
-import {validateBackup} from './backup'
+import {normalizeBackupAnime,validateBackup} from './backup'
 
 interface AppSchema extends DBSchema {
  library:{key:string;value:LibraryEntry}
@@ -37,8 +37,8 @@ export {validateBackup} from './backup'
 export async function importUserData(value:unknown){
  if(!validateBackup(value))throw new Error('Format backup tidak valid')
  const db=await open();const tx=db.transaction(['library','progress'],'readwrite')
- for(const row of value.library)await tx.objectStore('library').put(row)
- for(const row of value.progress)await tx.objectStore('progress').put(row)
+ for(const row of value.library)await tx.objectStore('library').put({...row,anime:normalizeBackupAnime(row.anime)})
+ for(const row of value.progress)await tx.objectStore('progress').put({...row,anime:normalizeBackupAnime(row.anime)})
  await tx.done;notify()
 }
 export async function clearUserData(){const db=await open();const tx=db.transaction(['library','progress'],'readwrite');await tx.objectStore('library').clear();await tx.objectStore('progress').clear();await tx.done;notify()}
