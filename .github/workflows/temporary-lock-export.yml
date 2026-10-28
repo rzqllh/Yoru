@@ -1,0 +1,20 @@
+name: Temporary lockfile export
+on:
+  push:
+    branches: [feat/stremio-local-bridge-20261029]
+permissions:
+  contents: read
+jobs:
+  emit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Generate deterministic dependency graph
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Emit public npm package lock in encoded chunks
+        run: |
+          node -e "const f=require('fs');const b=f.readFileSync('package-lock.json').toString('base64');for(let i=0;i<b.length;i+=10000)console.log('YORU_LOCK_CHUNK:'+b.slice(i,i+10000))"
