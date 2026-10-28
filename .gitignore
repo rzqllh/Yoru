@@ -1,0 +1,15 @@
+node_modules/
+**/dist/
+coverage/
+*.tsbuildinfo
+.vite/
+.env
+.env.*
+!.env.example
+configs/local/
+*.log
+.DS_Store
+Thumbs.db
+configs/providers.local.json
+.env
+.env.*.local
