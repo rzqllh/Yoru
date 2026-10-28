@@ -40,7 +40,7 @@ test('desktop: catalog, search, detail, library and playback with Indonesian VTT
  await expect.poll(async()=>page.locator('video').evaluate(video=>video.readyState),{timeout:20000}).toBeGreaterThan(0)
  await page.screenshot({path:'test-results/desktop-player.png',fullPage:true})
  await page.getByRole('button',{name:'Kembali'}).click()
- await page.getByRole('button',{name:'Tutup detail'}).click()
+ // Starting playback closes the detail modal by design.
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await page.reload()
