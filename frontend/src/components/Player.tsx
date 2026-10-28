@@ -38,11 +38,12 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
  }
  return <div className="player-overlay" role="dialog" aria-modal="true" aria-label="Video player">
   <div className="player-top">
-   <button className="icon-button glass" onClick={onClose} aria-label="Kembali"><ArrowLeft size={20}/></button>
-   <div className="player-heading"><span>{demo?'DEMO PLAYBACK':'SEDANG DIPUTAR'}</span><strong>{demo?'Video pengujian HLS':anime?.title}</strong><small>{demo?'Sampel video publik':'Episode '+episode}</small></div>
+   <button type="button" className="icon-button glass" onClick={onClose} aria-label="Kembali"><ArrowLeft size={20}/></button>
+   <div className="player-heading"><span>{demo?'DEMO PLAYBACK':'SEDANG DIPUTAR'}</span><strong>{demo?'Video pengujian HLS':anime?.title}</strong><small>{demo?'Sampel video publik':`Episode ${episode}`}</small></div>
    <div className="player-provider">{stream.providerId||'Demo source'}</div>
   </div>
   <div className="player-stage">
+   {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
    <video ref={video} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();save()}}} onPause={save} onEnded={save} autoPlay>
     {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={t.lang==='id'}/>)}
    </video>
