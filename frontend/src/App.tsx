@@ -5,6 +5,7 @@ import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams} f
 import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime} from './lib/db'
 import {description,scoreDisplay,yearLabel,durationDisplay} from './lib/format'
 import Player from './components/Player'
+import {useDialogFocus} from './lib/useDialogFocus'
 
 type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean}
 const TEST_STREAM:Stream={id:'demo',providerId:'HLS demo',format:'hls',url:'/demo/stream.m3u8',tracks:[{lang:'id',label:'Bahasa Indonesia (sampel)',url:'/demo-id.vtt'}],subtitleMode:'soft'}
@@ -130,6 +131,7 @@ function LibraryPage({library,progress,onOpen,onBrowse,onRemove,onStatusChange}:
 }
 
 function DetailDialog({anime,isSaved,onClose,onToggleSave,onWatch}:{anime:Anime;isSaved:boolean;onClose:()=>void;onToggleSave:()=>void;onWatch:(p:Playback)=>void}){
+ const dialogRef=useDialogFocus()
  const [info,setInfo]=useState<Anime>(anime);const [listed,setListed]=useState<Episode[]>([]);const [available,setAvailable]=useState<Episode[]>([])
  const [loading,setLoading]=useState(true);const [playing,setPlaying]=useState('');const [error,setError]=useState('')
  const [choices,setChoices]=useState<{episode:number;items:Stream[]}|null>(null)
@@ -147,7 +149,7 @@ function DetailDialog({anime,isSaved,onClose,onToggleSave,onWatch}:{anime:Anime;
  const displayed=useMemo(()=>{const entries=new Map<number,Episode>();for(const ep of listed)entries.set(ep.number,ep);for(const ep of available)entries.set(ep.number,{...entries.get(ep.number),...ep});return [...entries.values()].sort((a,b)=>a.number-b.number)},[listed,available])
  async function loadNext(){try{const r=await episodes(anime.malId,page+1);setListed(current=>[...current,...r.items]);setHasNext(r.hasNext);setPage(page+1)}catch{setError('Tidak bisa mengambil episode berikutnya')}}
  async function play(ep:Episode){const sources=availableMap.get(ep.number);if(!sources?.length)return;setPlaying(String(ep.number));setError('');try{const results=await Promise.allSettled(sources.map(source=>streams(source.id)));const items=results.flatMap(result=>result.status==='fulfilled'?result.value.items:[]);if(!items.length){setError('Tidak ada stream yang bisa diputar untuk episode ini.');return}if(items.length===1){onWatch({anime:info,episode:ep.number,stream:items[0]})}else{setChoices({episode:ep.number,items})}}catch(e){setError((e as Error).message)}finally{setPlaying('')}}
- return <div className="modal-backdrop"><div className="detail-modal" role="dialog" aria-modal="true" aria-label={`Detail ${info.title}`}>
+ return <div className="modal-backdrop"><div ref={dialogRef} tabIndex={-1} className="detail-modal" role="dialog" aria-modal="true" aria-label={`Detail ${info.title}`}>
   <button type="button" className="modal-close icon-button glass" onClick={onClose} aria-label="Tutup detail"><X size={21}/></button>
   <div className="detail-cover" style={{backgroundImage:info.cover?`linear-gradient(0deg,#13161d,rgba(19,22,29,.62) 40%,rgba(19,22,29,.16)),url("${info.cover.replaceAll('"','%22')}")`:undefined}}/>
   <div className="detail-main"><div className="detail-poster"><Poster anime={info}/></div><div className="detail-info"><MiniLabel>ANIME DETAIL / #{info.malId}</MiniLabel><h2>{info.title}</h2>{info.japaneseTitle&&<p className="detail-japanese">{info.japaneseTitle}</p>}<div className="detail-facts"><span className="hero-rating"><Star size={15} fill="currentColor"/> {scoreDisplay(info.score)}</span><span>{yearLabel(info.year)}</span><span>{info.type}</span><span>{info.status}</span></div><div className="genre-tags">{info.genres.map(g=><span key={g}>{g}</span>)}</div><p className={`detail-synopsis ${more?'expanded':''}`}>{info.synopsis||'Sinopsis belum tersedia dari metadata.'}</p>{info.synopsis.length>280&&<button type="button" className="read-more" onClick={()=>setMore(v=>!v)}>{more?'Lebih sedikit':'Baca selengkapnya'} <ChevronDown size={15}/></button>}<div className="detail-actions"><button type="button" className="btn btn-primary" onClick={()=>{const first=available[0];if(first)void play(first);else setError('Belum ada source untuk judul ini. Isi configs/providers.local.json untuk menambahkan stream.')}}><Play size={17} fill="currentColor"/> {available.length?'Putar episode pertama':'Cek sumber'}</button><button type="button" className="btn btn-outline" onClick={onToggleSave}>{isSaved?<Check size={17}/>:<Plus size={17}/>} {isSaved?'Tersimpan':'Koleksiku'}</button></div></div></div>
