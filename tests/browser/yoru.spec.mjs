@@ -121,3 +121,36 @@ test('legacy backup imports without missing-metadata crashes and persists after 
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
 })
+
+test('real HLS playback writes progress to IndexedDB and keeps it after reload',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const video=page.locator('video')
+ await expect(video).toBeVisible()
+ await video.evaluate(async element=>{await element.play()})
+ await expect.poll(()=>video.evaluate(element=>element.currentTime),{timeout:20000}).toBeGreaterThan(0.75)
+ await video.evaluate(element=>element.pause())
+ const readSaved=()=>page.evaluate(async()=>{
+  const request=indexedDB.open('yoru-local-v1')
+  return new Promise((resolve,reject)=>{
+   request.onerror=()=>reject(request.error)
+   request.onsuccess=()=>{
+    const db=request.result
+    const tx=db.transaction('progress','readonly')
+    const get=tx.objectStore('progress').get('mal:1')
+    get.onerror=()=>reject(get.error)
+    get.onsuccess=()=>{resolve(get.result);db.close()}
+   }
+  })
+ })
+ await expect.poll(async()=>{
+  const data=await readSaved()
+  return data?.episode===1&&data.seconds>0.75
+ },{timeout:10000}).toBe(true)
+ await page.getByRole('button',{name:'Kembali'}).click()
+ await page.reload()
+ const saved=await readSaved()
+ expect(saved.episode).toBe(1)
+ expect(saved.seconds).toBeGreaterThan(0.75)
+})
