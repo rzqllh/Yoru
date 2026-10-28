@@ -31,3 +31,7 @@ Jika player contoh **berfungsi** tetapi anime dari sumbermu tidak, masalah biasa
 Safari harus mengakses server melalui **HTTPS tepercaya** ketika berasal dari perangkat lain (bukan `localhost` iPhone). HLS biasanya memakai dukungan native Safari, tetapi setiap stream dan subtitle tetap perlu dites. Fitur fullscreen/PiP tergantung Safari dan versi iOS. Tidak ada klaim bahwa iOS sudah lolos tes fisik.
 
 Jika masih gagal, buat issue di [GitHub Issues](https://github.com/rzqllh/Yoru/issues) dengan OS/browser, langkah reproduksi, pesan error (tanpa token), dan apakah Test player berfungsi.
+
+## Ketika sebagian provider masih bekerja
+
+Jika satu provider memiliki konfigurasi rusak, API tetap mengembalikan episode/provider sehat serta `warnings` berisi ID sumber yang gagal. **Pengaturan** menampilkan sumber yang bermasalah. Perbaiki file lokal terkait dan klik refresh provider. Jika *semua* konfigurasi gagal dibaca, API mengembalikan 422. Jangan menafsirkan daftar kosong sebagai keberhasilan streaming.
