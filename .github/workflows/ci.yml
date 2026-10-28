@@ -47,6 +47,7 @@ jobs:
           test "$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8787/api/unknown')" = 404
           curl --fail --silent --show-error http://127.0.0.1:8787/api/providers | grep -q 'providers'
           node scripts/verify-providers.mjs
+          node scripts/verify-jikan.mjs
       - name: Upload production build from validated commit
         uses: actions/upload-artifact@v4
         with:
