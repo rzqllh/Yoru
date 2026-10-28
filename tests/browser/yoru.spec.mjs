@@ -102,3 +102,22 @@ test('multiple providers for one episode appear as separate source options',asyn
  await page.locator('.source-options button').last().click()
  await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
 })
+
+test('legacy backup imports without missing-metadata crashes and persists after reload',async({page})=>{
+ const restored={version:1,library:[{
+  anime:{id:'mal:1',malId:1,title:'Yoru Test Anime'},
+  status:'watching',updatedAt:Date.now()
+ }],progress:[]}
+ await page.goto('/')
+ await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
+ await page.locator('input[type=file]').setInputFiles({
+  name:'yoru-backup.json',mimeType:'application/json',
+  buffer:Buffer.from(JSON.stringify(restored))
+ })
+ await expect(page.getByRole('status')).toContainText('dipulihkan')
+ await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+ await page.reload()
+ await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+})

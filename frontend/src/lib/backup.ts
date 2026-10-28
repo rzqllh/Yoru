@@ -28,3 +28,33 @@ export function validateBackup(value:unknown):value is Backup{
  return value.library.every(validLibrary)&&value.progress.every(validProgress)&&
    uniqueAnimeIds(value.library)&&uniqueAnimeIds(value.progress)
 }
+
+/**
+ * A v1 backup may contain only the canonical anime ID and title.
+ * Rebuild the complete view model before writing imported records to IndexedDB.
+ */
+export function normalizeBackupAnime(value:Anime):Anime{
+ const raw=value as unknown as Record<string,unknown>
+ const maybeText=(item:unknown):string|null=>typeof item==='string'&&item.length<=500?item:null
+ const textOr=(item:unknown,fallback:string):string=>maybeText(item)??fallback
+ const httpsUrl=(item:unknown):string|null=>{
+  if(typeof item!=='string'||item.length>2048)return null
+  try{const url=new URL(item);return url.protocol==='https:'&&!url.username&&!url.password?url.toString():null}
+  catch{return null}
+ }
+ const list=(item:unknown):string[]=>Array.isArray(item)?
+  item.filter((entry:unknown):entry is string=>typeof entry==='string'&&entry.length<=100).slice(0,100):[]
+ const score=typeof raw.score==='number'&&Number.isFinite(raw.score)&&raw.score>=0&&raw.score<=10?raw.score:null
+ const episodes=Number.isSafeInteger(raw.episodes)&&Number(raw.episodes)>=0?Number(raw.episodes):null
+ const year=Number.isSafeInteger(raw.year)&&Number(raw.year)>=1900&&Number(raw.year)<=2100?Number(raw.year):null
+ const trailer=maybeText(raw.trailerYoutubeId)
+ return {
+  id:value.id,malId:value.malId,title:value.title,
+  englishTitle:maybeText(raw.englishTitle),japaneseTitle:maybeText(raw.japaneseTitle),
+  poster:httpsUrl(raw.poster),cover:httpsUrl(raw.cover),
+  synopsis:textOr(raw.synopsis,''),score,episodes,year,
+  status:textOr(raw.status,'Unknown'),type:textOr(raw.type,'Unknown'),
+  rating:maybeText(raw.rating),genres:list(raw.genres),studios:list(raw.studios),
+  trailerYoutubeId:trailer&&/^[a-zA-Z0-9_-]{1,30}$/.test(trailer)?trailer:null,
+ }
+}
