@@ -38,3 +38,13 @@ test('Stremio stream response accepts HTTPS HLS/MP4, rejects magnet URLs and lab
  assert.equal(res[0].tracks[0].lang,'id')
  assert.equal(res[1].subtitleMode,'unknown')
 })
+
+test('Stremio media URLs never target localhost, IP literals, or private DNS domains',()=>{
+ const result=parseStremioStreams({streams:[
+  {url:'https://127.0.0.1/segment.m3u8'},
+  {url:'https://192.168.1.1/episode.mp4'},
+  {url:'https://cdn.example.com/x.m3u8',subtitles:[{lang:'id',url:'https://localhost/private.vtt'}]}
+ ]},'stremio-example')
+ assert.equal(result.length,1)
+ assert.equal(result[0].tracks.length,0)
+})

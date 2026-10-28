@@ -2,7 +2,7 @@
 
 Local-first anime discovery and streaming PWA built with React, Vite, TypeScript and a Hono backend. It includes Jikan anime metadata, season/top/upcoming catalogs, search, anime details and episode guide, local provider configuration, HLS/MP4 playback, subtitle tracks, personal library, resume progress, data backup, and offline-capable PWA shell.
 
-**Status:** Application source with passing GitHub Actions CI (lint, typecheck, unit tests, and frontend/backend production build). Real-provider playback, browser UI flows, and iOS/native packaging are **not** yet validated. Do not treat this as production-certified or native-app-ready. The source does not bundle unverified anime streaming providers.
+**Status:** Browser-tested web preview. GitHub Actions runs lint, typecheck, 16 native unit tests, production build, dependency security audit, and Chromium E2E for local HLS, Indonesian subtitles, desktop/mobile viewports, library persistence and multi-source selection. External anime playback, Safari iOS and native packaging are **not** yet validated. Do not treat this as production-certified or native-app-ready. The source does not bundle unverified anime streaming providers.
 
 ## Requirements
 
@@ -11,7 +11,7 @@ Node.js 22.12+ and npm, internet access to install dependencies and retrieve Jik
 ## Run on Windows / macOS / Linux
 
 ```sh
-npm install
+npm ci
 npm run check
 npm run dev
 ```
@@ -54,6 +54,7 @@ The backend does not fetch or proxy remote streams. Media is fetched by the user
 ## Commands
 
 ```sh
+npm ci              # Install exact locked dependency versions
 npm run dev         # Vite + Hono, separate local ports
 npm test            # Node native test runner (no external test framework)
 npm run lint        # Biome
@@ -78,6 +79,10 @@ npm start           # Production frontend + API from same localhost port
 5. Save an anime to library; reload browser; verify saved state remains. Export and import backup.
 6. `npm run build && npm start`; install PWA in Chromium and iOS Safari, check offline shell.
 7. On iPhone/iPad: manually verify native HLS, WebVTT, fullscreen, PiP if offered, and resume after reopening. No iOS test has been conducted remotely.
+
+## Web preview release
+
+The automated GitHub release candidate is tagged `v0.9.0-rc.1` and includes a runnable web ZIP only after the complete CI and real Chromium E2E pipeline succeed. This is not a verified native application or a preconfigured streaming service. Extract the ZIP, run `npm ci --omit=dev` and `npm start`, then open `http://127.0.0.1:8787`.
 
 ## License
 
