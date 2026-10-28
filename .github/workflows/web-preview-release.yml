@@ -1,4 +1,4 @@
-name: Web release candidate
+name: Release download cleanup
 on:
   push:
     branches: [main]
@@ -6,90 +6,43 @@ on:
 permissions:
   contents: read
 jobs:
-  validate:
+  remove-non-installable-archive:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - name: Install locked dependencies
-        run: npm ci --no-audit --no-fund
-      - name: Verify lint, types, unit tests and build
-        run: npm run check
-      - name: Check runtime dependency advisories
-        run: npm audit --omit=dev --audit-level=high
-      - name: Verify Chromium user flows
-        run: |
-          npm install --no-save --package-lock=false @playwright/test@1.64.1
-          npx playwright install --with-deps chromium
-          npx playwright test
-      - name: Package runnable web build
-        shell: bash
-        run: |
-          mkdir -p staging/frontend staging/backend staging/scripts staging/configs
-          cp README.md LICENSE package.json package-lock.json .nvmrc staging/
-          cp frontend/package.json staging/frontend/
-          cp backend/package.json staging/backend/
-          cp scripts/start.mjs staging/scripts/
-          cp configs/*.example staging/configs/
-          cp -R frontend/dist staging/frontend/
-          cp -R backend/dist staging/backend/
-          cd staging
-          zip -qr ../yoru-web-preview.zip .
-          cd ..
-          unzip -t yoru-web-preview.zip | tail -1
-      - name: Save checked release artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: yoru-web-preview
-          path: yoru-web-preview.zip
-          if-no-files-found: error
-          retention-days: 30
-      - name: Save browser evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: yoru-web-preview-browser-evidence
-          path: |
-            playwright-report/
-            test-results/
-          if-no-files-found: ignore
-          retention-days: 30
-  publish-preview:
-    needs: validate
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 5
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: yoru-web-preview
-      - name: Publish clearly labeled preview only once
+      - name: Retire misleading web ZIP; keep source and honest preview notes
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          COMMIT_SHA: ${{ github.sha }}
-        shell: bash
         run: |
-          if gh release view v0.9.0-rc.1 >/dev/null 2>&1; then
-            echo "Preview already published; not overwriting a versioned release"
+          tag=v0.9.0-rc.1
+          asset=yoru-web-preview.zip
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            echo "Preview release does not exist, nothing to clean"
             exit 0
           fi
+          if gh release view "$tag" --json assets --jq '.assets[].name' | grep -Fxq "$asset"; then
+            gh release delete-asset "$tag" "$asset" --yes
+            echo "Removed non-installable web archive"
+          else
+            echo "No misleading web archive remains"
+          fi
           cat > release-notes.md <<'EOF'
-          Yoru Web Preview RC1. Installable PWA, Jikan discovery, local-first library,
-          HLS/MP4 playback, Indonesian WebVTT, local provider configuration, and
-          opt-in direct HTTPS Stremio addon bridge.
-          
-          This is NOT a production-certified final release: no real third-party
-          anime Sub Indo source or iOS/native build has been verified.
-          
-          Quick start: unzip, install Node.js 22+, run npm ci --omit=dev,
-          then npm start. Open http://127.0.0.1:8787.
+          Yoru v0.9.0-rc.1 is a historical WEB PREVIEW source snapshot, not an installable application.
+
+          **No standalone executable, APK, IPA or user-ready web ZIP is attached.**
+          GitHub may show auto-generated Source code ZIP/TAR files. Those are source archives, not application installers.
+
+          To run the current web app, follow the root README:
+          https://github.com/rzqllh/Yoru#mulai-dalam-beberapa-menit
+
+          Requirements: Node.js 22.12+, npm, git. Clone the repository, run
+          npm ci, then npm run dev, and open http://127.0.0.1:5173.
+          A production-style local PWA requires npm run build and npm start.
+
+          Demo HLS+Indonesian VTT is bundled. Real anime playback requires manually configured HTTPS media or compatible Stremio addon. Native packages and real iOS testing are not yet available.
           EOF
-          gh release create v0.9.0-rc.1 yoru-web-preview.zip \
-            --target "$COMMIT_SHA" --prerelease \
-            --title "Yoru Web Preview v0.9.0-rc.1" \
-            --notes-file release-notes.md
+          gh release edit "$tag" --notes-file release-notes.md --title "Yoru v0.9.0-rc.1 — Source preview (no installer)"
