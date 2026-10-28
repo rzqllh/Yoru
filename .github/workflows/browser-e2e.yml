@@ -1,0 +1,39 @@
+name: Browser E2E
+on:
+  pull_request:
+  push:
+    branches: [main, 'feat/**']
+permissions:
+  contents: read
+concurrency:
+  group: yoru-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install app dependencies and build
+        run: |
+          npm install --no-audit --no-fund
+          npm run check
+      - name: Install isolated browser test runtime
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.64.1
+          npx playwright install --with-deps chromium
+      - name: Run real Chromium UI tests
+        run: npx playwright test
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yoru-browser-evidence
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
