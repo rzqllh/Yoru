@@ -68,3 +68,37 @@ test('PWA manifest and offline shell exist on production server',async({request}
  expect(sw.ok()).toBeTruthy()
  expect(await sw.text()).toContain('yoru-shell-')
 })
+
+test('search query always restarts from page one after browsing another page',async({page})=>{
+ await page.route('**/api/anime/discover?**',async route=>{
+  const pageNo=Number(new URL(route.request().url()).searchParams.get('page'))
+  await route.fulfill({json:{items:[anime],page:pageNo,hasNext:pageNo===1}})
+ })
+ const searchPages=[]
+ await page.route('**/api/anime/search?**',async route=>{
+  searchPages.push(Number(new URL(route.request().url()).searchParams.get('page')))
+  await route.fulfill({json:{items:[anime],page:1,hasNext:false}})
+ })
+ await page.goto('/')
+ await page.locator('.main-nav').getByRole('button',{name:'Jelajahi'}).click()
+ await page.getByRole('button',{name:/Muat lebih banyak/}).click()
+ await page.getByRole('textbox',{name:'Cari judul anime'}).fill('Yoru')
+ await expect.poll(()=>searchPages.at(-1),{timeout:10000}).toBe(1)
+})
+
+test('multiple providers for one episode appear as separate source options',async({page})=>{
+ const providerA={...configured,id:'local:1:1',providerId:'local'}
+ const providerB={...configured,id:'stremio-demo:1:1',providerId:'stremio-demo'}
+ await page.route('**/api/anime/1/provider-episodes',async route=>route.fulfill({json:{items:[providerA,providerB]}}))
+ await page.route('**/api/streams?**',async route=>{
+  const reference=new URL(route.request().url()).searchParams.get('episodeRef')
+  const item={...testStream,id:reference+':0',providerId:reference?.startsWith('stremio-')?'stremio-demo':'local'}
+  await route.fulfill({json:{items:[item]}})
+ })
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ await expect(page.locator('.source-options button')).toHaveCount(2)
+ await page.locator('.source-options button').last().click()
+ await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
+})
