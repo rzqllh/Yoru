@@ -61,7 +61,7 @@ export async function getStremioStreams(ref:string){
  const cfg=await getStremioConfig()
  const addon:StremioAddon|undefined=cfg?.addons.find(a=>a.id===addonId)
  const anime=addon?.anime.find(a=>a.malId===malId)
- if(!addon||!anime||!anime.episodes.includes(episode))return []
+ if(!addon||!anime?.episodes.includes(episode))return []
  const path=stremioStreamPath(addon,anime.stremioId,anime.season,episode)
  const payload=await fetchJsonPinned(path)
  return parseStremioStreams(payload,`stremio-${addon.id}`).map((stream,i)=>({...stream,id:`stremio-${addon.id}:${malId}:${episode}:${i}`}))

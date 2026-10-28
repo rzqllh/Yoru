@@ -100,6 +100,7 @@ function Browse({query,setQuery,onOpen}:{query:string;setQuery:(v:string)=>void;
  const [items,setItems]=useState<Anime[]>([]);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [next,setNext]=useState(false);const [page,setPage]=useState(1)
  const [retry,setRetry]=useState(0)
  const value=query.trim()
+ // biome-ignore lint/correctness/useExhaustiveDependencies: Global search query changes must reset Browse page without remounting search input.
  useEffect(()=>{setPage(1)},[query])
  // biome-ignore lint/correctness/useExhaustiveDependencies: retry value intentionally forces a new browse request.
  useEffect(()=>{const controller=new AbortController();setLoading(true);setError('');const timer=window.setTimeout(()=>{

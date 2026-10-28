@@ -92,7 +92,7 @@ test('multiple providers for one episode appear as separate source options',asyn
  await page.route('**/api/anime/1/provider-episodes',async route=>route.fulfill({json:{items:[providerA,providerB]}}))
  await page.route('**/api/streams?**',async route=>{
   const reference=new URL(route.request().url()).searchParams.get('episodeRef')
-  const item={...testStream,id:reference+':0',providerId:reference?.startsWith('stremio-')?'stremio-demo':'local'}
+  const item={...testStream,id:`${reference}:0`,providerId:reference?.startsWith('stremio-')?'stremio-demo':'local'}
   await route.fulfill({json:{items:[item]}})
  })
  await page.goto('/')
