@@ -13,3 +13,5 @@ Thumbs.db
 configs/providers.local.json
 .env
 .env.*.local
+
+configs/stremio.local.json

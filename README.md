@@ -2,7 +2,7 @@
 
 Local-first anime discovery and streaming PWA built with React, Vite, TypeScript and a Hono backend. It includes Jikan anime metadata, season/top/upcoming catalogs, search, anime details and episode guide, local provider configuration, HLS/MP4 playback, subtitle tracks, personal library, resume progress, data backup, and offline-capable PWA shell.
 
-**Status:** Application source with passing GitHub Actions CI (lint, typecheck, 7 unit tests, and frontend/backend production build). Real-provider playback, browser UI flows, and iOS/native packaging are **not** yet validated. Do not treat this as production-certified or native-app-ready. The source does not bundle unverified anime streaming providers.
+**Status:** Application source with passing GitHub Actions CI (lint, typecheck, unit tests, and frontend/backend production build). Real-provider playback, browser UI flows, and iOS/native packaging are **not** yet validated. Do not treat this as production-certified or native-app-ready. The source does not bundle unverified anime streaming providers.
 
 ## Requirements
 
@@ -29,7 +29,7 @@ Then open http://127.0.0.1:8787. A secure context is necessary for service worke
 
 - **Discovery:** Jikan metadata is fetched via the Hono backend. Requires network; Jikan rate limits and availability apply. UI explains temporary failures.
 - **Playback:** A small, self-made HLS H.264 test clip and Indonesian WebVTT are bundled. Settings → Test player. Safari native HLS, hls.js fallback for browsers supporting MediaSource.
-- **Real anime stream:** Optional. Requires local `configs/providers.local.json`, with valid MAL IDs, episode numbers, HTTPS URLs, formats, and subtitle tracks. No embedded unofficial provider, scraper, arbitrary JS rules, torrent, cloud sync, or native build.
+- **Real anime stream:** Optional. Requires local `configs/providers.local.json`, with valid MAL IDs, episode numbers, HTTPS URLs, formats, and subtitle tracks. No embedded unofficial provider, scraper, arbitrary JS rules, torrent, cloud sync, or native build. Opt-in local Stremio addon configuration is also supported for direct HTTPS HLS/MP4 only.
 - **Library:** IndexedDB watchlist (planned/watching/completed), playback progress, backup export/import; no sign-in required. Statuses can be changed in the library interface.
 - **PWA:** Manifest, icons and offline app shell via service worker on production builds. API and anime images are not cached, so discovery requires connectivity.
 - **Future native:** Shared React UI is suitable for evaluation with Capacitor/Tauri; neither is packaged or verified here.
@@ -40,6 +40,14 @@ Then open http://127.0.0.1:8787. A secure context is necessary for service worke
 2. Replace MAL ID `1`, episode number, and placeholder URLs with your own authorized HTTPS stream/subtitle URLs.
 3. Restart backend if needed, then Settings → refresh provider. Open the corresponding anime → pick an episode.
 4. Do not commit `configs/providers.local.json`. It is gitignored.
+
+### Opt-in Stremio addon configuration
+
+Copy `configs/stremio.local.json.example` to `configs/stremio.local.json`. Configure a **HTTPS** addon manifest URL, the MAL-to-Stremio ID mapping, season and explicit episode numbers. The file is gitignored and no remote addon is enabled by default.
+
+Only remote `stream/series/<id>:<season>:<episode>.json` JSON is requested. The backend pins a validated public IPv4 address and rejects local/reserved addresses, credentials, redirects, oversized responses and timeouts. **No torrent/magnet streams, executable plugins, or automatic media proxy** are supported. HTML manifests requiring login and addons with incompatible stream IDs are unsupported. Each episode can offer multiple configured sources; browser source selection aggregates them.
+
+The player fetches the resulting video URL directly. Real addon playback must be independently verified before use on a public deployment.
 
 The backend does not fetch or proxy remote streams. Media is fetched by the user's player, so your host must support the device's codecs, CORS where applicable, and subtitle access. HTTPS URL validation rejects credentials, IP literals and localhost-style hostnames. This is a local configured adapter, **not** a hardened public proxy.
 
