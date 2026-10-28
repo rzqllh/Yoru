@@ -79,7 +79,7 @@ export function parseStremioStreams(payload:unknown,providerId:string):AddonStre
      const sub=object(rawTrack),lang=nonempty(sub.lang,15).toLowerCase(),subUrl=new URL(nonempty(sub.url,2048))
      if(!/^[a-z]{2,3}(?:-[a-z0-9]+)*$/.test(lang)||subUrl.protocol!=='https:'||subUrl.username||subUrl.password)continue
      tracks.push({lang,label:lang==='id'?'Bahasa Indonesia':lang,url:subUrl.toString()})
-    }catch{continue}
+    }catch{/* malformed optional subtitle is ignored */}
    }
    result.push({format,url:url.toString(),tracks,subtitleMode:tracks.length?'soft':'unknown',quality:typeof obj.name==='string'?obj.name.slice(0,80):undefined,providerId})
   }catch{continue}
