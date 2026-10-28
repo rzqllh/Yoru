@@ -1,0 +1,12 @@
+{
+  "addons": [
+    {
+      "id": "example",
+      "name": "My configured Stremio addon",
+      "manifestUrl": "https://addon.example.com/manifest.json",
+      "anime": [
+        { "malId": 1, "stremioId": "kitsu:1", "season": 1, "episodes": [1, 2] }
+      ]
+    }
+  ]
+}
