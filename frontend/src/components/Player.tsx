@@ -233,7 +233,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p></div>}
    </>}
   </div>
-  {stream.format!=='embed'&&<div className="player-toolbar" role="group" aria-label="Kontrol pemutar Yoru">
+  {stream.format!=='embed'&&<div className="player-toolbar">
    <label>Kecepatan
     <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>setSpeed(Number(e.target.value))}>
      {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
