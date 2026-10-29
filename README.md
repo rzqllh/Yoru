@@ -68,6 +68,7 @@ Jangan memasukkan token ke URL atau commit file `*.local.json`. Stream tanpa duk
 | [Pemecahan masalah](docs/public/troubleshooting.md) | Error instalasi, katalog, video, PWA, dan Safari |
 | [Pengembangan & kontribusi](docs/public/development.md) | Perintah, arsitektur singkat, test dan kontribusi |
 | [Status rilis](docs/public/releases.md) | Perbedaan source, web preview, dan native package |
+| [Production readiness](docs/public/production-readiness.md) | Hardening HTTP, HTTPS deployment, checklist verifikasi dan release gate |
 
 ## Pengujian player eksternal & sinkronisasi progress
 

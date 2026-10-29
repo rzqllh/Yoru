@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { SECURITY_HEADERS } from './security.js'
 import {combineProviderResults} from '../pipeline/provider-aggregation.js'
 import { createHealthPayload } from '../pipeline/status.js'
 import { getAnime, getAnimeEpisodes, getDiscover, searchAnime } from '../pipeline/jikan.js'
@@ -7,6 +8,11 @@ import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../provider
 import {externalEpisode,externalStream} from '../providers/public-embed.js'
 
 export const app = new Hono()
+app.use('*',async(c,next)=>{
+ await next()
+ for(const [name,value] of Object.entries(SECURITY_HEADERS))c.header(name,value)
+ if(c.req.path.startsWith('/api/'))c.header('Cache-Control','no-store')
+})
 app.get('/api/health', c => c.json(createHealthPayload()))
 const positive = (input:string|undefined,limit=100) => {
  const n=Number(input||'1');return Number.isInteger(n)&&n>=1&&n<=limit?n:1
