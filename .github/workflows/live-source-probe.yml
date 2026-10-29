@@ -1,0 +1,31 @@
+name: Live metadata and embed probe
+on:
+  push:
+    branches: [fix/tenrai-catalog-quicklinks-public-embed-20261029]
+permissions:
+  contents: read
+jobs:
+  external-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify Tenrai MAL metadata responds with usable JSON
+        run: |
+          node --input-type=module <<'JS'
+          const r=await fetch('https://api.tenrai.org/v1/anime/1',{signal:AbortSignal.timeout(20000),headers:{Accept:'application/json'}})
+          console.log('Tenrai status',r.status)
+          if(!r.ok)process.exit(1)
+          const obj=await r.json()
+          if(obj?.data?.mal_id!==1)process.exit(2)
+          console.log('Tenrai MAL ID',obj.data.mal_id,'title',obj.data.title)
+          JS
+      - name: Test external iframe URL accessibility, not media playability
+        continue-on-error: true
+        run: |
+          node --input-type=module <<'JS'
+          const url='https://api.aniweeb.net/embed/mal/21/1?track=sub'
+          const r=await fetch(url,{signal:AbortSignal.timeout(20000),redirect:'manual'})
+          console.log('External iframe HTTP status',r.status,'type',r.headers.get('content-type'))
+          console.log('This verifies only the remote page response, NOT a playable anime stream or subtitle.')
+          if(!r.ok)process.exit(1)
+          JS
