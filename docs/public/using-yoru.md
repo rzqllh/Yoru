@@ -36,4 +36,4 @@ PWA dapat dipasang dari browser yang mendukung, tetapi **bukan** APK/IPA/EXE. Br
 
 ## Coba sumber anime eksternal
 
-Dari detail anime, klik episode untuk mencoba embed player berbasis MAL ID. Hanya beberapa judul pernah diuji dari runner Chromium dan ketersediaannya dapat berubah sewaktu-waktu. Embed pihak ketiga mungkin menggunakan track subtitle selain Bahasa Indonesia dan Yoru tidak dapat membaca progres pemutaran iframe. Untuk subtitle WebVTT Indonesia dan progress lokal yang dapat diuji, gunakan sumber HLS/MP4 langsung melalui konfigurasi.
+Dari detail anime, klik episode untuk mencoba embed player berbasis MAL ID. Player embed AnimeEmbed menangkap event `postMessage` (`channel: 'animeembed'`) untuk menyimpan progres tontonan ke IndexedDB lokal dan menyematkan parameter `?start=<detik>` saat kamu melanjutkan pemutaran. Subtitle bawaan AnimeEmbed umumnya berbahasa Inggris (English). Untuk subtitle WebVTT Indonesia dan pemutaran HLS/MP4 langsung yang dapat disesuaikan, gunakan sumber HLS/MP4 melalui konfigurasi lokal.

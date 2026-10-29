@@ -53,7 +53,8 @@ app.get('/api/anime/:id/provider-episodes',async c=>{
 })
 app.get('/api/streams',async c=>{
  const ref=c.req.query('episodeRef')||''
+ const start=Number(c.req.query('start')||'0')
  if(ref.length>160||!(/^[a-z0-9-]+:[1-9]\d*:[1-9]\d*$/.test(ref)))return c.json({error:'INVALID_EPISODE_REF'},400)
- try{return c.json({items:ref.startsWith('public-embed:')?externalStream(ref):ref.startsWith('stremio-')?await getStremioStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
+ try{return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('stremio-')?await getStremioStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
 })
 app.notFound(c=>c.json({error:'NOT_FOUND'},404))

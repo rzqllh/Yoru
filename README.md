@@ -63,14 +63,17 @@ Jangan memasukkan token ke URL atau commit file `*.local.json`. Stream tanpa duk
 | --- | --- |
 | [Panduan mulai](docs/public/getting-started.md) | Instalasi Windows/macOS/Linux, demo player dan PWA |
 | [Panduan penggunaan](docs/public/using-yoru.md) | Jelajah anime, library, resume dan backup |
+| [Panduan desain](DESIGN.md) | Sistem token, hirarki navigasi kanonikal, dan copywriting |
 | [Konfigurasi provider](docs/public/providers.md) | JSON stream, MAL ID, subtitle dan addon Stremio |
 | [Pemecahan masalah](docs/public/troubleshooting.md) | Error instalasi, katalog, video, PWA, dan Safari |
 | [Pengembangan & kontribusi](docs/public/development.md) | Perintah, arsitektur singkat, test dan kontribusi |
 | [Status rilis](docs/public/releases.md) | Perbedaan source, web preview, dan native package |
 
-## Pengujian player eksternal
+## Pengujian player eksternal & sinkronisasi progress
 
-Dalam pemeriksaan Chromium menggunakan origin lokal Yoru pada 29 Oktober 2026, AnimeEmbed mengembalikan media dengan metadata durasi untuk MAL ID **21 (One Piece)**, **52991 (Frieren)**, dan **1535 (Death Note)**. Pada sampel **One Piece episode 1**, video berhasil berjalan hingga sekitar **5,29 detik** dengan buffer aktif dan tanpa error media. **Ini bukan jaminan seluruh koleksi dapat diputar**, bukan bukti Sub Indo, dan bukan verifikasi Safari iOS. Player iframe tidak terintegrasi dengan watch progress lokal.
+Dalam pemeriksaan Chromium menggunakan origin lokal Yoru pada 29 Oktober 2026, AnimeEmbed mengembalikan media dengan metadata durasi untuk MAL ID **21 (One Piece)**, **52991 (Frieren)**, dan **1535 (Death Note)**. Pada sampel **One Piece episode 1**, video berhasil berjalan dengan buffer aktif dan tanpa error media.
+
+Player embed AnimeEmbed kini menangkap event `postMessage` (`channel: 'animeembed'`, event `progress`, `pause`, `ended`) untuk mencatat posisi tontonan ke IndexedDB lokal secara otomatis. Saat pengguna kembali menonton episode tersebut, Yoru menyematkan parameter `?start=<detik>` ke URL iframe agar pemutar melanjutkan tontonan dari titik terakhir. Subtitle bawaan AnimeEmbed adalah Bahasa Inggris (English); subtitle Bahasa Indonesia didukung penuh melalui sumber HLS/MP4 lokal atau provider kustom.
 
 ## Pengembangan
 
@@ -80,7 +83,7 @@ npm run check
 npm run dev
 ```
 
-Backend Hono: http://127.0.0.1:8787 · Frontend Vite: http://127.0.0.1:5173 · CI: lint, typecheck, unit test, build, Chromium E2E. Ketersediaan katalog mengikuti Jikan. **Jangan menyamakan tes video contoh dengan tes streaming provider nyata.**
+Backend Hono: http://127.0.0.1:8787 · Frontend Vite: http://127.0.0.1:5173 · CI: lint, typecheck, unit test, build, Chromium E2E. Ketersediaan katalog menggunakan Tenrai v1 untuk MyAnimeList. **Jangan menyamakan tes video contoh dengan tes streaming provider nyata.**
 
 ## Inspirasi dan penghargaan
 
