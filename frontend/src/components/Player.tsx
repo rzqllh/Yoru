@@ -31,6 +31,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [subtitleState,setSubtitleState]=useState('')
  const [subtitleSearch,setSubtitleSearch]=useState(false)
  const [subtitlePanel,setSubtitlePanel]=useState(false)
+ const [advancedControls,setAdvancedControls]=useState(false)
  const [selectedSubtitle,setSelectedSubtitle]=useState<{id:string;lang:string;url:string}|null>(null)
  const [subtitleOff,setSubtitleOff]=useState(false)
  const [subtitleManual,setSubtitleManual]=useState(false)
@@ -626,7 +627,9 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <button type="button" aria-label="Maju 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.min(Number.isFinite(v.duration)?v.duration:Infinity,v.currentTime+10)}}><SkipForward size={16}/> +10s</button>
     <button type="button" aria-label="Fullscreen video" onClick={()=>void toggleFullscreen()}><Maximize2 size={16}/> Fullscreen</button>
     {pipSupported&&<button type="button" aria-label="Picture-in-Picture" disabled={hasActiveCaptions||Boolean(selectedSubtitle&&!subtitleOff)} title={hasActiveCaptions?'Matikan subtitle untuk PiP':'Picture-in-Picture'} onClick={()=>void togglePip()}><PictureInPicture2 size={16}/> PiP</button>}
+    <button type="button" className="player-more-trigger" aria-expanded={advancedControls} onClick={()=>setAdvancedControls(value=>!value)}><SlidersHorizontal size={17}/> Pengaturan</button>
    </div>
+   {advancedControls&&<div className="player-extra-controls">
    <label>Kecepatan
     <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>{const next=Number(e.target.value);setSpeed(next);void setPreference('playback-speed',String(next)).catch(()=>{})}}>
      {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
@@ -652,7 +655,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <button type="button" onClick={()=>changeOffset(0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih lambat">+0.1</button>
     <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
    </div>}
-   <button type="button" className="player-subtitle-trigger" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
+   </div>}
+   <button type="button" className="player-subtitle-trigger" aria-controls="yoru-subtitle-panel" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
     <Subtitles size={15}/> Subtitle · {selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':selectedSubtitle.lang==='en'?'English':'pribadi'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
    </button>
    {qualityNote&&<small role="status">{qualityNote}</small>}
