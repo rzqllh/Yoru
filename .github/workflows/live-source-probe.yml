@@ -35,3 +35,40 @@ jobs:
            }catch(e){console.log('PROBE ERROR',e?.message,url)}
           }
           JS
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install headless Chromium for remote player probe
+        run: |
+          npm ci --no-audit --no-fund
+          npm install --no-save --package-lock=false @playwright/test@1.64.1
+          npx playwright install --with-deps chromium
+      - name: Inspect actual remote player media readiness
+        continue-on-error: true
+        run: |
+          node --input-type=module <<'JS'
+          import {chromium} from '@playwright/test'
+          const browser=await chromium.launch()
+          const page=await browser.newPage()
+          page.on('pageerror',err=>console.log('REMOTE_JS_ERROR',err.message.slice(0,150)))
+          page.on('requestfailed',req=>console.log('REMOTE_REQUEST_FAILED',req.url().slice(0,150),req.failure()?.errorText))
+          try{
+            const url='https://justplay.boo/embed/?mal=21&ep=1&lang=sub'
+            const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:30000})
+            console.log('REMOTE_PLAYER_PAGE',response?.status(),page.url())
+            await page.waitForTimeout(12000)
+            console.log('REMOTE_PLAYER_TEXT',(await page.locator('body').innerText()).slice(0,700))
+            const videoStats=await page.locator('video').evaluateAll(videos=>videos.map(v=>({readyState:v.readyState,currentTime:v.currentTime,duration:v.duration,networkState:v.networkState,paused:v.paused,src:v.currentSrc.slice(0,160)})))
+            console.log('REMOTE_VIDEO_ELEMENTS',JSON.stringify(videoStats))
+            console.log('REMOTE_FRAME_COUNT',page.frames().length)
+            await page.screenshot({path:'remote-player-probe.png',fullPage:true})
+          }finally{await browser.close()}
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: external-player-visual-evidence
+          path: remote-player-probe.png
+          if-no-files-found: ignore
