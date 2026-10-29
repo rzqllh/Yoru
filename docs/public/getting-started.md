@@ -38,7 +38,7 @@ Coba alurnya:
 3. Buka **Pengaturan → Test player** untuk video HLS pendek dengan track WebVTT **Bahasa Indonesia**.
 4. Buka **Koleksi** untuk menyimpan anime. Data ini tersimpan di browser yang digunakan.
 
-Video contoh bukan episode anime komersial. Untuk video anime asli, lanjut ke [Panduan provider](providers.md).
+Video contoh bukan episode anime. Setelah metadata termuat, detail anime menyediakan percobaan player embed eksternal. Fitur ini bergantung pada situs lain dan tidak menjamin setiap episode atau subtitle Indonesia tersedia. Lihat [Panduan provider](providers.md) untuk sumber HLS/MP4 milikmu.
 
 ## 4. Coba versi PWA
 

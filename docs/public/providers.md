@@ -1,6 +1,6 @@
 # Menambahkan sumber video ke Yoru
 
-**Default: tidak ada provider anime yang diaktifkan.** Yoru hanya memberikan katalog Tenrai dan video demo. Provider dipilih sendiri melalui **file konfigurasi lokal**; saat ini belum ada marketplace extension atau scraper bawaan.
+**Default:** satu player embed eksternal dapat dicoba, tetapi cakupan judul dan Sub Indo tidak dijamin. Sumber HLS/MP4 langsung tetap dikonfigurasi sendiri. Yoru hanya memberikan katalog Tenrai dan video demo. Provider dipilih sendiri melalui **file konfigurasi lokal**; saat ini belum ada marketplace extension atau scraper bawaan.
 
 ## Pilihan A: URL video HTTPS (paling sederhana)
 

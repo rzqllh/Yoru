@@ -68,6 +68,10 @@ Jangan memasukkan token ke URL atau commit file `*.local.json`. Stream tanpa duk
 | [Pengembangan & kontribusi](docs/public/development.md) | Perintah, arsitektur singkat, test dan kontribusi |
 | [Status rilis](docs/public/releases.md) | Perbedaan source, web preview, dan native package |
 
+## Pengujian player eksternal
+
+Dalam pemeriksaan Chromium menggunakan origin lokal Yoru pada 29 Oktober 2026, AnimeEmbed mengembalikan media dengan metadata durasi untuk MAL ID **21 (One Piece)**, **52991 (Frieren)**, dan **1535 (Death Note)**. Pada sampel **One Piece episode 1**, video berhasil berjalan hingga sekitar **5,29 detik** dengan buffer aktif dan tanpa error media. **Ini bukan jaminan seluruh koleksi dapat diputar**, bukan bukti Sub Indo, dan bukan verifikasi Safari iOS. Player iframe tidak terintegrasi dengan watch progress lokal.
+
 ## Pengembangan
 
 ```sh
