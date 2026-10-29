@@ -29,8 +29,9 @@ test('WebKit desktop displays anime catalog and does not invent playable episode
 test('WebKit iPhone-sized layout keeps navigation and unverified fallback accessible',async({page})=>{
  await page.setViewportSize({width:390,height:844})
  await page.goto('/')
- await page.getByRole('button',{name:'Buka menu'}).click()
- await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
+ await expect(page.locator('.mobile-bottom')).toBeVisible()
+ await expect(page.locator('.sidebar')).toBeHidden()
+ await page.locator('.mobile-bottom').getByRole('button',{name:'Pengaturan'}).click()
  await expect(page.getByRole('heading',{name:'Pengaturan'})).toBeVisible()
  const noHorizontalOverflow=await page.locator('body').evaluate(el=>el.scrollWidth<=window.innerWidth+1)
  expect(noHorizontalOverflow).toBeTruthy()
