@@ -489,11 +489,18 @@ test('mobile discover groups three categories and filters on one shared surface'
 })
 
 
-test('top ten catalog popularity selector updates featured hero without claiming daily views',async({page})=>{
+test('top ten catalog selector changes featured anime without claiming daily views',async({page})=>{
+ await page.route('**/api/anime/discover?**',async route=>{
+  const kind=new URL(route.request().url()).searchParams.get('kind')
+  const items=kind==='top'?Array.from({length:10},(_,i)=>({...anime,id:`mal:${i+1}`,malId:i+1,title:`Anime Pilihan ${i+1}`})):[anime]
+  await route.fulfill({json:{items,page:1,hasNext:false}})
+ })
  await page.goto('/')
  const selector=page.locator('.hero-top-ten')
  await expect(selector).toBeVisible()
- await expect(selector.locator('button')).toHaveCount(1)
+ await expect(selector.locator('button')).toHaveCount(10)
+ await selector.getByRole('button',{name:/peringkat 2:/i}).click()
+ await expect(page.locator('.hero-copy h2')).toHaveText('Anime Pilihan 2')
  await expect(page.getByText('10 anime populer',{exact:true}).first()).toBeVisible()
 })
 
