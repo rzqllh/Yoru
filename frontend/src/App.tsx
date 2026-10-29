@@ -950,7 +950,15 @@ function SettingsPage({
  const [providerError,setProviderError]=useState('')
  const [apiOnline,setApiOnline]=useState(false)
  const [importing,setImporting]=useState(false)
+ const [defaultSubtitle,setDefaultSubtitle]=useState<'auto'|'id'|'en'|'off'>('id')
  const inputRef=useRef<HTMLInputElement>(null)
+ useEffect(()=>{
+  let active=true
+  void getPreference('subtitle-default-language','id').then(value=>{
+   if(active&&['auto','id','en','off'].includes(value))setDefaultSubtitle(value as 'auto'|'id'|'en'|'off')
+  }).catch(()=>{})
+  return()=>{active=false}
+ },[])
 
  const refresh=useCallback(()=>{
   void Promise.allSettled([providers(),api<{status:string}>('/api/health')]).then(results=>{
@@ -1017,9 +1025,16 @@ function SettingsPage({
    </div>
   </div>
 
+  <nav className="settings-nav" aria-label="Bagian pengaturan">
+   <a href="#pengaturan-pemutaran">Pemutaran</a>
+   <a href="#pengaturan-sumber">Sumber video</a>
+   <a href="#pengaturan-akun">Akun & perangkat</a>
+   <a href="#pengaturan-data">Data & privasi</a>
+   <a href="#pengaturan-tentang">Tentang</a>
+  </nav>
   <div className="settings-layout">
    <div className="settings-section">
-    <div className="settings-heading">
+    <div id="pengaturan-pemutaran" className="settings-heading">
      <div className="settings-heading-icon"><MonitorPlay size={20}/></div>
      <div>
       <h2>Pemutaran</h2>
@@ -1047,9 +1062,19 @@ function SettingsPage({
       <Info size={16}/>
       <p>Jika video utama belum tersedia, Yoru akan menawarkan pilihan lain. Bahasa dan pengaturan subtitle dapat berbeda menurut video.</p>
      </div>
+     <div className="setting-row">
+      <div><strong>Bahasa subtitle pilihan</strong><small>Prioritas untuk episode baru; bisa diganti saat menonton.</small></div>
+      <select aria-label="Bahasa subtitle utama" value={defaultSubtitle} onChange={event=>{
+       const next=event.target.value as 'auto'|'id'|'en'|'off'
+       setDefaultSubtitle(next)
+       void setPreference('subtitle-default-language',next).catch(()=>onNotify('Gagal menyimpan pilihan subtitle'))
+      }}>
+       <option value="id">Bahasa Indonesia</option><option value="en">English</option><option value="auto">Otomatis</option><option value="off">Tidak ada subtitle</option>
+      </select>
+     </div>
     </div>
 
-    <div className="settings-heading">
+    <div id="pengaturan-sumber" className="settings-heading">
      <div className="settings-heading-icon"><Layers3 size={20}/></div>
      <div>
       <h2>Sumber tontonan</h2>
@@ -1078,7 +1103,15 @@ function SettingsPage({
    </div>
 
    <div className="settings-section">
-    <div className="settings-heading">
+    <div id="pengaturan-akun" className="settings-heading">
+     <div className="settings-heading-icon"><Bookmark size={20}/></div>
+     <div><h2>Akun & perangkat</h2><p>Identitas dan penyimpanan tontonan.</p></div>
+    </div>
+    <div className="settings-box">
+     <div className="setting-row"><div><strong>Mode tamu</strong><small>Koleksi, tontonan, dan subtitle tersimpan di perangkat ini.</small></div><span className="setting-state good"><span/>Aktif</span></div>
+     <div className="settings-note"><Info size={16}/><p>Login dan sinkronisasi antarperangkat belum tersedia. Yoru tidak akan berpura-pura akun sudah terhubung. Gunakan cadangan data untuk memindahkan koleksi.</p></div>
+    </div>
+    <div id="pengaturan-data" className="settings-heading">
      <div className="settings-heading-icon"><Bookmark size={20}/></div>
      <div>
       <h2>Data & privasi</h2>
@@ -1110,7 +1143,7 @@ function SettingsPage({
      </div>
     </div>
 
-    <div className="settings-heading">
+    <div id="pengaturan-tentang" className="settings-heading">
      <div className="settings-heading-icon"><Heart size={20}/></div>
      <div>
       <h2>Tentang Yoru</h2>
