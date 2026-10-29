@@ -2350,3 +2350,33 @@ body{background:radial-gradient(ellipse 800px 610px at 76% -140px,rgba(85,128,12
  .player-embed-controls{padding:10px 14px}
 }
 @media(prefers-reduced-motion:reduce){.player-center-play,.hero-card{transition:none!important;animation:none!important}}
+
+
+/* Discover focus — the header no longer duplicates search input. */
+.topbar-discover{
+ min-height:42px;display:inline-flex;align-items:center;gap:10px;
+ border:1px solid rgba(199,246,140,.22);border-radius:14px;
+ padding:0 15px;background:rgba(199,246,140,.09);
+ color:#e6fbd6;font-weight:750;font-size:12px;
+}
+.topbar-discover:hover{background:rgba(199,246,140,.16);border-color:rgba(199,246,140,.4)}
+.browse-filters{
+ display:flex;align-items:flex-end;flex-wrap:wrap;gap:10px;
+ margin:-18px 0 14px;padding:14px;border:1px solid var(--line);
+ border-radius:16px;background:rgba(30,40,55,.66);
+}
+.browse-filters label{display:flex;flex-direction:column;gap:7px;font-size:11px;color:#bcc9d7;font-weight:700}
+.browse-filters select{
+ min-height:42px;max-width:180px;min-width:115px;
+ border:1px solid var(--line-strong);border-radius:10px;
+ padding:0 10px;color:var(--text);background:#202c3b;
+}
+.browse-reset{min-height:42px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface-2);color:var(--accent);padding:0 14px}
+.browse-filter-note{font-size:11px;color:var(--muted);margin:-4px 0 24px}
+@media(max-width:600px){
+ .topbar-discover{min-height:44px;padding:0 11px;font-size:11px}
+ .topbar-discover svg:last-child{display:none}
+ .browse-filters{margin:0 0 12px;padding:12px;gap:10px}
+ .browse-filters label{flex:1 1 calc(50% - 10px)}
+ .browse-filters select{width:100%;min-width:0;max-width:none}
+}
