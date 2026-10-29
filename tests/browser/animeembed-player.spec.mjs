@@ -60,12 +60,13 @@ test.beforeEach(async ({ page }) => {
   )
 })
 
-test('AnimeEmbed player displays accurate English subtitle disclosure and embed frame', async ({ page }) => {
+test('AnimeEmbed requires explicit unverified fallback consent and displays the embed frame', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Buka Sousou no Frieren' }).first().click()
   await expect(page.getByRole('dialog', { name: 'Detail Sousou no Frieren' })).toBeVisible()
 
   await page.locator('.episode-list .episode-row').first().click()
+  await page.locator('.source-options button').first().click()
   await expect(page.getByRole('dialog', { name: 'Video player' })).toBeVisible()
 
   // Verify iframe existence and initial clean URL
@@ -74,7 +75,7 @@ test('AnimeEmbed player displays accurate English subtitle disclosure and embed 
   await expect(iframe).toHaveAttribute('src', 'https://www.animeembed.com/embed/mal/52991/1')
 
   // Verify truthful subtitle disclosure
-  await expect(page.getByText(/Subtitle English/i)).toBeVisible()
+  await expect(page.getByText(/Subtitle eksternal belum diverifikasi/i)).toBeVisible()
   await expect(page.getByText(/Progress tersimpan di browser ini/i)).toBeVisible()
 })
 
@@ -82,6 +83,7 @@ test('AnimeEmbed postMessage progress, pause, and ended update IndexedDB and ena
   await page.goto('/')
   await page.getByRole('button', { name: 'Buka Sousou no Frieren' }).first().click()
   await page.locator('.episode-list .episode-row').first().click()
+  await page.locator('.source-options button').first().click()
   await expect(page.getByRole('dialog', { name: 'Video player' })).toBeVisible()
 
   const helperReadDB = () =>
@@ -157,6 +159,7 @@ test('AnimeEmbed postMessage progress, pause, and ended update IndexedDB and ena
   // 4. Reopen episode 1: verify that resume position is loaded into the iframe src query parameter (?start=150)
   await page.getByRole('button', { name: 'Buka Sousou no Frieren' }).first().click()
   await page.locator('.episode-list .episode-row').first().click()
+  await page.locator('.source-options button').first().click()
   await expect(page.getByRole('dialog', { name: 'Video player' })).toBeVisible()
 
   const resumedIframe = page.getByTitle('External player · Episode 1')

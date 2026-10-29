@@ -145,7 +145,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    {stream.format==='embed'?<div className="embedded-source">
     <div className="embed-notice">
      <Info size={16}/>
-     <p>Pemutar eksternal AnimeEmbed. Ketersediaan episode dan bahasa subtitle belum diverifikasi secara menyeluruh. Subtitle bawaan berbahasa Inggris. Progress tontonan disinkronkan ke browser.</p>
+     <p>Pemutar eksternal AnimeEmbed. Ketersediaan episode dan bahasa subtitle belum diverifikasi secara menyeluruh. Bahasa subtitle dan ketersediaan video belum dapat diverifikasi Yoru. Progress dapat disimpan jika pemutar mengirim event yang valid.</p>
     </div>
     <iframe ref={iframeRef} title={`External player · Episode ${episode}`} src={resolvedEmbedUrl} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen referrerPolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" loading="eager"/>
     <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka pemutar di tab baru jika iframe mengalami kendala</a>
@@ -159,7 +159,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    </>}
   </div>
   <div className="player-footer">
-   <span><Subtitles size={16}/> {stream.format==='embed'?'Subtitle English (bawaan provider)':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':stream.tracks.length?`${stream.tracks.length} track subtitle tersedia`:'Subtitle tidak tersedia'}</span>
+   <span><Subtitles size={16}/> {stream.format==='embed'?'Subtitle eksternal belum diverifikasi':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':stream.tracks.length?`${stream.tracks.length} track subtitle tersedia`:'Subtitle tidak tersedia'}</span>
    <span><Info size={16}/> {demo?'Sampel lokal untuk menguji HLS & VTT.':stream.format==='embed'?'Progress tersimpan di browser ini.':'Stream bersumber dari konfigurasi lokal.'}</span>
   </div>
  </div>

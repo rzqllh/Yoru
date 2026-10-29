@@ -38,6 +38,7 @@ import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,li
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {getBreadcrumbs,parseRoute,routeToPath,type RouteState} from './lib/router'
 import Player from './components/Player'
+import {verifyNativeSource} from './lib/source-readiness'
 import {useDialogFocus} from './lib/useDialogFocus'
 
 type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean}
@@ -763,52 +764,51 @@ function DetailDialog({
   }
  }
 
- async function play(ep:Episode){
-  const sources=availableMap.get(ep.number)
-  if(!sources?.length){
-   onWatch({
-    anime:info,
-    episode:ep.number,
-    stream:{
-     providerId:'AnimeEmbed (Eksternal)',
-     format:'embed',
-     url:`https://www.animeembed.com/embed/mal/${info.malId}/${ep.number}`,
-     subtitleMode:'unknown',
-     tracks:[],
-    },
-   })
+ const embedCandidate=(ep:number):Stream=>({
+  providerId:'AnimeEmbed (belum diverifikasi)',
+  format:'embed',
+  url:`https://www.animeembed.com/embed/mal/${info.malId}/${ep}`,
+  subtitleMode:'unknown',tracks:[],
+ })
+ async function checkAndWatch(stream:Stream,ep:number){
+  if(stream.format==='embed'){
+   // Deliberate selection here is the user consent to leave native playback.
+   onWatch({anime:info,episode:ep,stream})
    return
   }
-
-  setPlaying(String(ep.number))
+  setPlaying(String(ep))
   setError('')
   try{
-   const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
-   const items=results.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
-   if(!items.length){
-    onWatch({
-     anime:info,
-     episode:ep.number,
-     stream:{
-      providerId:'AnimeEmbed (Eksternal)',
-      format:'embed',
-      url:`https://www.animeembed.com/embed/mal/${info.malId}/${ep.number}`,
-      subtitleMode:'unknown',
-      tracks:[],
-     },
-    })
+   await verifyNativeSource(stream)
+   onWatch({anime:info,episode:ep,stream})
+  }catch(e){
+   setError(`Sumber belum bisa diputar di browser ini: ${(e as Error).message} Pilih sumber lain atau coba lagi.`)
+  }finally{setPlaying('')}
+ }
+ async function play(ep:Episode){
+  const sources=(availableMap.get(ep.number)||[]).filter(source=>source.providerId!=='public-embed')
+  setPlaying(String(ep))
+  setError('')
+  try{
+   if(!sources.length){
+    setChoices({episode:ep.number,items:[embedCandidate(ep.number)]})
     return
    }
-   if(items.length===1){
-    onWatch({anime:info,episode:ep.number,stream:items[0]})
+   const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
+   const items=results.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
+   const native=items.filter(stream=>stream.format!=='embed')
+   if(!native.length){
+    setChoices({episode:ep.number,items:[embedCandidate(ep.number)]})
+    return
+   }
+   if(native.length===1){
+    await checkAndWatch(native[0],ep.number)
    }else{
-    setChoices({episode:ep.number,items})
+    setChoices({episode:ep.number,items:native})
    }
   }catch(e){
    setError((e as Error).message)
-  }finally{
-   setPlaying('')
-  }
+  }finally{setPlaying('')}
  }
 
  return <div className="modal-backdrop">
@@ -831,8 +831,8 @@ function DetailDialog({
      <p className={`detail-synopsis ${more?'expanded':''}`}>{info.synopsis||'Sinopsis belum tersedia dari metadata.'}</p>
      {info.synopsis.length>280&&<button type="button" className="read-more" onClick={()=>setMore(v=>!v)}>{more?'Sembunyikan':'Baca selengkapnya'} <ChevronDown size={14}/></button>}
      <div className="detail-actions">
-      <button type="button" className="btn btn-primary" onClick={()=>{const first=displayed[0];if(first)void play(first);else onWatch({anime:info,episode:1,stream:{providerId:'AnimeEmbed (Eksternal)',format:'embed',url:`https://www.animeembed.com/embed/mal/${info.malId}/1`,subtitleMode:'unknown',tracks:[]}})}}>
-       <Play size={16} fill="currentColor"/> {available.some(a=>a.providerId!=='public-embed')?'Pilih sumber':'Tonton episode 1'}
+      <button type="button" className="btn btn-primary" onClick={()=>void play(displayed[0]||{id:`mal:${info.malId}:1`,animeId:info.id,number:1,title:'Episode 1'})}>
+       <Play size={16} fill="currentColor"/> Periksa sumber episode
       </button>
       <button type="button" className="btn btn-outline" onClick={onToggleSave}>
        {isSaved?<Check size={16}/>:<Plus size={16}/>} {isSaved?'Tersimpan':'Koleksiku'}
@@ -847,7 +847,7 @@ function DetailDialog({
       <h2>Daftar episode</h2>
      </div>
      <span className="episode-count">
-      {available.filter(e=>e.providerId!=='public-embed').length>0?'Provider lokal terkonfigurasi':'Pemutar eksternal tersedia'}
+      {available.filter(e=>e.providerId!=='public-embed').length>0?'Provider lokal terkonfigurasi':'Belum ada sumber native terverifikasi'}
      </span>
     </div>
     {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
@@ -858,11 +858,11 @@ function DetailDialog({
       <button type="button" className="icon-button" onClick={()=>setChoices(null)} aria-label="Tutup pilihan sumber"><X size={15}/></button>
      </div>
      <div className="source-options">
-      {choices.items.map((stream,i)=><button type="button" key={stream.id||i} onClick={()=>onWatch({anime:info,episode:choices.episode,stream})}>
+      {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode)}>
        <MonitorPlay size={17}/>
        <span>
-        <strong>{stream.quality||stream.format.toUpperCase()} · {stream.subtitleMode==='hard'?'Hardsub':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia':'Subtitle English'}</strong>
-        <small>{stream.providerId||'Custom provider'} · {stream.format.toUpperCase()}</small>
+        <strong>{stream.format==='embed'?'Buka pemutar eksternal (belum diverifikasi)':stream.quality||stream.format.toUpperCase()} · {stream.subtitleMode==='hard'?'Hardsub':stream.tracks.some(t=>t.lang==='id')?'Track Indonesia terdaftar':'Subtitle belum diverifikasi'}</strong>
+        <small>{stream.format==='embed'?'Konfirmasi: ketersediaan, kontrol, dan subtitle tidak dijamin':`${stream.providerId||'Custom provider'} · Periksa di browser sebelum putar`}</small>
        </span>
        <Play size={16}/>
       </button>)}
@@ -876,9 +876,9 @@ function DetailDialog({
        <span className="episode-number">{String(ep.number).padStart(2,'0')}</span>
        <div>
         <strong>{ep.title}</strong>
-        <small>{streamReady?'Sumber lokal terkonfigurasi':'Pemutar AnimeEmbed'}</small>
+        <small>{streamReady?'Kandidat sumber · perlu diperiksa':'Belum ada sumber terverifikasi · periksa alternatif'}</small>
        </div>
-       <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<Play size={15}/>}</span>
+       <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<MonitorPlay size={15}/>}</span>
       </button>
      })}
     </div>:<Empty icon={Film} title="Episode belum tersedia" body="Daftar episode belum ditemukan dalam metadata."/>}
