@@ -82,7 +82,7 @@ app.get('/api/anime/:id/subtitles',async c=>{
  if(!id||!Number.isInteger(episode)||episode<1||episode>2000)return c.json({error:'INVALID_REQUEST'},400)
  try{
   const anime=await getAnime(id)
-  return c.json(await findSubtitles({title:anime.title,episode,type:anime.type}))
+  return c.json(await findSubtitles({title:anime.title,episode,type:anime.type,malId:id}))
  }catch{return c.json({error:'SUBTITLE_LOOKUP_UNAVAILABLE'},503)}
 })
 app.get('/api/subtitles/file',async c=>{
@@ -90,7 +90,7 @@ app.get('/api/subtitles/file',async c=>{
  if(!quota.ok){c.header('Retry-After',String(quota.retryAfter));return c.json({error:'SUBTITLE_RATE_LIMITED'},429)}
  const provider=c.req.query('provider')
  const ref=c.req.query('ref')||''
- if(!['subdl','subsource','opensubtitles'].includes(provider||'')||ref.length>260)return c.json({error:'INVALID_REQUEST'},400)
+ if(!['subdl','subsource','opensubtitles','stremio'].includes(provider||'')||ref.length>260)return c.json({error:'INVALID_REQUEST'},400)
  if(!verifySubtitleGrant(provider||'',ref,c.req.query('expires')||'',c.req.query('token')||''))return c.json({error:'INVALID_OR_EXPIRED_GRANT'},403)
  try{
   const content=toWebVtt(await downloadSubtitle(provider as SubtitleProvider,ref))
