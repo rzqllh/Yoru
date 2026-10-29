@@ -41,7 +41,14 @@ jobs:
           done
           node -e "const fs=require('fs'); const h=JSON.parse(fs.readFileSync('/tmp/yoru-health.json','utf8'));if(h.status!=='ok')process.exit(1)"
           curl --fail --silent --show-error http://127.0.0.1:8787/ | grep -q '<div id="root"'
+          curl --fail --silent --show-error -D /tmp/yoru-headers.txt -o /dev/null http://127.0.0.1:8787/api/health
+          grep -Eiq '^x-content-type-options: nosniff' /tmp/yoru-headers.txt
+          grep -Eiq '^x-frame-options: DENY' /tmp/yoru-headers.txt
+          grep -Eiq '^cache-control: no-store' /tmp/yoru-headers.txt
+          grep -Eiq '^content-security-policy: .*frame-ancestors' /tmp/yoru-headers.txt
           curl --fail --silent --show-error http://127.0.0.1:8787/demo/stream.m3u8 | grep -q 'segment-000.ts'
+          grep -q 'yoru-shell-v3-' frontend/dist/sw.js
+          grep -q '"/assets/' frontend/dist/sw.js
           test "$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8787/api/anime/search?q=')" = 400
           test "$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8787/api/streams?episodeRef=bad')" = 400
           test "$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8787/api/unknown')" = 404
