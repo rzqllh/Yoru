@@ -33,7 +33,7 @@ import {
  X,
 } from 'lucide-react'
 import type {Anime,Episode,LibraryEntry,LibraryStatus,ProgressEntry,Stream} from './types'
-import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams} from './lib/api'
+import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered} from './lib/api'
 import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime,getPreference,setPreference} from './lib/db'
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {getBreadcrumbs,parseRoute,routeToPath,type RouteState} from './lib/router'
@@ -492,6 +492,7 @@ function Browse({
  const [year,setYear]=useState('')
  const [order,setOrder]=useState('default')
  const value=query.trim()
+ const usesServerFilters=Boolean(genre||format||minimumScore||year||order!=='default')
 
  // biome-ignore lint/correctness/useExhaustiveDependencies: normalized query and kind changes reset page.
  useEffect(()=>{
@@ -499,7 +500,7 @@ function Browse({
   setNext(false)
   setError('')
   setPage(1)
- },[value,kind])
+ },[value,kind,genre,format,minimumScore,year,order])
 
  // biome-ignore lint/correctness/useExhaustiveDependencies: retry value intentionally forces new browse request.
  useEffect(()=>{
@@ -507,7 +508,7 @@ function Browse({
   setLoading(true)
   setError('')
   const timer=window.setTimeout(()=>{
-   const req=value?search(value,page,controller.signal):catalog(kind,page,controller.signal)
+   const req=usesServerFilters?browseFiltered({kind,query:value,genre,format,minimumScore,year,order},page,controller.signal):value?search(value,page,controller.signal):catalog(kind,page,controller.signal)
    req.then(response=>{
     if(controller.signal.aborted)return
     setNext(response.hasNext)
@@ -528,7 +529,7 @@ function Browse({
    controller.abort()
    window.clearTimeout(timer)
   }
- },[kind,value,page,retry])
+ },[kind,value,page,retry,usesServerFilters,genre,format,minimumScore,year,order])
 
  const uniqueItems=useMemo(()=>{
   const seen=new Set<number>()
@@ -539,15 +540,8 @@ function Browse({
   })
  },[items])
 
- const filteredItems=useMemo(()=>{
-  const results=uniqueItems.filter(a=>
-   (!genre||a.genres.includes(genre))&&(!format||a.type===format)&&
-   (!minimumScore||(a.score!==null&&a.score>=minimumScore))&&
-   (!year||String(a.year)===year))
-  return order==='rating'?[...results].sort((a,b)=>(b.score??-1)-(a.score??-1)):
-   order==='newest'?[...results].sort((a,b)=>(b.year??0)-(a.year??0)):results
- },[uniqueItems,genre,format,minimumScore,year,order])
- const years=useMemo(()=>[...new Set(uniqueItems.map(item=>item.year).filter((entry):entry is number=>entry!==null))].sort((a,b)=>b-a),[uniqueItems])
+ const filteredItems=uniqueItems
+ const years=Array.from({length:new Date().getFullYear()-1989},(_,index)=>new Date().getFullYear()-index)
 
  return <div className="page-body">
   <div className="page-intro">
@@ -589,7 +583,7 @@ function Browse({
    <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>setOrder(e.target.value)}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
    {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>{setGenre('');setFormat('');setMinimumScore(0);setYear('');setOrder('default')}}>Reset filter</button>}
   </fieldset>
-  <p className="browse-filter-note">Filter berlaku untuk hasil yang sudah dimuat. Pilih “Muat lebih banyak” untuk melihat hasil lain.</p>
+  <p className="browse-filter-note">Filter berlaku untuk seluruh katalog. Pilih “Muat lebih banyak” untuk hasil selanjutnya.</p>
 
   <div className="browse-results-header">
    <div>
