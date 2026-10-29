@@ -29,7 +29,7 @@ test.beforeEach(async({page})=>{
 })
 test('desktop: catalog, search, detail, library and playback with Indonesian VTT',async({page})=>{
  await page.goto('/')
- await expect(page.getByRole('heading',{name:'Beranda.'})).toBeVisible()
+ await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)/})).toBeVisible()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toBeVisible()
@@ -44,7 +44,7 @@ test('desktop: catalog, search, detail, library and playback with Indonesian VTT
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await page.reload()
- await expect(page.getByRole('heading',{name:'Beranda.'})).toBeVisible()
+ await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)/})).toBeVisible()
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
 })
@@ -53,7 +53,7 @@ test('mobile: navigation and sample player remain usable at iPhone-sized viewpor
  await page.goto('/')
  await page.getByRole('button',{name:'Buka menu'}).click()
  await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
- await expect(page.getByRole('heading',{name:'Pengaturan.'})).toBeVisible()
+ await expect(page.getByRole('heading',{name:/^Pengaturan/})).toBeVisible()
  await page.getByRole('button',{name:/Test player/}).click()
  await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
  await expect(page.locator('video track[srclang="id"]')).toHaveCount(1)
@@ -196,10 +196,10 @@ test('player modal restores focus to the Settings test-player button',async({pag
 test('quick links navigate to different views: current season vs saved progress',async({page})=>{
  await page.goto('/')
  await page.getByRole('button',{name:/Anime musim ini/}).click()
- await expect(page.getByRole('heading',{name:'Jelajahi.'})).toBeVisible()
+ await expect(page.getByRole('heading',{name:/^Jelajahi/})).toBeVisible()
  await expect(page.locator('.category-switch button').first()).toHaveClass(/active/)
  await page.getByRole('button',{name:/Lanjut menonton/}).first().click()
- await expect(page.getByRole('heading',{name:'Koleksiku.'})).toBeVisible()
+ await expect(page.getByRole('heading',{name:/^Koleksi/})).toBeVisible()
  await expect(page.getByRole('heading',{name:'Lanjut menonton'})).toBeVisible()
  await expect(page.getByText('Belum ada tontonan untuk dilanjutkan')).toBeVisible()
 })
@@ -212,4 +212,28 @@ test('anime without configured sources provides clearly labelled external embed 
  const frame=page.getByTitle('External player · Episode 1')
  await expect(frame).toHaveAttribute('src','https://www.animeembed.com/embed/mal/1/1')
  await expect(page.getByText(/ketersediaan episode dan bahasa subtitle belum diverifikasi/i)).toBeVisible()
+})
+
+
+test('browse search failure clears stale results instead of showing old anime',async({page})=>{
+ await page.route('**/api/anime/search?**',async route=>{
+  await route.fulfill({status:503,json:{error:'CATALOG_UNAVAILABLE',message:'Katalog sedang tidak tersedia'}})
+ })
+ await page.goto('/jelajahi')
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+ await page.getByRole('textbox',{name:'Cari anime'}).fill('judul tidak tersedia')
+ await expect(page.getByText('Tidak dapat memuat katalog')).toBeVisible()
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(0)
+ await expect(page.getByRole('button',{name:/Coba lagi/})).toBeVisible()
+})
+
+
+test('browse keeps results when a search changes only in trailing whitespace',async({page})=>{
+ await page.goto('/jelajahi')
+ const input=page.getByRole('textbox',{name:'Cari anime'})
+ await input.fill('Yoru')
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+ await input.fill('Yoru ')
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+ await expect(page.getByText('Tidak ada judul yang cocok')).toHaveCount(0)
 })

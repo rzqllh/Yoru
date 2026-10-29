@@ -15,6 +15,6 @@ ZIP versi `v0.9.0-rc.1` sebelumnya adalah kumpulan hasil build + file Node untuk
 
 ## Status fitur yang perlu diketahui
 
-Yoru web saat ini mendukung katalog Tenrai, player demo HLS/WebVTT, library IndexedDB, offline shell, provider manual dan Stremio HTTPS opt-in. Source anime nyata, subtitle pada provider eksternal, Safari fisik serta aplikasi mobile/Windows native masih memerlukan validasi/implementasi tambahan.
+Yoru web saat ini mendukung katalog Tenrai, navigasi kanonikal browser, player demo HLS/WebVTT, player embed AnimeEmbed dengan sinkronisasi progres tontonan via postMessage dan resume `?start=`, library IndexedDB, offline shell, provider manual, dan Stremio HTTPS opt-in. Subtitle bawaan AnimeEmbed adalah Bahasa Inggris, sementara subtitle Indonesia didukung penuh via file lokal/kustom. Safari fisik serta installer desktop/mobile native belum dirilis.
 
 Lihat [Panduan mulai](getting-started.md) untuk menjalankan versi web dan [Issue tracking](https://github.com/rzqllh/Yoru/issues/3) untuk blocker release berikutnya.

@@ -9,5 +9,5 @@ export const search=(query:string,page=1,signal?:AbortSignal)=>api<CatalogRespon
 export const detail=(malId:number,signal?:AbortSignal)=>api<Anime>(`/api/anime/${malId}`,signal)
 export const episodes=(malId:number,page=1,signal?:AbortSignal)=>api<{items:Episode[];hasNext:boolean;page:number}>(`/api/anime/${malId}/episodes?page=${page}`,signal)
 export const providerEpisodes=(malId:number,signal?:AbortSignal)=>api<{items:Episode[]}>(`/api/anime/${malId}/provider-episodes`,signal)
-export const streams=(providerEpisodeId:string,signal?:AbortSignal)=>api<{items:Stream[]}>(`/api/streams?episodeRef=${encodeURIComponent(providerEpisodeId)}`,signal)
+export const streams=(providerEpisodeId:string,signal?:AbortSignal,start=0)=>api<{items:Stream[]}>(`/api/streams?episodeRef=${encodeURIComponent(providerEpisodeId)}${start>0?`&start=${Math.floor(start)}`:''}`,signal)
 export const providers=()=>api<{providers:{id:string;name:string;animeCount:number|null}[];warnings?:string[]}>('/api/providers')

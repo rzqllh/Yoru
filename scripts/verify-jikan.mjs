@@ -7,7 +7,7 @@ const calls=[]
 const originalFetch=globalThis.fetch
 globalThis.fetch=async url=>{
  const request=String(url)
- assert.ok(request.startsWith(upstream+'/'),`Unexpected upstream: ${request}`)
+ assert.ok(request.startsWith(`${upstream}/`),`Unexpected upstream: ${request}`)
  calls.push(request)
  await new Promise(resolve=>setTimeout(resolve,10))
  if(request.includes('429%20scenario')&&calls.filter(x=>x===request).length===1){
