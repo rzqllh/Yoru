@@ -128,3 +128,7 @@ Set `MIRURO_API_BASE` to the HTTPS origin of an **approved/self-hosted Miruro-co
 Yoru resolves MAL → AniList via AniList GraphQL, fetches the provider-specific SUB episode lists, rejects mismatched AniList IDs and episode numbers, and exposes candidate HLS/MP4 streams only. External embeds and stream links requiring unsupported Referer/headers are not silently proxied; the browser native preflight determines whether a candidate can actually decode.
 
 The adapter implements the external API contract without copying or vendoring its code. The upstream author describes the project as educational only. Confirm relevant terms and video rights before making this provider part of a public production distribution. Configured upstream != episode playable; strict verification still applies.
+
+### Provider API authentication correction (29 October 2026)
+
+SubDL **v1** search uses an `api_key` URL query parameter according to the official v1 specification; the v2 Bearer convention is not interchangeable. Yoru supplies that parameter from its backend environment and does not expose it to the frontend. To reduce anonymous quota exhaustion, Yoru issues short-lived HMAC-signed subtitle-file links after search, requires the grant at download, and applies conservative process-wide request ceilings. Public multi-instance deployments still need a shared rate-limit/authentication gateway; an in-process limiter is not a public service guarantee.

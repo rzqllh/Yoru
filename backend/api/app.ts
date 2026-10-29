@@ -8,6 +8,8 @@ import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../provider
 import {externalStream} from '../providers/public-embed.js'
 import {getMiruroEpisodes,getMiruroStreams,isMiruroConfigured} from '../providers/miruro.js'
 import {downloadSubtitle,findSubtitles,toWebVtt,subtitleStatus,type SubtitleProvider} from '../providers/subtitles.js'
+import {verifySubtitleGrant} from '../providers/subtitle-grants.js'
+import {subtitleSearchLimit,subtitleFileLimit} from './subtitle-rate-limit.js'
 
 export const app = new Hono()
 app.use('*',async(c,next)=>{
@@ -70,6 +72,7 @@ app.get('/api/streams',async c=>{
 
 app.get('/api/subtitles/status',c=>c.json({configured:subtitleStatus()}))
 app.get('/api/anime/:id/subtitles',async c=>{
+ if(!subtitleSearchLimit())return c.json({error:'RATE_LIMITED'},429)
  const id=validId(c.req.param('id'))
  const episode=Number(c.req.query('episode')||'0')
  if(!id||!Number.isInteger(episode)||episode<1||episode>2000)return c.json({error:'INVALID_REQUEST'},400)
@@ -79,9 +82,11 @@ app.get('/api/anime/:id/subtitles',async c=>{
  }catch{return c.json({error:'SUBTITLE_LOOKUP_UNAVAILABLE'},503)}
 })
 app.get('/api/subtitles/file',async c=>{
+ if(!subtitleFileLimit())return c.json({error:'RATE_LIMITED'},429)
  const provider=c.req.query('provider')
  const ref=c.req.query('ref')||''
  if(!['subdl','subsource','opensubtitles'].includes(provider||'')||ref.length>260)return c.json({error:'INVALID_REQUEST'},400)
+ if(!verifySubtitleGrant(provider||'',ref,c.req.query('expires')||'',c.req.query('token')||''))return c.json({error:'INVALID_OR_EXPIRED_GRANT'},403)
  try{
   const content=toWebVtt(await downloadSubtitle(provider as SubtitleProvider,ref))
   c.header('Content-Type','text/vtt; charset=utf-8')
