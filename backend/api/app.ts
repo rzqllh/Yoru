@@ -6,6 +6,7 @@ import { getAnime, getAnimeEpisodes, getDiscover, searchAnime } from '../pipelin
 import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../providers/local.js'
 import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../providers/stremio.js'
 import {externalStream} from '../providers/public-embed.js'
+import {getMiruroEpisodes,getMiruroStreams,isMiruroConfigured} from '../providers/miruro.js'
 import {downloadSubtitle,findSubtitles,toWebVtt,subtitleStatus,type SubtitleProvider} from '../providers/subtitles.js'
 
 export const app = new Hono()
@@ -39,13 +40,14 @@ app.get('/api/anime/:id/episodes',async c=>{
  try{return c.json(await getAnimeEpisodes(id,positive(c.req.query('page'),1000)))}catch(e){return c.json({error:'EPISODES_UNAVAILABLE',message:(e as Error).message},503)}
 })
 app.get('/api/providers',async c=>{
- const results=await Promise.allSettled([
+ const results=await Promise.allSettled<{id:string;name:string;animeCount:number|null}[]>([
   getLocalProvider().then(local=>local?[{id:local.id,name:local.name,animeCount:local.anime.length}]:[]),
   getStremioConfig().then(config=>(config?.addons??[]).map(addon=>({
    id:`stremio-${addon.id}`,name:addon.name,animeCount:addon.anime.length
-  })))
+  }))),
+  Promise.resolve(isMiruroConfigured()?[{id:'miruro',name:'Miruro-compatible HTTPS API (opt-in)',animeCount:null}]:[])
  ])
- const result=combineProviderResults(results,['local','stremio'])
+ const result=combineProviderResults(results,['local','stremio','miruro'])
  return c.json({providers:[...result.items,{id:'public-embed',name:'External anime player (unverified)',animeCount:null}],warnings:result.warnings},200)
 })
 app.get('/api/anime/:id/provider-episodes',async c=>{
@@ -53,16 +55,17 @@ app.get('/api/anime/:id/provider-episodes',async c=>{
  const animeId=`mal:${id}`
  const results=await Promise.allSettled([
   getProviderEpisodes(animeId),
-  getStremioEpisodes(animeId)
+  getStremioEpisodes(animeId),
+  getMiruroEpisodes(id)
  ])
- const result=combineProviderResults(results,['local','stremio'])
+ const result=combineProviderResults(results,['local','stremio','miruro'])
  return c.json({items:result.items,warnings:result.warnings},200)
 })
 app.get('/api/streams',async c=>{
  const ref=c.req.query('episodeRef')||''
  const start=Number(c.req.query('start')||'0')
  if(ref.length>160||!(/^[a-z0-9-]+:[1-9]\d*:[1-9]\d*$/.test(ref)))return c.json({error:'INVALID_EPISODE_REF'},400)
- try{return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('stremio-')?await getStremioStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
+ try{return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('stremio-')?await getStremioStreams(ref):ref.startsWith('miruro-')?await getMiruroStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
 })
 
 app.get('/api/subtitles/status',c=>c.json({configured:subtitleStatus()}))
