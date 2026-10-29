@@ -13,7 +13,7 @@ async function dispatch(route,rest=''){
 const health=await dispatch('health')
 assert.equal(health.status,200)
 assert.equal(health.headers.get('cache-control'),'no-store')
-assert.equal(typeof (await health.json()).version,'string')
+assert.equal((await health.json()).version,1)
 const nested=await dispatch('anime/discover','&kind=invalid')
 assert.equal(nested.status,400)
 assert.equal((await nested.json()).error,'INVALID_KIND')
