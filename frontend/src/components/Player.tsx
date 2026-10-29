@@ -7,6 +7,7 @@ import {applySubtitleOffset,type CueBaseline} from '../lib/subtitle-offset'
 import {connectAnimeEmbed,extractValidPlaybackProgress} from '../lib/animeembed'
 import {useDialogFocus} from '../lib/useDialogFocus'
 
+type SubtitleResult={id:string;provider:string;language:'id'|'en';label:string;release:string;episode:number;score:number;sourceUrl?:string}
 type Props={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;onClose:()=>void}
 export default function Player({anime,episode,stream,demo=false,onClose}:Props){
  const video=useRef<HTMLVideoElement>(null)
@@ -17,6 +18,14 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
  const [qualityLevels,setQualityLevels]=useState<{index:number;height:number}[]>([])
  const [qualityIndex,setQualityIndex]=useState<number|null>(null)
  const [qualityNote,setQualityNote]=useState('')
+ const [subtitleChoices,setSubtitleChoices]=useState<SubtitleResult[]>([])
+ const [subtitleState,setSubtitleState]=useState('')
+ const [subtitleSearch,setSubtitleSearch]=useState(false)
+ const [subtitlePanel,setSubtitlePanel]=useState(false)
+ const [selectedSubtitle,setSelectedSubtitle]=useState<{id:string;lang:string;url:string}|null>(null)
+ const [subtitleOff,setSubtitleOff]=useState(false)
+ const [subtitleManual,setSubtitleManual]=useState(false)
+ const subtitleUrlRef=useRef<string|null>(null)
  const [subtitleOffset,setSubtitleOffset]=useState(0)
  const [error,setError]=useState('')
  const [ready,setReady]=useState(false)
@@ -51,6 +60,106 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
   apply()
   return()=>{for(const track of nodes)track.removeEventListener('load',apply)}
  },[stream.format,subtitleOffset])
+
+ useEffect(()=>{
+  if(demo||!anime||stream.format==='embed')return
+  const controller=new AbortController()
+  let alive=true
+  setSubtitleChoices([])
+  setSubtitleState('')
+  setSubtitleSearch(true)
+  setSubtitleOff(false)
+  setSubtitleManual(false)
+  setSelectedSubtitle(null)
+  void fetch(`/api/anime/${anime.malId}/subtitles?episode=${episode}`,{signal:controller.signal})
+   .then(async response=>{
+    if(!response.ok)throw new Error('SUBTITLE_SEARCH_UNAVAILABLE')
+    return response.json() as Promise<{items?:SubtitleResult[];warnings?:string[]}>
+   }).then(data=>{
+    if(!alive)return
+    const choices=(data.items||[]).filter(item=>item.episode===episode&&
+     (item.language==='id'||item.language==='en')&&
+     typeof item.sourceUrl==='string'&&item.sourceUrl.startsWith('/api/subtitles/file?')&&item.score>=70)
+    choices.sort((a,b)=>(a.language==='id'?0:1)-(b.language==='id'?0:1)||b.score-a.score)
+    setSubtitleChoices(choices)
+    if(!choices.length)setSubtitleState((data.warnings||[]).length?'Provider subtitle belum siap atau tidak ada hasil yang cocok.':'Subtitle eksternal belum ditemukan.')
+   }).catch(()=>{
+    if(alive)setSubtitleState('Layanan pencarian subtitle tidak tersedia.')
+   }).finally(()=>{if(alive)setSubtitleSearch(false)})
+  return()=>{alive=false;controller.abort()}
+ },[anime,episode,stream.format,demo])
+
+ useEffect(()=>()=>{
+  if(subtitleUrlRef.current)URL.revokeObjectURL(subtitleUrlRef.current)
+ },[])
+
+ async function activateSubtitle(item:SubtitleResult,manual:boolean){
+  if(!item.sourceUrl)return false
+  setSubtitleState('Memuat subtitle dari '+item.provider+'…')
+  try{
+   const response=await fetch(item.sourceUrl)
+   if(!response.ok)throw new Error('Gagal mengunduh subtitle')
+   const body=await response.text()
+   if(body.length>500000||!body.trimStart().startsWith('WEBVTT'))throw new Error('Format subtitle belum didukung')
+   const url=URL.createObjectURL(new Blob([body],{type:'text/vtt'}))
+   if(subtitleUrlRef.current)URL.revokeObjectURL(subtitleUrlRef.current)
+   subtitleUrlRef.current=url
+   setSelectedSubtitle({id:item.id,lang:item.language,url})
+   setSubtitleOff(false)
+   setSubtitleManual(manual)
+   setSubtitleState(item.label+' · '+item.provider+' · file berhasil dimuat')
+   return true
+  }catch{
+   setSubtitleState('Subtitle '+item.label+' gagal dimuat. Pilih versi lain.')
+   return false
+  }
+ }
+ function disableSubtitle(){
+  setSubtitleManual(true)
+  setSubtitleOff(true)
+  setSelectedSubtitle(null)
+  setSubtitleState('Subtitle dimatikan atas pilihan pengguna.')
+  const tracks=video.current?.textTracks
+  if(tracks)for(let i=0;i<tracks.length;i++)tracks[i].mode='disabled'
+ }
+ useEffect(()=>{
+  if(subtitleManual||subtitleOff||selectedSubtitle||subtitleSearch||!subtitleChoices.length)return
+  let alive=true
+  void (async()=>{
+   for(const item of subtitleChoices){
+    if(!alive)return
+    if(!item.sourceUrl)continue
+    const response=await fetch(item.sourceUrl).catch(()=>null)
+    if(!response?.ok)continue
+    const text=await response.text().catch(()=>null)
+    if(!text||text.length>500000||!text.trimStart().startsWith('WEBVTT'))continue
+    if(!alive)return
+    const url=URL.createObjectURL(new Blob([text],{type:'text/vtt'}))
+    if(subtitleUrlRef.current)URL.revokeObjectURL(subtitleUrlRef.current)
+    subtitleUrlRef.current=url
+    setSelectedSubtitle({id:item.id,lang:item.language,url})
+    setSubtitleState(item.label+' · '+item.provider+' · dipilih otomatis')
+    return
+   }
+   if(alive)setSubtitleState('Tidak ada subtitle eksternal yang berhasil dimuat.')
+  })()
+  return()=>{alive=false}
+ },[subtitleChoices,subtitleManual,subtitleOff,selectedSubtitle,subtitleSearch])
+
+ useEffect(()=>{
+  if(stream.format==='embed')return
+  const v=video.current
+  if(!v)return
+  if(subtitleOff){
+   for(let i=0;i<v.textTracks.length;i++)v.textTracks[i].mode='disabled'
+   return
+  }
+  if(!selectedSubtitle)return
+  for(let i=0;i<v.textTracks.length;i++){
+   const track=v.textTracks[i]
+   track.mode=track.label===selectedSubtitle.id?'showing':'disabled'
+  }
+ },[subtitleOff,selectedSubtitle,stream.format])
 
  function changeOffset(delta:number){
   if(!anime||demo)return
@@ -227,7 +336,11 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
    <video ref={video} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onPause={saveLocal} onEnded={saveLocal} autoPlay>
-    {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={t.lang==='id'}/>)}
+    {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={t.lang==='id'&&!selectedSubtitle&&!subtitleOff}/>)}
+    {selectedSubtitle&&!subtitleOff&&<track key={selectedSubtitle.url} kind="subtitles" srcLang={selectedSubtitle.lang} label={selectedSubtitle.id} src={selectedSubtitle.url} default onLoad={()=>{
+     const tracks=video.current?.textTracks
+     if(tracks)for(let i=0;i<tracks.length;i++)tracks[i].mode=tracks[i].label===selectedSubtitle.id?'showing':'disabled'
+    }}/>} 
    </video>
    {!ready&&!error&&<div className="player-loading"><MonitorPlay size={34}/><span>Menyiapkan pemutaran video…</span></div>}
    {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p></div>}
@@ -251,7 +364,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
      {qualityLevels.map(level=><option key={level.index} value={level.index}>{level.height}p</option>)}
     </select>
    </label>}
-   {stream.subtitleMode!=='hard'&&stream.tracks.length>0&&<div className="player-offset">
+   {stream.subtitleMode!=='hard'&&(stream.tracks.length>0||selectedSubtitle!==null)&&<div className="player-offset">
     <span>Sync sub: {subtitleOffset>0?'+':''}{subtitleOffset.toFixed(1)}s</span>
     <button type="button" onClick={()=>changeOffset(-0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih awal">−0.5</button>
     <button type="button" onClick={()=>changeOffset(-0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih awal">−0.1</button>
@@ -259,10 +372,21 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
     <button type="button" onClick={()=>changeOffset(0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih lambat">+0.1</button>
     <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
    </div>}
+   {!demo&&anime&&stream.subtitleMode!=='hard'&&<button type="button" className="player-subtitle-trigger" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
+    <Subtitles size={15}/> CC · {selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':'English'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
+   </button>}
    {qualityNote&&<small role="status">{qualityNote}</small>}
   </div>}
+  {stream.format!=='embed'&&subtitlePanel&&!demo&&anime&&<div className="player-subtitle-panel">
+   <div className="subtitle-picker-header"><strong>Subtitle episode {episode}</strong><button type="button" onClick={()=>setSubtitlePanel(false)}>Tutup</button></div>
+   <button type="button" onClick={disableSubtitle} aria-pressed={subtitleOff}>Off</button>
+   {subtitleChoices.map(item=><button type="button" key={item.id} onClick={()=>{setSubtitleManual(true);void activateSubtitle(item,true)}} aria-pressed={selectedSubtitle?.id===item.id}>
+    {item.label} · {item.provider} {item.release?('· '+item.release):''} · Episode cocok, sinkronisasi belum dijamin
+   </button>)}
+   <small role="status">{subtitleSearch?'Mencari kandidat subtitle…':subtitleState||'Hanya track yang benar-benar berhasil dimuat akan diaktifkan.'}</small>
+  </div>}
   <div className="player-footer">
-   <span><Subtitles size={16}/> {stream.format==='embed'?'Subtitle eksternal belum diverifikasi':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':stream.tracks.length?`${stream.tracks.length} track subtitle tersedia`:'Subtitle tidak tersedia'}</span>
+   <span><Subtitles size={16}/> {stream.format==='embed'?'Subtitle eksternal belum diverifikasi':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':selectedSubtitle?`Subtitle ${selectedSubtitle.lang==='id'?'Indonesia':'English'} dimuat`:subtitleOff?'Subtitle Off':stream.tracks.length?`${stream.tracks.length} track video terdaftar`:'Subtitle belum ditemukan'}</span>
    <span><Info size={16}/> {demo?'Sampel lokal untuk menguji HLS & VTT.':stream.format==='embed'?'Progress tersimpan di browser ini.':'Stream bersumber dari konfigurasi lokal.'}</span>
   </div>
  </div>

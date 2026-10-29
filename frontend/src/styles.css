@@ -2245,3 +2245,16 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .player-offset { width: 100%; }
   .player-toolbar select,.player-offset button { min-height: 40px; }
 }
+
+.player-subtitle-trigger,.player-subtitle-panel button {
+ min-height:40px;border:1px solid #3a4049;border-radius:8px;
+ background:#1a2028;color:#f5f6f8;padding:7px 12px;
+}
+.player-subtitle-trigger {display:inline-flex;align-items:center;gap:7px;}
+.player-subtitle-panel {display:flex;flex-direction:column;gap:7px;max-height:35vh;overflow:auto;
+ background:#121820;padding:14px 24px;border-top:1px solid #303844;font-size:12px;}
+.player-subtitle-panel button{text-align:left;}
+.player-subtitle-panel button[aria-pressed="true"]{border-color:var(--accent);}
+.subtitle-picker-header{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.player-subtitle-panel small{color:#aeb5c0;}
+@media(max-width:600px){.player-subtitle-panel{max-height:46vh;padding:12px;}}
