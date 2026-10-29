@@ -579,7 +579,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <strong>{demo?'Contoh video':anime?.title}</strong>
     <small>{demo?'Contoh dengan subtitle Indonesia':`Episode ${episode}${resumeAt>0?` · Melanjutkan dari ${Math.floor(resumeAt/60)}m ${Math.floor(resumeAt%60)}s`:''}`}</small>
    </div>
-   <div className="player-provider">{stream.providerId||'Sumber default'}</div>
+   <div className="player-provider">{stream.format==='embed'?'Video alternatif':'Video langsung'}</div>
   </div>
   <div className="player-stage">
    {stream.format==='embed'?<div className="embedded-source">
@@ -591,13 +591,14 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka video di tab baru</a>
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
-   <video ref={video} className={`subtitle-font-${captionFont} subtitle-size-${captionSize} subtitle-backdrop-${captionBackdrop}`} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onPause={saveLocal} onEnded={()=>{saveLocal();void prepareNextEpisode()}} autoPlay>
+   <video ref={video} className={`subtitle-font-${captionFont} subtitle-size-${captionSize} subtitle-backdrop-${captionBackdrop}`} playsInline preload="metadata" crossOrigin="anonymous" onPlay={()=>setIsPaused(false)} onPause={()=>{setIsPaused(true);saveLocal()}} onVolumeChange={()=>{if(video.current){setVolume(video.current.volume);setIsMuted(video.current.muted)}}} onLoadedMetadata={()=>{setReady(true);setDuration(video.current?.duration||0);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onDurationChange={()=>setDuration(video.current?.duration||0)} onTimeUpdate={()=>{setPosition(video.current?.currentTime||0);if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onEnded={()=>{setIsPaused(true);saveLocal();void prepareNextEpisode()}} autoPlay>
     {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={subtitlePreferenceReady&&!subtitleOff&&!selectedSubtitle&&t.lang===(subtitlePreference==='en'?'en':'id')}/>)}
     {selectedSubtitle&&!subtitleOff&&<track key={selectedSubtitle.url} kind="subtitles" srcLang={selectedSubtitle.lang} label={selectedSubtitle.id} src={selectedSubtitle.url} default onLoad={()=>{
      const tracks=video.current?.textTracks
      if(tracks)for(let i=0;i<tracks.length;i++)tracks[i].mode=tracks[i].label===selectedSubtitle.id?'showing':'disabled'
     }}/>} 
    </video>
+   {ready&&isPaused&&!error&&<button type="button" className="player-center-play" aria-label="Putar video" onClick={togglePlayback}><Play size={30} fill="currentColor"/></button>}
    {!ready&&!error&&<div className="player-loading"><MonitorPlay size={34}/><span>Menyiapkan pemutaran video…</span></div>}
    {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p>{onRecoverSource&&<button type="button" disabled={recovering} onClick={()=>void recoverManually()}>{recovering?'Mencoba sumber lain…':'Coba sumber lain'}</button>}{recoverMessage&&<p role="status">{recoverMessage}</p>}</div>}
    </>}
@@ -609,6 +610,13 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   </div>}
   {nextMessage&&<div className="player-next" role="status">{nextMessage}</div>}
   {stream.format!=='embed'&&<div className="player-toolbar">
+   <div className="player-transport">
+    <button type="button" className="player-transport-play" aria-label={isPaused?'Putar video':'Jeda video'} onClick={togglePlayback}>{isPaused?<Play size={20} fill="currentColor"/>:<Pause size={20} fill="currentColor"/>}</button>
+    <span className="player-time" aria-live="off">{clock(position)} <span>/</span> {clock(duration)}</span>
+    <input type="range" min={0} max={Number.isFinite(duration)&&duration>0?duration:1} step="0.1" value={Math.min(position,Number.isFinite(duration)&&duration>0?duration:1)} onChange={event=>seekTo(Number(event.target.value))} aria-label="Posisi video" className="player-seek" style={{'--seek':`${duration>0?position/duration*100:0}%`} as CSSProperties}/>
+    <button type="button" aria-label={isMuted||volume===0?'Aktifkan suara':'Matikan suara'} onClick={()=>{const v=video.current;if(v){v.muted=!v.muted;setIsMuted(v.muted)}}}>{isMuted||volume===0?<VolumeX size={19}/>:<Volume2 size={19}/>}</button>
+    <input type="range" min="0" max="1" step="0.05" value={isMuted?0:volume} onChange={event=>setSound(Number(event.target.value))} aria-label="Volume" className="player-volume"/>
+   </div>
    <div className="player-quick-actions">
     <button type="button" aria-label="Mundur 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.max(0,v.currentTime-10)}}><SkipBack size={16}/> −10s</button>
     <button type="button" aria-label="Maju 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.min(Number.isFinite(v.duration)?v.duration:Infinity,v.currentTime+10)}}><SkipForward size={16}/> +10s</button>
@@ -640,18 +648,27 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <button type="button" onClick={()=>changeOffset(0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih lambat">+0.1</button>
     <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
    </div>}
-   {!demo&&anime&&stream.subtitleMode!=='hard'&&<button type="button" className="player-subtitle-trigger" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
+   <button type="button" className="player-subtitle-trigger" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
     <Subtitles size={15}/> Subtitle · {selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':'English'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
-   </button>}
+   </button>
    {qualityNote&&<small role="status">{qualityNote}</small>}
   </div>}
   {displayNotice&&<div className="player-control-notice" role="status">{displayNotice}</div>}
-  {stream.format!=='embed'&&subtitlePanel&&!demo&&anime&&<div className="player-subtitle-panel">
+  {subtitlePanel&&<div className="player-subtitle-panel" id="yoru-subtitle-panel">
    <div className="subtitle-picker-header"><strong>Subtitle episode {episode}</strong><button type="button" onClick={()=>setSubtitlePanel(false)}>Tutup</button></div>
+   {stream.format==='embed'?<p className="subtitle-embed-explainer" role="status">Pilihan subtitle diatur oleh pemutar video alternatif. Buka pengaturan di dalam video jika tersedia.</p>:<>
+   <div className="subtitle-section-label">Bahasa subtitle</div>
    <button type="button" onClick={disableSubtitle} aria-pressed={subtitleOff}>Off</button>
+   {stream.tracks.filter(item=>item.lang==='id'||item.lang==='en').map(item=><button type="button" key={item.url} onClick={()=>chooseNativeSubtitle(item.lang as 'id'|'en')} aria-pressed={!subtitleOff&&!selectedSubtitle&&subtitlePreference===item.lang}>{item.lang==='id'?'Bahasa Indonesia':'English'} · Bawaan video</button>)}
    {subtitleChoices.map(item=><button type="button" key={item.id} onClick={()=>{setSubtitleManual(true);void activateSubtitle(item,true)}} aria-pressed={selectedSubtitle?.id===item.id}>
     {item.label} · Pilihan {subtitleChoices.indexOf(item)+1}
    </button>)}
+   <div className="subtitle-upload">
+    <label htmlFor="yoru-subtitle-upload"><Upload size={16}/> Tambahkan subtitle dari perangkat</label>
+    <input id="yoru-subtitle-upload" type="file" accept=".srt,.vtt,text/vtt,text/plain" onChange={event=>void importSubtitle(event)} aria-label="Unggah subtitle SRT atau VTT"/>
+    {uploadedName&&<small>Dipilih: {uploadedName}</small>}
+   </div>
+   <div className="subtitle-section-label"><SlidersHorizontal size={14}/> Tampilan dan waktu</div>
    <div className="subtitle-style-controls">
     <label>Jenis huruf <select aria-label="Font subtitle" value={captionFont} onChange={event=>saveCaptionStyle(event.target.value as 'sans'|'serif',captionSize,captionBackdrop,captionScope)}>
      <option value="sans">Sans-serif</option><option value="serif">Serif</option>
@@ -667,6 +684,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     </select></label>
    </div>
    <small role="status">{subtitleSearch?'Mencari subtitle…':subtitleState||'Pilih subtitle yang tersedia untuk video ini.'}</small>
+   </>}
   </div>}
   <div className="player-footer">
    <span><Subtitles size={16}/> {stream.format==='embed'?'Pilihan subtitle mengikuti video':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':selectedSubtitle?`Subtitle ${selectedSubtitle.lang==='id'?'Indonesia':'English'} dimuat`:subtitleOff?'Subtitle mati':stream.tracks.length?`${stream.tracks.length} pilihan subtitle tersedia`:'Subtitle belum ditemukan'}</span>
