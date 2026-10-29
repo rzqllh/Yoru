@@ -15,7 +15,7 @@ export function grantSubtitleUrl(sourceUrl:string,now=Date.now()):string{
  return base.pathname+base.search
 }
 export function verifySubtitleGrant(provider:string,ref:string,expires:string,token:string,now=Date.now()):boolean{
- if(!validProvider(provider)||!ref||ref.length>260||!/^[1-9]\\d{12}$/.test(expires)||!/^[a-f0-9]{64}$/.test(token))return false
+ if(!validProvider(provider)||!ref||ref.length>260||!/^[1-9]\d{12}$/.test(expires)||!/^[a-f0-9]{64}$/.test(token))return false
  const time=Number(expires)
  if(time<now||time>now+ttlMs)return false
  const expected=Buffer.from(signature(provider,ref,expires),'hex'),actual=Buffer.from(token,'hex')
