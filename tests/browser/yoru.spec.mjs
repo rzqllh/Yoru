@@ -285,7 +285,7 @@ test('settings reports a degraded provider while keeping healthy providers liste
  await page.goto('/')
  await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
  await expect(page.getByText('Sumber pribadi')).toBeVisible()
- await expect(page.locator('.config-error')).toContainText('stremio')
+ await expect(page.locator('.config-error')).toContainText('Beberapa sumber sedang tidak tersedia')
 })
 
 test('detail modal traps keyboard focus and restores the opener after closing',async({page})=>{
