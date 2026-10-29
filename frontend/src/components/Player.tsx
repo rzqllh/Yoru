@@ -16,6 +16,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const hlsRef=useRef<Hls|null>(null)
  const cueBaselines=useRef(new WeakMap<object,CueBaseline>())
  const [speed,setSpeed]=useState(1)
+ const [autoNext,setAutoNext]=useState(true)
+ useEffect(()=>{void Promise.all([getPreference('playback-speed','1'),getPreference('auto-next','on')]).then(([rate,next])=>{const n=Number(rate);if([0.5,0.75,1,1.25,1.5,2].includes(n))setSpeed(n);setAutoNext(next!=='off')}).catch(()=>{})},[])
  const [isPaused,setIsPaused]=useState(true)
  const [position,setPosition]=useState(0)
  const [duration,setDuration]=useState(0)
@@ -418,7 +420,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   finally{setRecovering(false)}
  }
  async function prepareNextEpisode(){
-  if(!anime||demo||!onPrepareNext||!onContinueNext||stream.format==='embed')return
+  if(!autoNext||!anime||demo||!onPrepareNext||!onContinueNext||stream.format==='embed')return
   setNextMessage('Memeriksa sumber episode berikutnya…')
   try{
    const candidate=await onPrepareNext()
@@ -455,7 +457,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  },[stream.format])
 
  async function toggleFullscreen(){
-  const root=dialogRef.current
+  const root=watchRef.current
   const v=video.current
   if(!root||!v)return
   try{
@@ -593,7 +595,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
    <video ref={video} className={`subtitle-font-${captionFont} subtitle-size-${captionSize} subtitle-backdrop-${captionBackdrop}`} playsInline preload="metadata" crossOrigin="anonymous" onPlay={()=>setIsPaused(false)} onPause={()=>{setIsPaused(true);saveLocal()}} onVolumeChange={()=>{if(video.current){setVolume(video.current.volume);setIsMuted(video.current.muted)}}} onLoadedMetadata={()=>{setReady(true);setDuration(video.current?.duration||0);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onDurationChange={()=>setDuration(video.current?.duration||0)} onTimeUpdate={()=>{setPosition(video.current?.currentTime||0);if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onEnded={()=>{setIsPaused(true);saveLocal();void prepareNextEpisode()}} autoPlay>
-    {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={subtitlePreferenceReady&&!subtitleOff&&!selectedSubtitle&&t.lang===(subtitlePreference==='en'?'en':'id')}/>)}
+    {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={subtitlePreferenceReady&&!subtitleOff&&!selectedSubtitle&&t.lang===(subtitlePreference==='en'?'en':stream.tracks.some(track=>track.lang==='id')?'id':'en')}/>)}
     {selectedSubtitle&&!subtitleOff&&<track key={selectedSubtitle.url} kind="subtitles" srcLang={selectedSubtitle.lang} label={selectedSubtitle.id} src={selectedSubtitle.url} default onLoad={()=>{
      const tracks=video.current?.textTracks
      if(tracks)for(let i=0;i<tracks.length;i++)tracks[i].mode=tracks[i].label===selectedSubtitle.id?'showing':'disabled'
@@ -626,7 +628,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     {pipSupported&&<button type="button" aria-label="Picture-in-Picture" disabled={hasActiveCaptions||Boolean(selectedSubtitle&&!subtitleOff)} title={hasActiveCaptions?'Matikan subtitle untuk PiP':'Picture-in-Picture'} onClick={()=>void togglePip()}><PictureInPicture2 size={16}/> PiP</button>}
    </div>
    <label>Kecepatan
-    <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>setSpeed(Number(e.target.value))}>
+    <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>{const next=Number(e.target.value);setSpeed(next);void setPreference('playback-speed',String(next)).catch(()=>{})}}>
      {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
     </select>
    </label>
