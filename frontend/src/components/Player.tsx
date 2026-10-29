@@ -160,7 +160,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
 
  async function activateSubtitle(item:SubtitleResult,manual:boolean){
   if(!item.sourceUrl)return false
-  setSubtitleState('Memuat subtitle dari '+item.provider+'…')
+  setSubtitleState('Menyiapkan subtitle…')
   try{
    const response=await fetch(item.sourceUrl)
    if(!response.ok)throw new Error('Gagal mengunduh subtitle')
@@ -172,14 +172,14 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    setSelectedSubtitle({id:item.id,lang:item.language,url})
    setSubtitleOff(false)
    setSubtitleManual(manual)
-   setSubtitleState(item.label+' · '+item.provider+' · file berhasil dimuat')
+   setSubtitleState(`Subtitle ${item.label} siap`)
    if(manual&&anime&&!demo){
     setSubtitlePreference(item.language)
     void setPreference(`subtitle-language:${anime.id}`,item.language).catch(()=>{})
    }
    return true
   }catch{
-   setSubtitleState('Subtitle '+item.label+' gagal dimuat. Pilih versi lain.')
+   setSubtitleState('Subtitle '+item.label+' belum bisa dimuat. Pilih yang lain.')
    return false
   }
  }
@@ -210,7 +210,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     if(subtitleUrlRef.current)URL.revokeObjectURL(subtitleUrlRef.current)
     subtitleUrlRef.current=url
     setSelectedSubtitle({id:item.id,lang:item.language,url})
-    setSubtitleState(item.label+' · '+item.provider+' · dipilih otomatis')
+    setSubtitleState(`Subtitle ${item.label} dipilih otomatis`)
     return
    }
    if(alive)setSubtitleState(subtitlePreference==='auto'?'Tidak ada subtitle eksternal yang berhasil dimuat.':'Subtitle bahasa pilihan sebelumnya belum tersedia di episode ini; pilihan tidak diganti otomatis.')
@@ -293,7 +293,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     void import('hls.js').then(({default:HlsModule})=>{
      if(!alive)return
      if(!HlsModule.isSupported()){
-      setError('Perangkat ini tidak mendukung pemutaran HLS.')
+      setError('Video ini belum bisa diputar di perangkatmu.')
       return
      }
      hls=new HlsModule({enableWorker:true})
@@ -308,17 +308,17 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
      hls.loadSource(stream.url)
      hls.attachMedia(element)
      hls.on(HlsModule.Events.ERROR,(_event,data)=>{
-      if(data.fatal&&alive)setError(`HLS: ${data.details}`)
+      if(data.fatal&&alive)setError('Video terhenti. Coba lagi atau ganti sumber.')
      })
     }).catch(()=>{
-     if(alive)setError('Modul pemutar HLS tidak dapat dimuat.')
+     if(alive)setError('Pemutar belum siap. Coba muat ulang.')
     })
    }
   }else{
    element.src=stream.url
   }
 
-  const onError=()=>setError('Video tidak dapat dimuat. Periksa koneksi atau sumber stream.')
+  const onError=()=>setError('Video belum bisa diputar. Periksa koneksi atau pilih sumber lain.')
   element.addEventListener('error',onError)
   return ()=>{
    alive=false
@@ -344,7 +344,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   let active=true
   setRecovering(true)
   void onRecoverSource().then(ok=>{
-   if(active&&!ok)setRecoverMessage('Tidak ada alternatif native yang bisa diputar.')
+   if(active&&!ok)setRecoverMessage('Belum ada pilihan video lain yang bisa diputar.')
   }).catch(()=>{
    if(active)setRecoverMessage('Pemulihan sumber gagal.')
   }).finally(()=>{if(active)setRecovering(false)})
@@ -356,7 +356,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   setRecovering(true)
   setRecoverMessage('')
   try{
-   if(!await onRecoverSource())setRecoverMessage('Tidak ada alternatif native yang bisa diputar.')
+   if(!await onRecoverSource())setRecoverMessage('Belum ada pilihan video lain yang bisa diputar.')
   }catch{setRecoverMessage('Pemulihan sumber gagal.')}
   finally{setRecovering(false)}
  }
@@ -365,7 +365,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   setNextMessage('Memeriksa sumber episode berikutnya…')
   try{
    const candidate=await onPrepareNext()
-   if(!candidate){setNextMessage('Episode berikutnya belum mempunyai sumber native terverifikasi.');return}
+   if(!candidate){setNextMessage('Episode berikutnya belum bisa diputar.');return}
    setNextStream(candidate)
    setNextCountdown(8)
    setNextMessage('')
@@ -407,25 +407,25 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    // iOS may support native video fullscreen without DOM overlays.
    const native=v as HTMLVideoElement&{webkitEnterFullscreen?:()=>void}
    if(native.webkitEnterFullscreen){
-    setDisplayNotice('Fullscreen native perangkat ini dapat menyembunyikan kontrol dan subtitle kustom.')
+    setDisplayNotice('Mode layar penuh pada perangkat ini mungkin menyembunyikan subtitle.')
     native.webkitEnterFullscreen()
     return
    }
    setDisplayNotice('Fullscreen tidak didukung oleh browser ini.')
-  }catch{setDisplayNotice('Permintaan fullscreen ditolak browser.')}
+  }catch{setDisplayNotice('Belum bisa membuka layar penuh.')}
  }
  async function togglePip(){
   const v=video.current
   if(!v||!pipSupported)return
   if(Array.from(v.textTracks).some(t=>t.mode==='showing')){
-   setDisplayNotice('Matikan subtitle dulu. PiP tidak menjamin teks subtitle terlihat.')
+   setDisplayNotice('Matikan subtitle untuk memakai layar kecil. Teks mungkin tidak tampil.')
    return
   }
   try{
    if(document.pictureInPictureElement){await document.exitPictureInPicture()}
    else await v.requestPictureInPicture()
    setDisplayNotice('')
-  }catch{setDisplayNotice('Picture-in-Picture tidak tersedia untuk video ini.')}
+  }catch{setDisplayNotice('Mode layar kecil belum tersedia untuk video ini.')}
  }
 
  useEffect(()=>{
@@ -439,7 +439,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    const key=event.key.toLowerCase()
    if(key===' '||key==='k'){
     event.preventDefault()
-    if(v.paused)void v.play().catch(()=>setDisplayNotice('Browser menolak memulai playback.'))
+    if(v.paused)void v.play().catch(()=>setDisplayNotice('Video belum bisa dimulai. Ketuk tombol putar lagi.'))
     else v.pause()
    }else if(key==='arrowleft'||key==='arrowright'){
     event.preventDefault()
@@ -519,9 +519,9 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   <div className="player-top">
    <button type="button" className="icon-button glass" onClick={onClose} aria-label="Kembali"><ArrowLeft size={20}/></button>
    <div className="player-heading">
-    <span>{demo?'PENGUJIAN PEMUTAR':'SEDANG MENONTON'}</span>
-    <strong>{demo?'Sampel Pemutaran HLS':anime?.title}</strong>
-    <small>{demo?'Video lokal dengan subtitle Indonesia':`Episode ${episode}${resumeAt>0?` · Melanjutkan dari ${Math.floor(resumeAt/60)}m ${Math.floor(resumeAt%60)}s`:''}`}</small>
+    <span>{demo?'COBA PEMUTAR':'SEDANG MENONTON'}</span>
+    <strong>{demo?'Contoh video':anime?.title}</strong>
+    <small>{demo?'Contoh dengan subtitle Indonesia':`Episode ${episode}${resumeAt>0?` · Melanjutkan dari ${Math.floor(resumeAt/60)}m ${Math.floor(resumeAt%60)}s`:''}`}</small>
    </div>
    <div className="player-provider">{stream.providerId||'Sumber default'}</div>
   </div>
@@ -529,10 +529,10 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    {stream.format==='embed'?<div className="embedded-source">
     <div className="embed-notice">
      <Info size={16}/>
-     <p>Pemutar eksternal AnimeEmbed. Ketersediaan episode dan bahasa subtitle belum diverifikasi secara menyeluruh. Bahasa subtitle dan ketersediaan video belum dapat diverifikasi Yoru. Progress dapat disimpan jika pemutar mengirim event yang valid.</p>
+     <p>Mode video alternatif. Beberapa pengaturan dan pilihan subtitle mungkin berbeda.</p>
     </div>
-    <iframe ref={iframeRef} title={`External player · Episode ${episode}`} src={resolvedEmbedUrl} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen referrerPolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" loading="eager"/>
-    <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka pemutar di tab baru jika iframe mengalami kendala</a>
+    <iframe ref={iframeRef} title={`Video alternatif · Episode ${episode}`} src={resolvedEmbedUrl} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen referrerPolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" loading="eager"/>
+    <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka video di tab baru</a>
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
    <video ref={video} className={`subtitle-font-${captionFont} subtitle-size-${captionSize} subtitle-backdrop-${captionBackdrop}`} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onPause={saveLocal} onEnded={()=>{saveLocal();void prepareNextEpisode()}} autoPlay>
@@ -543,7 +543,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     }}/>} 
    </video>
    {!ready&&!error&&<div className="player-loading"><MonitorPlay size={34}/><span>Menyiapkan pemutaran video…</span></div>}
-   {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p>{onRecoverSource&&<button type="button" disabled={recovering} onClick={()=>void recoverManually()}>{recovering?'Mencoba sumber lain…':'Coba sumber native lain'}</button>}{recoverMessage&&<p role="status">{recoverMessage}</p>}</div>}
+   {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p>{onRecoverSource&&<button type="button" disabled={recovering} onClick={()=>void recoverManually()}>{recovering?'Mencoba sumber lain…':'Coba sumber lain'}</button>}{recoverMessage&&<p role="status">{recoverMessage}</p>}</div>}
    </>}
   </div>
   {nextCountdown!==null&&nextStream&&<div className="player-next" role="status">
@@ -577,7 +577,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     </select>
    </label>}
    {stream.subtitleMode!=='hard'&&(stream.tracks.length>0||selectedSubtitle!==null)&&<div className="player-offset">
-    <span>Sync sub: {subtitleOffset>0?'+':''}{subtitleOffset.toFixed(1)}s</span>
+    <span>Waktu subtitle: {subtitleOffset>0?'+':''}{subtitleOffset.toFixed(1)}s</span>
     <button type="button" onClick={()=>changeOffset(-0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih awal">−0.5</button>
     <button type="button" onClick={()=>changeOffset(-0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih awal">−0.1</button>
     <button type="button" onClick={()=>changeOffset(-subtitleOffset)} disabled={!anime||demo} aria-label="Reset sinkronisasi subtitle">Reset</button>
@@ -585,7 +585,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
    </div>}
    {!demo&&anime&&stream.subtitleMode!=='hard'&&<button type="button" className="player-subtitle-trigger" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
-    <Subtitles size={15}/> CC · {selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':'English'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
+    <Subtitles size={15}/> Subtitle · {selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':'English'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
    </button>}
    {qualityNote&&<small role="status">{qualityNote}</small>}
   </div>}
@@ -594,27 +594,27 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    <div className="subtitle-picker-header"><strong>Subtitle episode {episode}</strong><button type="button" onClick={()=>setSubtitlePanel(false)}>Tutup</button></div>
    <button type="button" onClick={disableSubtitle} aria-pressed={subtitleOff}>Off</button>
    {subtitleChoices.map(item=><button type="button" key={item.id} onClick={()=>{setSubtitleManual(true);void activateSubtitle(item,true)}} aria-pressed={selectedSubtitle?.id===item.id}>
-    {item.label} · {item.provider} {item.release?('· '+item.release):''} · Episode cocok, sinkronisasi belum dijamin
+    {item.label} · Pilihan {subtitleChoices.indexOf(item)+1}
    </button>)}
    <div className="subtitle-style-controls">
-    <label>Font <select aria-label="Font subtitle" value={captionFont} onChange={event=>saveCaptionStyle(event.target.value as 'sans'|'serif',captionSize,captionBackdrop,captionScope)}>
+    <label>Jenis huruf <select aria-label="Font subtitle" value={captionFont} onChange={event=>saveCaptionStyle(event.target.value as 'sans'|'serif',captionSize,captionBackdrop,captionScope)}>
      <option value="sans">Sans-serif</option><option value="serif">Serif</option>
     </select></label>
     <label>Ukuran <select aria-label="Ukuran subtitle" value={captionSize} onChange={event=>saveCaptionStyle(captionFont,Number(event.target.value),captionBackdrop,captionScope)}>
      {[75,100,125,150].map(size=><option value={size} key={size}>{size}%</option>)}
     </select></label>
-    <label>Background <select aria-label="Background subtitle" value={captionBackdrop} onChange={event=>saveCaptionStyle(captionFont,captionSize,event.target.value as 'dark'|'clear',captionScope)}>
+    <label>Latar subtitle <select aria-label="Background subtitle" value={captionBackdrop} onChange={event=>saveCaptionStyle(captionFont,captionSize,event.target.value as 'dark'|'clear',captionScope)}>
      <option value="dark">Gelap</option><option value="clear">Transparan</option>
     </select></label>
     <label>Simpan untuk <select aria-label="Lingkup preferensi subtitle" value={captionScope} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,event.target.value as 'global'|'anime')}>
      <option value="global">Seluruh Yoru</option><option value="anime">Anime ini</option>
     </select></label>
    </div>
-   <small role="status">{subtitleSearch?'Mencari kandidat subtitle…':subtitleState||'Hanya track yang benar-benar berhasil dimuat akan diaktifkan.'}</small>
+   <small role="status">{subtitleSearch?'Mencari subtitle…':subtitleState||'Pilih subtitle yang tersedia untuk video ini.'}</small>
   </div>}
   <div className="player-footer">
-   <span><Subtitles size={16}/> {stream.format==='embed'?'Subtitle eksternal belum diverifikasi':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':selectedSubtitle?`Subtitle ${selectedSubtitle.lang==='id'?'Indonesia':'English'} dimuat`:subtitleOff?'Subtitle Off':stream.tracks.length?`${stream.tracks.length} track video terdaftar`:'Subtitle belum ditemukan'}</span>
-   <span><Info size={16}/> {demo?'Sampel lokal untuk menguji HLS & VTT.':stream.format==='embed'?'Progress tersimpan di browser ini.':'Stream bersumber dari konfigurasi lokal.'}</span>
+   <span><Subtitles size={16}/> {stream.format==='embed'?'Pilihan subtitle mengikuti video':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':selectedSubtitle?`Subtitle ${selectedSubtitle.lang==='id'?'Indonesia':'English'} dimuat`:subtitleOff?'Subtitle mati':stream.tracks.length?`${stream.tracks.length} pilihan subtitle tersedia`:'Subtitle belum ditemukan'}</span>
+   <span><Info size={16}/> {demo?'Contoh video dengan subtitle Indonesia.':stream.format==='embed'?'Progress tersimpan di browser ini.':'Riwayat menonton tersimpan di perangkat ini.'}</span>
   </div>
  </div>
 }
