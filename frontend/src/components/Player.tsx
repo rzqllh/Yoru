@@ -1,6 +1,6 @@
 import {useEffect,useMemo,useRef,useState} from 'react'
 import type Hls from 'hls.js'
-import {AlertTriangle,ArrowLeft,Info,MonitorPlay,Subtitles} from 'lucide-react'
+import {AlertTriangle,ArrowLeft,Info,Maximize2,MonitorPlay,PictureInPicture2,SkipBack,SkipForward,Subtitles} from 'lucide-react'
 import type {Anime,Stream} from '../types'
 import {getPreference,getProgress,saveProgress,setPreference} from '../lib/db'
 import {applySubtitleOffset,type CueBaseline} from '../lib/subtitle-offset'
@@ -31,6 +31,9 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [captionScope,setCaptionScope]=useState<'global'|'anime'>('anime')
  const subtitleUrlRef=useRef<string|null>(null)
  const [subtitleOffset,setSubtitleOffset]=useState(0)
+ const [pipSupported,setPipSupported]=useState(false)
+ const [hasActiveCaptions,setHasActiveCaptions]=useState(false)
+ const [displayNotice,setDisplayNotice]=useState('')
  const [error,setError]=useState('')
  const [recovering,setRecovering]=useState(false)
  const [recoverMessage,setRecoverMessage]=useState('')
@@ -345,6 +348,87 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   return()=>clearTimeout(timer)
  },[nextCountdown,nextStream,onContinueNext])
 
+
+ useEffect(()=>{
+  if(stream.format==='embed')return
+  const v=video.current
+  if(!v)return
+  setPipSupported(Boolean(document.pictureInPictureEnabled&&typeof v.requestPictureInPicture==='function'))
+  const updateCaptions=()=>setHasActiveCaptions(Array.from(v.textTracks).some(t=>t.mode==='showing'))
+  v.textTracks.addEventListener('change',updateCaptions)
+  v.addEventListener('loadedmetadata',updateCaptions)
+  updateCaptions()
+  return()=>{
+   v.textTracks.removeEventListener('change',updateCaptions)
+   v.removeEventListener('loadedmetadata',updateCaptions)
+  }
+ },[stream.format])
+
+ async function toggleFullscreen(){
+  const root=dialogRef.current
+  const v=video.current
+  if(!root||!v)return
+  try{
+   if(document.fullscreenElement){await document.exitFullscreen();return}
+   if(typeof root.requestFullscreen==='function'){await root.requestFullscreen();return}
+   // iOS may support native video fullscreen without DOM overlays.
+   const native=v as HTMLVideoElement&{webkitEnterFullscreen?:()=>void}
+   if(native.webkitEnterFullscreen){
+    setDisplayNotice('Fullscreen native perangkat ini dapat menyembunyikan kontrol dan subtitle kustom.')
+    native.webkitEnterFullscreen()
+    return
+   }
+   setDisplayNotice('Fullscreen tidak didukung oleh browser ini.')
+  }catch{setDisplayNotice('Permintaan fullscreen ditolak browser.')}
+ }
+ async function togglePip(){
+  const v=video.current
+  if(!v||!pipSupported)return
+  if(Array.from(v.textTracks).some(t=>t.mode==='showing')){
+   setDisplayNotice('Matikan subtitle dulu. PiP tidak menjamin teks subtitle terlihat.')
+   return
+  }
+  try{
+   if(document.pictureInPictureElement){await document.exitPictureInPicture()}
+   else await v.requestPictureInPicture()
+   setDisplayNotice('')
+  }catch{setDisplayNotice('Picture-in-Picture tidak tersedia untuk video ini.')}
+ }
+
+ useEffect(()=>{
+  if(stream.format==='embed')return
+  const handle=(event:KeyboardEvent)=>{
+   if(event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey)return
+   const target=event.target
+   if(target instanceof Element&&target.closest('input,select,textarea,[contenteditable="true"]'))return
+   const v=video.current
+   if(!v)return
+   const key=event.key.toLowerCase()
+   if(key===' '||key==='k'){
+    event.preventDefault()
+    if(v.paused)void v.play().catch(()=>setDisplayNotice('Browser menolak memulai playback.'))
+    else v.pause()
+   }else if(key==='arrowleft'||key==='arrowright'){
+    event.preventDefault()
+    const delta=key==='arrowleft'?-10:10
+    v.currentTime=Math.max(0,Math.min(Number.isFinite(v.duration)?v.duration:Infinity,v.currentTime+delta))
+   }else if(key==='m'){
+    event.preventDefault()
+    v.muted=!v.muted
+   }else if(key==='f'){
+    event.preventDefault()
+    const root=video.current?.closest<HTMLElement>('.player-overlay')
+    if(document.fullscreenElement)void document.exitFullscreen().catch(()=>{})
+    else if(root?.requestFullscreen)void root.requestFullscreen().catch(()=>{})
+   }else if(key==='c'&&anime&&!demo&&stream.subtitleMode!=='hard'){
+    event.preventDefault()
+    setSubtitlePanel(current=>!current)
+   }
+  }
+  document.addEventListener('keydown',handle)
+  return()=>document.removeEventListener('keydown',handle)
+ },[stream.format,stream.subtitleMode,anime,demo])
+
  const saveLocal=()=>{
   if(demo||!anime||!video.current)return
   const v=video.current
@@ -436,6 +520,12 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   </div>}
   {nextMessage&&<div className="player-next" role="status">{nextMessage}</div>}
   {stream.format!=='embed'&&<div className="player-toolbar">
+   <div className="player-quick-actions">
+    <button type="button" aria-label="Mundur 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.max(0,v.currentTime-10)}}><SkipBack size={16}/> −10s</button>
+    <button type="button" aria-label="Maju 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.min(Number.isFinite(v.duration)?v.duration:Infinity,v.currentTime+10)}}><SkipForward size={16}/> +10s</button>
+    <button type="button" aria-label="Fullscreen video" onClick={()=>void toggleFullscreen()}><Maximize2 size={16}/> Fullscreen</button>
+    {pipSupported&&<button type="button" aria-label="Picture-in-Picture" disabled={hasActiveCaptions||Boolean(selectedSubtitle&&!subtitleOff)} title={hasActiveCaptions?'Matikan subtitle untuk PiP':'Picture-in-Picture'} onClick={()=>void togglePip()}><PictureInPicture2 size={16}/> PiP</button>}
+   </div>
    <label>Kecepatan
     <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>setSpeed(Number(e.target.value))}>
      {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
@@ -466,6 +556,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    </button>}
    {qualityNote&&<small role="status">{qualityNote}</small>}
   </div>}
+  {displayNotice&&<div className="player-control-notice" role="status">{displayNotice}</div>}
   {stream.format!=='embed'&&subtitlePanel&&!demo&&anime&&<div className="player-subtitle-panel">
    <div className="subtitle-picker-header"><strong>Subtitle episode {episode}</strong><button type="button" onClick={()=>setSubtitlePanel(false)}>Tutup</button></div>
    <button type="button" onClick={disableSubtitle} aria-pressed={subtitleOff}>Off</button>
