@@ -6,6 +6,11 @@ import {request} from 'node:https'
 import {isPublicIPv4,parseStremioStreams,stremioStreamPath,validateStremioConfig,type StremioAddon,type StremioConfig} from './stremio-core.js'
 
 export async function getStremioConfig():Promise<StremioConfig|null>{
+ const hosted=process.env.STREMIO_ADDONS_JSON
+ if(hosted!==undefined){
+  if(!hosted.trim()||hosted.length>65536)throw new Error('Invalid Stremio addon configuration')
+  return validateStremioConfig(JSON.parse(hosted))
+ }
  const root=existsSync(resolve(process.cwd(),'configs'))?process.cwd():resolve(process.cwd(),'..')
  try{
   const path=resolve(root,'configs','stremio.local.json')
