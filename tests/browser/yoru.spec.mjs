@@ -509,5 +509,5 @@ test('library uses its own responsive layout without changing navigation',async(
  await page.goto('/')
  await page.locator('.mobile-bottom').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.locator('.library-page')).toBeVisible()
- await expect(page.getByRole('heading',{name:'Koleksi'})).toBeVisible()
+ await expect(page.getByRole('heading',{name:'Koleksi',exact:true})).toBeVisible()
 })
