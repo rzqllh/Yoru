@@ -394,3 +394,16 @@ test('embedded fallback stays in Yoru watch screen with truthful subtitle limits
  await expect(player.getByText(/diatur oleh pemutar video alternatif/i)).toBeVisible()
  await expect(player.getByRole('slider',{name:'Posisi video'})).toHaveCount(0)
 })
+
+
+test('browse filters loaded anime and header has a single deliberate discovery entry',async({page})=>{
+ await page.goto('/')
+ await expect(page.locator('.topbar .search-control')).toHaveCount(0)
+ await page.getByRole('button',{name:'Jelajahi anime'}).click()
+ await expect(page.getByRole('heading',{name:'Jelajahi'})).toBeVisible()
+ await page.getByRole('combobox',{name:'Genre'}).selectOption('Action')
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+ await page.getByRole('combobox',{name:'Genre'}).selectOption('Romance')
+ await expect(page.getByText('Yoru Test Anime')).toHaveCount(0)
+ await expect(page.getByText(/hasil yang sudah dimuat/i)).toBeVisible()
+})
