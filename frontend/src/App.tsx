@@ -319,26 +319,7 @@ function App(){
      </div>
     </div>
     <div className="topbar-actions">
-     <div className="search-control">
-      <Search size={17}/>
-      <input
-       ref={searchInputRef}
-       aria-label="Cari judul anime"
-       value={route.searchQuery}
-       onChange={e=>{
-        const val=e.target.value
-        navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:val},true)
-       }}
-       onFocus={()=>{
-        if(route.page!=='browse'){
-         navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:route.searchQuery})
-        }
-       }}
-       placeholder="Cari judul anime..."
-      />
-      <kbd>⌘ K</kbd>
-      {route.searchQuery&&<button type="button" aria-label="Bersihkan pencarian" onClick={()=>navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:''})}><X size={15}/></button>}
-     </div>
+     <button type="button" className="topbar-discover" aria-label="Jelajahi anime" onClick={()=>navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:route.searchQuery})}><Search size={17}/><span>Jelajahi anime</span><ArrowUpRight size={15}/></button>
      <button type="button" className="avatar-button" title="Pengaturan aplikasi" aria-label="Buka pengaturan" onClick={()=>navigateState({page:'settings',browseKind:'season',libraryView:'all',searchQuery:''})}>Y</button>
     </div>
    </header>
@@ -407,6 +388,7 @@ function App(){
     </>}
 
     {route.page==='browse'&&<Browse
+     searchInputRef={searchInputRef}
      kind={route.browseKind}
      query={route.searchQuery}
      onTabChange={kind=>navigateState({page:'browse',browseKind:kind,libraryView:'all',searchQuery:''})}
@@ -483,12 +465,14 @@ function App(){
 }
 
 function Browse({
+ searchInputRef,
  kind,
  query,
  onTabChange,
  onQueryChange,
  onOpen,
 }:{
+ searchInputRef:React.Ref<HTMLInputElement>
  kind:'season'|'top'|'upcoming'
  query:string
  onTabChange:(k:'season'|'top'|'upcoming')=>void
@@ -562,6 +546,7 @@ function Browse({
     <Search size={18}/>
     <input
      aria-label="Cari anime"
+     ref={searchInputRef}
      value={query}
      onChange={e=>onQueryChange(e.target.value)}
      placeholder="Ketik judul anime, studio, atau genre..."
