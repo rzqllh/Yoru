@@ -80,7 +80,7 @@ function Card({anime,onOpen,compact=false}:{anime:Anime;onOpen:(anime:Anime)=>vo
   <div className="card-art">
    <Poster anime={anime}/>
    <div className="card-overlay"><span>LIHAT DETAIL <ArrowUpRight size={14}/></span></div>
-   {anime.score!==null&&<span className="score-tag" title="Skor komunitas" aria-label={`Skor komunitas ${scoreDisplay(anime.score)} dari 10`}><Star size={11} fill="currentColor"/>{scoreDisplay(anime.score)}</span>}
+   {anime.score!==null&&<span className="score-tag" title="Skor komunitas"><Star size={11} fill="currentColor"/>{scoreDisplay(anime.score)}</span>}
   </div>
   <div className="card-copy">
    <strong title={anime.title}>{anime.title}</strong>
