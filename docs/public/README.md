@@ -6,6 +6,7 @@ Mulai dari **[Panduan mulai](getting-started.md)** jika ini pertama kali menjala
 | --- | --- |
 | [Mulai di komputer](getting-started.md) | Install Node, unduh source, jalankan demo dan PWA |
 | [Menggunakan Yoru](using-yoru.md) | Cari anime, detail, episode, koleksi, progress, backup |
+| [Panduan desain](../../DESIGN.md) | Sistem token, arsitektur navigasi kanonikal, dan copywriting |
 | [Menambahkan sumber video](providers.md) | File provider lokal, addon Stremio dan Sub Indo |
 | [Troubleshooting](troubleshooting.md) | Diagnosis cepat jika halaman/video gagal |
 | [Untuk developer](development.md) | Repo, command, struktur kode, test |
