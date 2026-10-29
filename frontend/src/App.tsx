@@ -581,7 +581,7 @@ function Browse({
     </button>)}
    </fieldset>
   </div>
-  <div className="browse-filters" aria-label="Saring anime">
+  <div className="browse-filters" role="group" aria-label="Saring anime">
    <label>Genre<select aria-label="Genre" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
    <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>setFormat(e.target.value)}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
    <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>setMinimumScore(Number(e.target.value))}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
