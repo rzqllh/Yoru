@@ -32,5 +32,6 @@ test('WebKit iPhone-sized layout keeps navigation and unverified fallback access
  await page.getByRole('button',{name:'Buka menu'}).click()
  await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
  await expect(page.getByRole('heading',{name:'Pengaturan'})).toBeVisible()
- await expect(page.locator('body').evaluate(el=>el.scrollWidth<=window.innerWidth+1)).resolves.toBeTruthy()
+ const noHorizontalOverflow=await page.locator('body').evaluate(el=>el.scrollWidth<=window.innerWidth+1)
+ expect(noHorizontalOverflow).toBeTruthy()
 })
