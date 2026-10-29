@@ -34,7 +34,7 @@ import {
 } from 'lucide-react'
 import type {Anime,Episode,LibraryEntry,LibraryStatus,ProgressEntry,Stream} from './types'
 import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams} from './lib/api'
-import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime} from './lib/db'
+import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime,getPreference,setPreference} from './lib/db'
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {getBreadcrumbs,parseRoute,routeToPath,type RouteState} from './lib/router'
 import Player from './components/Player'
