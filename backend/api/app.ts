@@ -3,7 +3,7 @@ import { SECURITY_HEADERS } from './security.js'
 import {createFixedWindowBudget} from './request-budget.js'
 import {combineProviderResults} from '../pipeline/provider-aggregation.js'
 import { createHealthPayload } from '../pipeline/status.js'
-import { getAnime, getAnimeEpisodes, getDiscover, searchAnime } from '../pipeline/jikan.js'
+import { getAnime, getAnimeEpisodes, getDiscover, searchAnime, browseAnime, type BrowseFilters } from '../pipeline/jikan.js'
 import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../providers/local.js'
 import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../providers/stremio.js'
 import {externalStream} from '../providers/public-embed.js'
@@ -35,6 +35,25 @@ app.get('/api/anime/search',async c=>{
  const q=(c.req.query('q')||'').trim()
  if(!q||q.length>120)return c.json({error:'INVALID_QUERY'},400)
  try{return c.json(await searchAnime(q,positive(c.req.query('page'))))}catch(e){return c.json({error:'CATALOG_UNAVAILABLE',message:(e as Error).message},503)}
+})
+app.get('/api/anime/browse',async c=>{
+ const kind=c.req.query('kind')||'top',q=(c.req.query('q')||'').trim()
+ const genre=c.req.query('genre')||'',type=c.req.query('type')||''
+ const order=c.req.query('order')||'default'
+ const score=Number(c.req.query('minScore')||'0')
+ const year=Number(c.req.query('year')||'0')
+ const rawPage=c.req.query('page')||'1',page=Number(rawPage)
+ if(!['season','top','upcoming'].includes(kind)||q.length>120||
+  !['','Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].includes(genre)||
+  !['','TV','Movie','OVA','ONA','Special','Music'].includes(type)||
+  !['default','rating','newest'].includes(order)||![0,7,8,9].includes(score)||
+  (year!==0&&(!Number.isInteger(year)||year<1950||year>new Date().getFullYear()+2))||
+  !/^[1-9]\d{0,2}$/.test(rawPage)||page>100)return c.json({error:'INVALID_FILTER'},400)
+ try{
+  return c.json(await browseAnime({kind:kind as BrowseFilters['kind'],page,q,
+   genre:genre||undefined,type:type||undefined,minScore:score||undefined,year:year||undefined,
+   order:order as BrowseFilters['order']}))
+ }catch{return c.json({error:'CATALOG_UNAVAILABLE'},503)}
 })
 app.get('/api/anime/:id',async c=>{
  const id=validId(c.req.param('id'));if(!id)return c.json({error:'INVALID_ID'},400)
