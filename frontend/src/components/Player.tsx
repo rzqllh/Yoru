@@ -116,7 +116,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    }
   })
   return()=>{unsubscribe();controller.destroy()}
- },[stream.format,stream.url,anime,episode,demo])
+ },[stream.format,anime,episode,demo])
 
  const resolvedEmbedUrl=useMemo(()=>{
   if(stream.format!=='embed')return stream.url
