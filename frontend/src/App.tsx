@@ -581,7 +581,7 @@ function Browse({
   <fieldset className="browse-filters"><legend className="sr-only">Saring anime</legend>
    {kind!=='upcoming'&&<div className="browse-filter-group">
     <span className="browse-filter-title">Jelajahi berdasarkan</span>
-    <div className="category-switch" role="group" aria-label="Urutan katalog">
+    <fieldset className="category-switch"><legend className="sr-only">Urutan katalog</legend>
      {([['season','Musim ini'],['top','Populer']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
     </div>
    </div>}
@@ -682,7 +682,7 @@ function LibraryPage({
      <div>
       <strong>{row.anime.title}</strong>
       <span>Episode {row.episode} · {durationDisplay(row.seconds)} ditonton</span>
-     </div>
+     </fieldset>
      <ArrowRight size={18}/>
     </button>)}
    </div>}
