@@ -39,6 +39,7 @@ import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {getBreadcrumbs,parseRoute,routeToPath,type RouteState} from './lib/router'
 import Player from './components/Player'
 import {verifyNativeSource} from './lib/source-readiness'
+import {rankNativeStreams} from './lib/source-ranking'
 import {useDialogFocus} from './lib/useDialogFocus'
 
 type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean}
@@ -132,8 +133,8 @@ async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:strin
   const providers=await providerEpisodes(malId)
   const matches=providers.items.filter(item=>item.number===episode&&item.providerId!=='public-embed').slice(0,6)
   const resolved=await Promise.allSettled(matches.map(item=>streams(item.id)))
-  const candidates=resolved.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
-   .filter(source=>source.format!=='embed'&&source.url!==exceptUrl)
+  const candidates=rankNativeStreams(resolved.flatMap(result=>result.status==='fulfilled'?result.value.items:[]))
+   .filter(source=>source.url!==exceptUrl)
   const visited=new Set<string>()
   for(const candidate of candidates){
    if(visited.has(candidate.url))continue
@@ -843,7 +844,7 @@ function DetailDialog({
    }
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
    const items=results.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
-   const native=items.filter(stream=>stream.format!=='embed')
+   const native=rankNativeStreams(items)
    if(!native.length){
     setChoices({episode:ep.number,items:[embedCandidate(ep.number)]})
     return
@@ -853,8 +854,8 @@ function DetailDialog({
    }else{
     setChoices({episode:ep.number,items:native})
    }
-  }catch(e){
-   setError((e as Error).message)
+  }catch{
+   setError('Belum bisa menyiapkan video. Coba lagi.')
   }finally{setPlaying('')}
  }
 
