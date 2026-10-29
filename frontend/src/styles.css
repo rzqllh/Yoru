@@ -2397,3 +2397,45 @@ body{background:radial-gradient(ellipse 800px 610px at 76% -140px,rgba(85,128,12
 .player-overlay .player-subtitle-panel{position:relative;z-index:6;flex-shrink:0}
 .player-overlay .player-footer{position:relative;z-index:5;flex-shrink:0}
 .player-overlay .embedded-source iframe{max-width:100%;pointer-events:auto}
+
+
+/* iOS Safari / installed PWA: blend viewport edges with the Yoru glass canvas.
+   Browser chrome opacity belongs to Safari, not the web page. */
+:root,
+html {
+ background-color: #090e16;
+ color-scheme: dark;
+}
+body {
+ min-height: 100dvh;
+ background-color: #090e16;
+}
+@media (max-width: 600px) {
+ .mobile-bottom {
+  height: calc(58px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: rgba(13, 20, 31, .76);
+  -webkit-backdrop-filter: blur(24px) saturate(145%);
+  backdrop-filter: blur(24px) saturate(145%);
+  border-top-color: rgba(200, 215, 235, .13);
+ }
+ #main-content {
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+ }
+}
+/* Only the Home Screen-installed app can draw under its native status bar. */
+@media (display-mode: standalone) and (max-width: 600px) {
+ .topbar {
+  height: calc(58px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+ }
+ .player-top {
+  padding-top: calc(10px + env(safe-area-inset-top, 0px));
+ }
+ .player-footer {
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+ }
+ .detail-modal {
+  padding-top: env(safe-area-inset-top, 0px);
+ }
+}
