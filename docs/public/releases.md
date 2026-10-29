@@ -15,6 +15,6 @@ ZIP versi `v0.9.0-rc.1` sebelumnya adalah kumpulan hasil build + file Node untuk
 
 ## Status fitur yang perlu diketahui
 
-Yoru web saat ini mendukung katalog Jikan, player demo HLS/WebVTT, library IndexedDB, offline shell, provider manual dan Stremio HTTPS opt-in. Source anime nyata, subtitle pada provider eksternal, Safari fisik serta aplikasi mobile/Windows native masih memerlukan validasi/implementasi tambahan.
+Yoru web saat ini mendukung katalog Tenrai, player demo HLS/WebVTT, library IndexedDB, offline shell, provider manual dan Stremio HTTPS opt-in. Source anime nyata, subtitle pada provider eksternal, Safari fisik serta aplikasi mobile/Windows native masih memerlukan validasi/implementasi tambahan.
 
 Lihat [Panduan mulai](getting-started.md) untuk menjalankan versi web dan [Issue tracking](https://github.com/rzqllh/Yoru/issues/3) untuk blocker release berikutnya.

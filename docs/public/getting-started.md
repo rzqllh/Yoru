@@ -33,7 +33,7 @@ npm run dev
 Tunggu dua layanan menyala, lalu buka **http://127.0.0.1:5173**. Jangan tutup terminal selama aplikasi dipakai. Backend tersedia di **http://127.0.0.1:8787/api/health**.
 
 Coba alurnya:
-1. Buka **Beranda** dan **Jelajahi** saat online; katalog datang dari Jikan.
+1. Buka **Beranda** dan **Jelajahi** saat online; katalog datang dari Tenrai.
 2. Cari satu judul anime lalu buka detailnya.
 3. Buka **Pengaturan → Test player** untuk video HLS pendek dengan track WebVTT **Bahasa Indonesia**.
 4. Buka **Koleksi** untuk menyimpan anime. Data ini tersimpan di browser yang digunakan.

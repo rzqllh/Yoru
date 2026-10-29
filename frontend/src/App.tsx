@@ -62,7 +62,7 @@ function App(){
    <div className="sidebar-divider"/><div className="sidebar-caption">AKSES CEPAT</div>
    <button type="button" className="side-quick" onClick={()=>{setBrowseKind('season');navigate('browse');setQuery('')}}><Sparkles size={17}/> Anime musim ini <ArrowUpRight size={14}/></button>
    <button type="button" className="side-quick" onClick={()=>{navigate('library');setLibraryView('continue')}}><Clock3 size={17}/> Lanjut menonton <ArrowUpRight size={14}/></button>
-   <div className="sidebar-bottom"><div className="sidebar-note"><div className="sidebar-note-icon"><Clapperboard size={20}/></div><strong>Temukan ceritamu.</strong><p>Anime favorit dalam satu tempat. Tanpa akun, tetap tersimpan.</p><button type="button" onClick={()=>navigate('browse')}>Jelajahi sekarang <ArrowRight size={14}/></button></div><div className="sidebar-foot">YORU / ANIME SPACE <span>V1.0</span></div></div>
+   <div className="sidebar-bottom"><div className="sidebar-note"><div className="sidebar-note-icon"><Clapperboard size={20}/></div><strong>Temukan ceritamu.</strong><p>Anime favorit dalam satu tempat. Tanpa akun, tetap tersimpan.</p><button type="button" onClick={()=>navigate('browse')}>Jelajahi sekarang <ArrowRight size={14}/></button></div><div className="sidebar-foot">YORU / ANIME SPACE <span>WEB PREVIEW</span></div></div>
   </aside>
   {mobileNav&&<button type="button" aria-label="Tutup menu" className="backdrop-nav" onClick={()=>setMobileNav(false)}/>}
   <div className="workspace">
