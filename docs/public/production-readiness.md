@@ -52,3 +52,7 @@ The three subtitle adapters are opt-in backend integrations and may be **unconfi
 ## Optional third-party video aggregation
 
 The Miruro-compatible adapter is operator-configured through `MIRURO_API_BASE` and off by default. AniList cross-ID mapping, episode parsing and stream filtering have deterministic contract tests; those tests are **not** proof that the third-party hosted API is live or that all third-party CDNs support CORS, seek, iPhone codecs, or permitted playback. A public release requires representative live-provider evidence and affirmative authorization where needed.
+
+## Subtitle quota fail-safe
+
+Subtitle lookup and download endpoints enforce small **process-local** fixed-window budgets (20 lookups and 30 downloads/minute) to avoid unlimited uncontrolled upstream requests. Exceeding them returns HTTP 429 with `Retry-After`. These limits are global per Node process, intentionally conservative, and may cause shared-user contention; they are **not sufficient** for public hosting. Configure identity-aware throttling and abuse prevention in the HTTPS ingress; do not share provider credentials with browsers.

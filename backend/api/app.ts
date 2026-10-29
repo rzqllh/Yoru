@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { SECURITY_HEADERS } from './security.js'
+import {createFixedWindowBudget} from './request-budget.js'
 import {combineProviderResults} from '../pipeline/provider-aggregation.js'
 import { createHealthPayload } from '../pipeline/status.js'
 import { getAnime, getAnimeEpisodes, getDiscover, searchAnime } from '../pipeline/jikan.js'
@@ -8,6 +9,9 @@ import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../provider
 import {externalStream} from '../providers/public-embed.js'
 import {getMiruroEpisodes,getMiruroStreams,isMiruroConfigured} from '../providers/miruro.js'
 import {downloadSubtitle,findSubtitles,toWebVtt,subtitleStatus,type SubtitleProvider} from '../providers/subtitles.js'
+
+const subtitleSearchBudget=createFixedWindowBudget(20,60_000)
+const subtitleDownloadBudget=createFixedWindowBudget(30,60_000)
 
 export const app = new Hono()
 app.use('*',async(c,next)=>{
@@ -70,6 +74,8 @@ app.get('/api/streams',async c=>{
 
 app.get('/api/subtitles/status',c=>c.json({configured:subtitleStatus()}))
 app.get('/api/anime/:id/subtitles',async c=>{
+ const quota=subtitleSearchBudget(Date.now())
+ if(!quota.ok){c.header('Retry-After',String(quota.retryAfter));return c.json({error:'SUBTITLE_RATE_LIMITED'},429)}
  const id=validId(c.req.param('id'))
  const episode=Number(c.req.query('episode')||'0')
  if(!id||!Number.isInteger(episode)||episode<1||episode>2000)return c.json({error:'INVALID_REQUEST'},400)
@@ -79,6 +85,8 @@ app.get('/api/anime/:id/subtitles',async c=>{
  }catch{return c.json({error:'SUBTITLE_LOOKUP_UNAVAILABLE'},503)}
 })
 app.get('/api/subtitles/file',async c=>{
+ const quota=subtitleDownloadBudget(Date.now())
+ if(!quota.ok){c.header('Retry-After',String(quota.retryAfter));return c.json({error:'SUBTITLE_RATE_LIMITED'},429)}
  const provider=c.req.query('provider')
  const ref=c.req.query('ref')||''
  if(!['subdl','subsource','opensubtitles'].includes(provider||'')||ref.length>260)return c.json({error:'INVALID_REQUEST'},400)
