@@ -8,8 +8,8 @@ import {connectAnimeEmbed,extractValidPlaybackProgress} from '../lib/animeembed'
 import {useDialogFocus} from '../lib/useDialogFocus'
 
 type SubtitleResult={id:string;provider:string;language:'id'|'en';label:string;release:string;episode:number;score:number;sourceUrl?:string}
-type Props={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;onClose:()=>void}
-export default function Player({anime,episode,stream,demo=false,onClose}:Props){
+type Props={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean;onPrepareNext?:()=>Promise<Stream|null>;onContinueNext?:(stream:Stream)=>void;onRecoverSource?:()=>Promise<boolean>;onClose:()=>void}
+export default function Player({anime,episode,stream,demo=false,manualSource=false,onPrepareNext,onContinueNext,onRecoverSource,onClose}:Props){
  const video=useRef<HTMLVideoElement>(null)
  const iframeRef=useRef<HTMLIFrameElement>(null)
  const hlsRef=useRef<Hls|null>(null)
@@ -32,6 +32,12 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
  const subtitleUrlRef=useRef<string|null>(null)
  const [subtitleOffset,setSubtitleOffset]=useState(0)
  const [error,setError]=useState('')
+ const [recovering,setRecovering]=useState(false)
+ const [recoverMessage,setRecoverMessage]=useState('')
+ const recoveryAttempted=useRef(false)
+ const [nextStream,setNextStream]=useState<Stream|null>(null)
+ const [nextCountdown,setNextCountdown]=useState<number|null>(null)
+ const [nextMessage,setNextMessage]=useState('')
  const [ready,setReady]=useState(false)
  const [resumeAt,setResumeAt]=useState(0)
  const lastSave=useRef(0)
@@ -296,6 +302,49 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
   }
  },[ready,resumeAt])
 
+ useEffect(()=>{
+  if(!error||manualSource||!onRecoverSource||recoveryAttempted.current||stream.format==='embed')return
+  recoveryAttempted.current=true
+  let active=true
+  setRecovering(true)
+  void onRecoverSource().then(ok=>{
+   if(active&&!ok)setRecoverMessage('Tidak ada alternatif native yang bisa diputar.')
+  }).catch(()=>{
+   if(active)setRecoverMessage('Pemulihan sumber gagal.')
+  }).finally(()=>{if(active)setRecovering(false)})
+  return()=>{active=false}
+ },[error,manualSource,onRecoverSource,stream.format])
+
+ async function recoverManually(){
+  if(!onRecoverSource)return
+  setRecovering(true)
+  setRecoverMessage('')
+  try{
+   if(!await onRecoverSource())setRecoverMessage('Tidak ada alternatif native yang bisa diputar.')
+  }catch{setRecoverMessage('Pemulihan sumber gagal.')}
+  finally{setRecovering(false)}
+ }
+ async function prepareNextEpisode(){
+  if(!anime||demo||!onPrepareNext||!onContinueNext||stream.format==='embed')return
+  setNextMessage('Memeriksa sumber episode berikutnya…')
+  try{
+   const candidate=await onPrepareNext()
+   if(!candidate){setNextMessage('Episode berikutnya belum mempunyai sumber native terverifikasi.');return}
+   setNextStream(candidate)
+   setNextCountdown(8)
+   setNextMessage('')
+  }catch{setNextMessage('Episode berikutnya belum dapat diperiksa.')}
+ }
+ useEffect(()=>{
+  if(nextCountdown===null)return
+  if(nextCountdown<=0){
+   if(nextStream)onContinueNext?.(nextStream)
+   return
+  }
+  const timer=setTimeout(()=>setNextCountdown(value=>value===null?null:value-1),1000)
+  return()=>clearTimeout(timer)
+ },[nextCountdown,nextStream,onContinueNext])
+
  const saveLocal=()=>{
   if(demo||!anime||!video.current)return
   const v=video.current
@@ -369,7 +418,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
     <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka pemutar di tab baru jika iframe mengalami kendala</a>
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
-   <video ref={video} className={`subtitle-font-${captionFont} subtitle-size-${captionSize} subtitle-backdrop-${captionBackdrop}`} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onPause={saveLocal} onEnded={saveLocal} autoPlay>
+   <video ref={video} className={`subtitle-font-${captionFont} subtitle-size-${captionSize} subtitle-backdrop-${captionBackdrop}`} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onPause={saveLocal} onEnded={()=>{saveLocal();void prepareNextEpisode()}} autoPlay>
     {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={t.lang==='id'&&!selectedSubtitle&&!subtitleOff}/>)}
     {selectedSubtitle&&!subtitleOff&&<track key={selectedSubtitle.url} kind="subtitles" srcLang={selectedSubtitle.lang} label={selectedSubtitle.id} src={selectedSubtitle.url} default onLoad={()=>{
      const tracks=video.current?.textTracks
@@ -377,9 +426,15 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
     }}/>} 
    </video>
    {!ready&&!error&&<div className="player-loading"><MonitorPlay size={34}/><span>Menyiapkan pemutaran video…</span></div>}
-   {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p></div>}
+   {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p>{onRecoverSource&&<button type="button" disabled={recovering} onClick={()=>void recoverManually()}>{recovering?'Mencoba sumber lain…':'Coba sumber native lain'}</button>}{recoverMessage&&<p role="status">{recoverMessage}</p>}</div>}
    </>}
   </div>
+  {nextCountdown!==null&&nextStream&&<div className="player-next" role="status">
+   <strong>Episode {episode+1} dalam {nextCountdown} detik</strong>
+   <button type="button" onClick={()=>setNextCountdown(null)}>Batal</button>
+   <button type="button" onClick={()=>onContinueNext?.(nextStream)}>Lanjut sekarang</button>
+  </div>}
+  {nextMessage&&<div className="player-next" role="status">{nextMessage}</div>}
   {stream.format!=='embed'&&<div className="player-toolbar">
    <label>Kecepatan
     <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>setSpeed(Number(e.target.value))}>
