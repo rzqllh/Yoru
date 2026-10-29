@@ -18,6 +18,15 @@ test.beforeEach(async({page})=>{
   route.fulfill({json:{items:[anime],page:1,hasNext:false}}))
  await page.route('**/api/anime/search?**',async route=>
   route.fulfill({json:{items:[anime],page:1,hasNext:false}}))
+ await page.route('**/api/anime/browse?**',async route=>{
+  const params=new URL(route.request().url()).searchParams
+  const matches=(!params.get('genre')||anime.genres.includes(params.get('genre'))) &&
+   (!params.get('type')||anime.type===params.get('type')) &&
+   (!params.get('minScore')||anime.score>=Number(params.get('minScore'))) &&
+   (!params.get('year')||anime.year===Number(params.get('year')))
+  await route.fulfill({json:{items:matches?[anime]:[],page:Number(params.get('page')||1),hasNext:false}})
+ })
+
  await page.route('**/api/anime/1',async route=>
   route.fulfill({json:anime}))
  await page.route('**/api/anime/1/episodes?**',async route=>
@@ -411,5 +420,5 @@ test('browse filters loaded anime and header has a single deliberate discovery e
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await page.getByRole('combobox',{name:'Genre'}).selectOption('Romance')
  await expect(page.getByText('Yoru Test Anime')).toHaveCount(0)
- await expect(page.getByText(/hasil yang sudah dimuat/i)).toBeVisible()
+ await expect(page.getByText(/seluruh katalog/i)).toBeVisible()
 })
