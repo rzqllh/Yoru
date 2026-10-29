@@ -2577,3 +2577,31 @@ body {
  .filter-tabs button{flex-shrink:0}
 }
 @media(prefers-reduced-motion:reduce){.browse-controls *,.modal-backdrop *{scroll-behavior:auto!important;transition:none!important}}
+
+/* Featured titles are ranked by catalog popularity, never represented as daily views. */
+.hero-top-ten{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0;border:0;padding:0;min-width:0}
+.hero-top-ten button{min-height:44px;min-width:44px;border-radius:12px;background:#182332;border:1px solid var(--line-strong);color:var(--soft);font-weight:750}
+.hero-top-ten button.active{background:var(--accent);border-color:var(--accent);color:#162414}
+.ranked-anime{position:relative;min-width:0}
+.ranked-anime-number{position:absolute;top:8px;left:8px;z-index:2;display:grid;place-items:center;border-radius:10px;width:31px;height:31px;background:#101925e8;color:var(--accent);font-weight:800}
+.subtitle-indonesia-state{padding:12px;border:1px solid var(--line);border-radius:12px;color:var(--soft);background:#202c3b}
+/* Library consumes the same card tokens as discovery; no new navigation idioms. */
+.library-page .library-view-tabs{border-radius:12px}
+.library-page .library-view-tabs button{min-height:44px}
+.library-highlight{display:flex;justify-content:space-between;min-height:160px;margin-bottom:22px;overflow:hidden;border-radius:20px;border:1px solid #c7f68c38;background:linear-gradient(115deg,#29423e,#121d2d)}
+.library-highlight-copy{display:flex;flex-direction:column;gap:9px;min-width:0;padding:20px;flex:1}
+.library-highlight-copy>span{font-size:10px;letter-spacing:.09em;font-weight:800;color:var(--accent)}
+.library-highlight-copy strong{font-size:clamp(17px,2.6vw,24px);line-height:1.25}
+.library-highlight-copy small{color:var(--soft)}
+.library-highlight-copy .btn{align-self:flex-start;min-height:44px}
+.library-highlight-cover{width:125px;flex:none}
+.library-highlight-cover .poster{width:100%;height:100%;border-radius:0}
+.library-page .library-stats{gap:12px;margin-bottom:22px}
+.library-page .library-stats>div{padding:16px;border-radius:20px}
+.library-page .library-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.library-page .library-item{min-width:0;min-height:108px;border-radius:20px;background:linear-gradient(145deg,#223044,#172232);padding:12px;gap:8px}
+.library-page .library-item-main strong{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.library-page .library-status-select,.library-page .icon-button,.library-page .filter-tabs button{min-height:44px;border-radius:12px}
+.library-page .icon-button{min-width:44px}
+@media(max-width:800px){.library-page .page-intro{display:flex;flex-direction:column;align-items:stretch}.library-page .library-view-tabs{width:100%}.library-page .library-view-tabs button{flex:1}}
+@media(max-width:600px){.library-page .library-list{grid-template-columns:minmax(0,1fr)}.library-highlight-copy{padding:14px}.library-highlight-cover{width:100px}.library-page .library-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.library-page .library-stats>div{padding:10px 8px;border-radius:14px}.library-page .library-stats strong{font-size:24px}.library-page .library-stats span{letter-spacing:0;font-size:9px}.library-page .library-stats small{font-size:10px}}

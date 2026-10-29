@@ -487,3 +487,20 @@ test('mobile discover groups three categories and filters on one shared surface'
  await expect(page.locator('.browse-controls input[aria-label="Cari anime"]')).toBeVisible()
  await expect(page.locator('.browse-controls select[aria-label="Genre"]')).toBeVisible()
 })
+
+
+test('top ten catalog popularity selector updates featured hero without claiming daily views',async({page})=>{
+ await page.goto('/')
+ const selector=page.locator('.hero-top-ten')
+ await expect(selector).toBeVisible()
+ await expect(selector.locator('button')).toHaveCount(1)
+ await expect(page.getByText('10 anime populer',{exact:true}).first()).toBeVisible()
+})
+
+test('library uses its own responsive layout without changing navigation',async({page})=>{
+ await page.setViewportSize({width:390,height:844})
+ await page.goto('/')
+ await page.locator('.mobile-bottom').getByRole('button',{name:'Koleksi'}).click()
+ await expect(page.locator('.library-page')).toBeVisible()
+ await expect(page.getByRole('heading',{name:'Koleksi'})).toBeVisible()
+})

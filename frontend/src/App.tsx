@@ -154,6 +154,7 @@ function App(){
  const [mobileNav,setMobileNav]=useState(false)
  const [library,setLibrary]=useState<LibraryEntry[]>([])
  const [progress,setProgress]=useState<ProgressEntry[]>([])
+ const [featuredIndex,setFeaturedIndex]=useState(0)
  const season=useCatalog('season')
  const top=useCatalog('top')
  const upcoming=useCatalog('upcoming')
@@ -237,7 +238,8 @@ function App(){
   return()=>window.removeEventListener('keydown',key)
  },[route,selected,playback,navigateState])
 
- const hero=top.data[0]||season.data[0]
+ const featured=top.data.slice(0,10)
+ const hero=featured[featuredIndex%Math.max(1,featured.length)]||season.data[0]
  const continueList=useMemo(()=>progress.filter(row=>row.seconds>0&&(!row.duration||row.seconds<row.duration-10)).slice(0,6),[progress])
 
  async function toggleSave(anime:Anime){
@@ -364,7 +366,7 @@ function App(){
 
      {hero&&<div className="hero-card" style={hero.cover?{backgroundImage:`linear-gradient(90deg,#0e1014 0%,rgba(14,16,20,.94) 36%,rgba(14,16,20,.7) 64%,rgba(14,16,20,.2) 100%),linear-gradient(0deg,#0e1014 0%,transparent 60%),url("${hero.cover.replaceAll('"','%22')}")`}:undefined}>
       <div className="hero-copy">
-       <div className="hero-badge"><span className="pulse"/> ANIME POPULER</div>
+       <div className="hero-badge"><span className="pulse"/> 10 ANIME POPULER</div>
        <h2>{hero.title}</h2>
        <div className="hero-meta">
         <span className="hero-rating"><Star size={14} fill="currentColor"/> {scoreDisplay(hero.score)}</span>
@@ -382,8 +384,9 @@ function App(){
         </button>
        </div>
       </div>
-      <div className="hero-corner"><span>PILIHAN YORU</span><ArrowDownRight size={20}/></div>
+      <div className="hero-corner"><span>POPULARITAS KATALOG</span><ArrowDownRight size={20}/></div>
      </div>}
+     {featured.length>1&&<fieldset className="hero-top-ten"><legend className="sr-only">Pilihan 10 anime populer</legend>{featured.map((a,i)=><button key={a.malId} type="button" aria-label={`Pilih anime peringkat ${i+1}: ${a.title}`} aria-pressed={hero?.malId===a.malId} className={hero?.malId===a.malId?"active":""} onClick={()=>setFeaturedIndex(i)}>{i+1}</button>)}</fieldset>}
 
      {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
       <div className="continue-grid">
@@ -408,11 +411,11 @@ function App(){
      </Section>
 
      <Section
-      eyebrow="REKOMENDASI KOMUNITAS"
-      title="Paling populer"
+      eyebrow="BERDASARKAN POPULARITAS KATALOG"
+      title="10 anime populer"
       action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'top',libraryView:'all',searchQuery:''})}>Lihat semua <ArrowRight size={16}/></button>}
      >
-      {top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):top.data.slice(0,6).map(a=><Card key={a.id} anime={a} onOpen={setSelected}/>)}</div>}
+      {top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):top.data.slice(0,10).map((a,i)=><div className="ranked-anime" key={a.id}><span className="ranked-anime-number">{i+1}</span><Card anime={a} onOpen={setSelected}/></div>)}</div>}
      </Section>
      <Section eyebrow="MUSIM SELANJUTNYA" title="Segera tayang"
       action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'upcoming',libraryView:'all',searchQuery:''})}>Lihat pratinjau <ArrowRight size={16}/></button>}>
@@ -660,7 +663,7 @@ function LibraryPage({
 
  const isCompletelyEmpty=library.length===0&&progress.length===0
 
- return <div className="page-body">
+ return <div className="page-body library-page">
   <div className="page-intro">
    <div>
     <h1>Koleksi</h1>
@@ -672,6 +675,7 @@ function LibraryPage({
    </div>
   </div>
 
+  {continueItems.length>0&&<div className="library-highlight"><div className="library-highlight-copy"><span>LANJUTKAN TONTONAN</span><strong>{continueItems[0].anime.title}</strong><small>Episode {continueItems[0].episode} · {durationDisplay(continueItems[0].seconds)} ditonton</small><button type="button" className="btn btn-primary" onClick={()=>onOpen(continueItems[0].anime)}><Play size={16} fill="currentColor"/> Lanjutkan</button></div><div className="library-highlight-cover"><Poster anime={continueItems[0].anime}/></div></div>}
   {!isCompletelyEmpty&&<div className="library-stats">
    <div><span>TOTAL KOLEKSI</span><strong>{library.length.toString().padStart(2,'0')}</strong><small>Judul tersimpan</small></div>
    <div><span>SEDANG MENONTON</span><strong>{library.filter(l=>l.status==='watching').length.toString().padStart(2,'0')}</strong><small>Anime aktif</small></div>
@@ -711,7 +715,7 @@ function LibraryPage({
    {isCompletelyEmpty?<Empty
     icon={Bookmark}
     title="Koleksi masih kosong"
-    body="Jelajahi ribuan anime di katalog dan simpan judul yang ingin kamu tonton."
+    body="Anime yang kamu simpan akan muncul di sini. Mulai dari judul yang kamu suka."
     action={<button type="button" className="btn btn-primary" onClick={onBrowse}><Compass size={16}/> Jelajahi anime</button>}
    />:saved.length===0?<Empty
     icon={Bookmark}
