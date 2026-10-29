@@ -1,14 +1,12 @@
 # Yoru
 
-**Anime discovery, player, dan koleksi pribadi — langsung dari browser.**
+Yoru membantu kamu mencari anime Jepang, menyimpan koleksi, dan melanjutkan tontonan dari browser. Data koleksi dan posisi tontonan tersimpan di perangkatmu.
 
-Yoru adalah proyek open-source (MIT) berbasis **PWA**: jelajahi katalog anime Jepang, cari judul, buka detail, simpan ke koleksi, dan lanjutkan tontonan. Katalog menggunakan Tenrai/MyAnimeList; sumber video **tidak otomatis dijamin**. Yoru juga menyediakan opsi mencoba player embed eksternal berdasarkan MAL ID dan episode; ketersediaan judul, kualitas dan subtitle (termasuk Bahasa Indonesia) **belum diverifikasi**. Untuk pemutaran langsung dan pelacakan progress lokal, hubungkan stream HTTPS melalui konfigurasi lokal atau addon Stremio yang kompatibel.
+Versi saat ini adalah web preview. Menemukan anime di katalog tidak menjamin videonya tersedia. Pemutaran memerlukan sumber yang kompatibel; bahasa subtitle mengikuti track yang disediakan sumber tersebut.
 
-> **Status:** Web **preview**, bukan aplikasi native final. Demo video HLS + subtitle bahasa Indonesia tersedia tanpa konfigurasi provider. Streaming anime nyata bergantung pada sumber yang kamu masukkan sendiri; belum diuji end-to-end di Safari iOS. Tidak ada installer Windows, APK, atau IPA yang dirilis.
+## Mulai di komputer
 
-## Mulai dalam beberapa menit
-
-**Perlu:** [Node.js 22.12+](https://nodejs.org/) (termasuk npm), Git, dan internet saat instalasi/katalog.
+Siapkan Node.js 22.12 atau lebih baru, npm, dan Git.
 
 ```sh
 git clone https://github.com/rzqllh/Yoru.git
@@ -17,91 +15,66 @@ npm ci
 npm run dev
 ```
 
-Buka **http://127.0.0.1:5173** di browser komputer. Masuk ke **Pengaturan → Test player** untuk melihat contoh HLS 9 detik dan subtitle Indonesia tanpa mencari sumber anime.
+Buka http://127.0.0.1:5173. Untuk mencoba video dan subtitle contoh, buka **Pengaturan > Test player**. Contoh ini membantu memeriksa pemutar, bukan membuktikan ketersediaan video anime.
 
-**Untuk PWA yang bisa di-install:** hentikan `npm run dev`, lalu jalankan:
+Untuk menjalankan hasil build dan mencoba pemasangan PWA:
 
 ```sh
 npm run build
 npm start
 ```
 
-Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan menu **Install app / Add to Home Screen**. `localhost` biasanya memenuhi syarat secure context; perangkat lain di jaringan memerlukan HTTPS tepercaya.
+Buka http://127.0.0.1:8787. Gunakan menu pemasangan aplikasi di browser yang mendukungnya. Perangkat lain memerlukan koneksi HTTPS tepercaya.
 
-> **Tidak perlu mengunduh ZIP release:** source resmi ada di tombol **Code → Download ZIP** GitHub jika tidak memakai Git. ZIP source **bukan aplikasi siap-install**. GitHub Release tidak lagi menampilkan ZIP web build yang masih memerlukan langkah developer. Ikuti instruksi di atas untuk menjalankan versi web saat ini.
+## Yang bisa kamu lakukan
 
-## Apa yang sudah bisa digunakan?
-
-| Fitur | Status | Perlu internet / source? |
-| --- | --- | --- |
-| Beranda, seasonal/top/upcoming, cari dan detail anime Jepang | Tersedia | Internet untuk Tenrai |
-| Daftar episode, pemilihan source dan opsi player embed eksternal | Tersedia; external player bergantung layanan pihak ketiga dan belum teruji playback-nya | Ya, internet dan source |
-| Pemutar HLS/MP4 + track subtitle WebVTT | Tersedia; contoh lokal sudah diuji Chromium | Contoh lokal: tidak; media nyata: ya |
-| Watchlist, progress dan resume | Tersedia di IndexedDB browser | Tidak untuk data tersimpan |
-| Backup ekspor/impor data pribadi | Tersedia | Tidak |
-| Install PWA dan shell offline | Tersedia di build produksi | Katalog baru tetap membutuhkan internet |
-| Provider lokal HTTPS dengan file JSON | Tersedia | Konfigurasi manual |
-| Jembatan addon Stremio HTTPS HLS/MP4 | Tersedia secara opt-in | Addon + mapping episode manual |
-| Rule scraper arbitrer, torrent/magnet, cloud sync | Belum tersedia | — |
-| Installer Windows / APK / IPA | Belum tersedia | — |
-
-**Privasi:** data koleksi/progress disimpan di browser melalui IndexedDB; tidak ada akun atau cloud sync. Data browser dapat terhapus bila storage dibersihkan, jadi ekspor backup jika datanya penting.
-
-## Ingin menonton episode anime?
-
-Yoru tidak memasukkan provider streaming anime secara default. Tambahkan URL HLS (`.m3u8`) atau MP4 HTTPS yang dapat diputar oleh browser, dengan MAL ID dan nomor episode yang cocok:
-
-1. Salin `configs/providers.local.json.example` menjadi `configs/providers.local.json`.
-2. Ganti `malId`, `number`, `url`, serta track subtitle sesuai media yang kamu punya.
-3. Simpan dan buka kembali detail anime yang sesuai; pilih episode → source → Play.
-
-Jangan memasukkan token ke URL atau commit file `*.local.json`. Stream tanpa dukungan CORS, codec atau subtitle browser mungkin tidak bisa diputar. Untuk alternatif addon HTTP/JSON, lihat **[Panduan provider](docs/public/providers.md)**.
-
-## Dokumentasi
-
-| Mulai dari sini | Untuk apa |
+| Kebutuhan | Dukungan saat ini |
 | --- | --- |
-| [Panduan mulai](docs/public/getting-started.md) | Instalasi Windows/macOS/Linux, demo player dan PWA |
-| [Panduan penggunaan](docs/public/using-yoru.md) | Jelajah anime, library, resume dan backup |
-| [Panduan desain](DESIGN.md) | Sistem token, hirarki navigasi kanonikal, dan copywriting |
-| [Konfigurasi provider](docs/public/providers.md) | JSON stream, MAL ID, subtitle dan addon Stremio |
-| [Pemecahan masalah](docs/public/troubleshooting.md) | Error instalasi, katalog, video, PWA, dan Safari |
-| [Pengembangan & kontribusi](docs/public/development.md) | Perintah, arsitektur singkat, test dan kontribusi |
-| [Status rilis](docs/public/releases.md) | Perbedaan source, web preview, dan native package |
-| [Production readiness](docs/public/production-readiness.md) | Hardening HTTP, HTTPS deployment, checklist verifikasi dan release gate |
+| Mencari anime dan membaca detailnya | Katalog online menggunakan Tenrai/MyAnimeList |
+| Menyimpan koleksi dan melanjutkan tontonan | Data tersimpan lokal di browser |
+| Memutar video | HLS/MP4 yang kompatibel dan pilihan player eksternal |
+| Menggunakan subtitle | Track yang tersedia pada sumber; dukungan berbeda menurut player |
+| Memindahkan koleksi | Ekspor dan impor backup |
+| Membuka aplikasi tanpa jaringan | Shell aplikasi dan data tersimpan; katalog baru dan video online tetap memerlukan jaringan |
 
-## Pengujian player eksternal & sinkronisasi progress
+Yoru belum menyediakan akun, sinkronisasi cloud, torrent, atau installer Windows/APK/IPA. Pengujian Safari pada iPhone fisik masih diperlukan. [Status rilis](docs/public/releases.md) menjelaskan batas dukungan dan unduhan yang tersedia.
 
-Dalam pemeriksaan Chromium menggunakan origin lokal Yoru pada 29 Oktober 2026, AnimeEmbed mengembalikan media dengan metadata durasi untuk MAL ID **21 (One Piece)**, **52991 (Frieren)**, dan **1535 (Death Note)**. Pada sampel **One Piece episode 1**, video berhasil berjalan dengan buffer aktif dan tanpa error media.
+## Menambahkan sumber dan menjaga data
 
-Player embed AnimeEmbed kini menangkap event `postMessage` (`channel: 'animeembed'`, event `progress`, `pause`, `ended`) untuk mencatat posisi tontonan ke IndexedDB lokal secara otomatis. Saat pengguna kembali menonton episode tersebut, Yoru menyematkan parameter `?start=<detik>` ke URL iframe agar pemutar melanjutkan tontonan dari titik terakhir. Bahasa subtitle AnimeEmbed tidak dapat dijamin oleh Yoru dan bergantung pada player eksternal; subtitle Indonesia hanya bisa dikontrol melalui track yang benar-benar tersedia pada sumber native yang kompatibel.
+Ikuti [panduan sumber video](docs/public/providers.md) untuk media HTTPS milikmu atau addon yang kompatibel. Hanya gunakan media yang berhak kamu akses. Ketersediaan, kualitas, dan subtitle dari pihak lain dapat berubah.
 
-## Pengembangan
+Koleksi tersimpan di browser, bukan akun online. Membersihkan penyimpanan browser dapat menghapusnya. Ekspor backup melalui aplikasi sebelum mengganti perangkat atau membersihkan data. Jangan commit konfigurasi lokal atau token.
 
-```sh
-npm ci
-npm run check
-npm run dev
-```
+## Panduan
 
-Backend Hono: http://127.0.0.1:8787 · Frontend Vite: http://127.0.0.1:5173 · CI: lint, typecheck, unit test, build, Chromium E2E. Ketersediaan katalog menggunakan Tenrai v1 untuk MyAnimeList. **Jangan menyamakan tes video contoh dengan tes streaming provider nyata.**
+| Tujuan | Bacaan |
+| --- | --- |
+| Menjalankan aplikasi | [Panduan mulai](docs/public/getting-started.md) |
+| Memakai koleksi, resume, dan backup | [Menggunakan Yoru](docs/public/using-yoru.md) |
+| Menambahkan video dan subtitle | [Sumber video](docs/public/providers.md) |
+| Mengatasi masalah | [Pemecahan masalah](docs/public/troubleshooting.md) |
+| Berkontribusi | [Pengembangan](docs/public/development.md) dan [panduan desain](DESIGN.md) |
+| Menilai kesiapan deployment | [Persyaratan rilis](docs/public/production-readiness.md) |
 
 ## Inspirasi dan penghargaan
 
-Yoru adalah implementasi tersendiri. Proyek berikut dipelajari sebagai **referensi ide, pengalaman penggunaan, atau kontrak publik**, bukan sebagai klaim bahwa seluruh fiturnya sudah ada di Yoru. Tidak ada penyalinan kode GPL/AGPL atau kode tanpa lisensi ke basis proyek ini. Terima kasih kepada para maintainer dan kontributor:
 
-- [Tatap](https://github.com/asfaraguest/tatap) — pengalaman player anime lintas platform, penyimpanan lokal dan subtitle.
-- [Kazumi](https://github.com/Predidit/Kazumi) & [KazumiRules](https://github.com/Predidit/KazumiRules) — gagasan format rules terpisah dari aplikasi; engine Kazumi **tidak** di-embed.
-- [CloudStream](https://github.com/recloudstream/cloudstream) dan [Aniyomi](https://github.com/aniyomiorg/aniyomi) — pola ekosistem extension dan library.
-- [Nuvio Mobile](https://github.com/NuvioMedia/NuvioMobile) — UI media multi-platform dan bring-your-own-sources.
-- [AIOStreams](https://github.com/Viren070/AIOStreams) — gagasan seleksi/penyatuan sumber; **bukan** dependency di Yoru.
-- [AnimeEmbed](https://www.animeembed.com/) — kontrak embed berdasarkan MAL ID (pemutaran belum terverifikasi, bukan dependency runtime).\n- [Stremio Addon SDK](https://github.com/Stremio/stremio-addon-sdk) — kontrak addon manifest dan stream HTTP/JSON.
-- [anime-sdk](https://github.com/hexxt-git/anime-sdk) — pendekatan normalisasi metadata dan provider; **tidak** dibundel.
-- [Wajik Anime API](https://github.com/wajik45/wajik-anime-api), [Nonton Indo](https://github.com/ExtremeBoyGG/nonton-indo) — referensi variasi sumber Sub Indo; adapter mereka **tidak** dibundel.
-- [Magnetio](https://github.com/peterdsp/Magnetio) — referensi arsitektur torrent/indexer untuk kemungkinan tahap mendatang; torrent **belum** didukung.
+Yoru adalah implementasi tersendiri. Proyek berikut dipelajari sebagai referensi ide, pengalaman penggunaan, atau kontrak publik, bukan sebagai klaim bahwa seluruh fiturnya sudah ada di Yoru. Terima kasih kepada para maintainer dan kontributor:
+
+- [Tatap](https://github.com/asfaraguest/tatap): pengalaman player anime lintas platform, penyimpanan lokal dan subtitle.
+- [Kazumi](https://github.com/Predidit/Kazumi) & [KazumiRules](https://github.com/Predidit/KazumiRules): gagasan format rules terpisah dari aplikasi; engine Kazumi tidak di-embed.
+- [CloudStream](https://github.com/recloudstream/cloudstream) dan [Aniyomi](https://github.com/aniyomiorg/aniyomi): pola ekosistem extension dan library.
+- [Nuvio Mobile](https://github.com/NuvioMedia/NuvioMobile): UI media multi-platform dan bring-your-own-sources.
+- [AIOStreams](https://github.com/Viren070/AIOStreams): gagasan seleksi/penyatuan sumber; bukan dependency di Yoru.
+- [AnimeEmbed](https://www.animeembed.com/): kontrak embed berdasarkan MAL ID (ketersediaan dan subtitle bergantung pada layanan eksternal).
+- [Stremio Addon SDK](https://github.com/Stremio/stremio-addon-sdk): kontrak addon manifest dan stream HTTP/JSON.
+- [anime-sdk](https://github.com/hexxt-git/anime-sdk): pendekatan normalisasi metadata dan provider; tidak dibundel.
+- [Wajik Anime API](https://github.com/wajik45/wajik-anime-api), [Nonton Indo](https://github.com/ExtremeBoyGG/nonton-indo): referensi variasi sumber Sub Indo; adapter mereka tidak dibundel.
+- [Magnetio](https://github.com/peterdsp/Magnetio): referensi arsitektur torrent/indexer untuk kemungkinan tahap mendatang; torrent belum didukung.
 
 Layanan/pustaka yang digunakan Yoru, antara lain [Jikan](https://jikan.moe/) (metadata dari MAL), [React](https://react.dev/), [Vite](https://vite.dev/), [Hono](https://hono.dev/), [hls.js](https://github.com/video-dev/hls.js), dan [idb](https://github.com/jakearchibald/idb). Nama serta merek proyek lain tetap milik pemiliknya dan tidak menyatakan afiliasi. Ketentuan dan lisensi setiap dependency tetap berlaku; lihat `LICENSE`, `package-lock.json`, dan lisensi paket masing-masing.
 
+
 ## Lisensi
 
-Kode original Yoru: **MIT**, lihat [LICENSE](LICENSE). Konten, metadata, gambar, video, dan subtitle dari pihak lain mempunyai hak penggunaan tersendiri. Tidak ada daftar stream pihak ketiga yang disematkan dalam repository ini.
+Kode original Yoru menggunakan [MIT](LICENSE). Konten, metadata, gambar, video, dan subtitle dari pihak lain memiliki hak penggunaan masing-masing. Nama proyek referensi tidak menyatakan afiliasi.

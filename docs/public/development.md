@@ -36,7 +36,6 @@ configs/           Contoh konfigurasi; *.local.json tidak di-commit
 scripts/           Menjalankan mode dev dan produksi
 tests/             Test logic/API dan browser
 docs/public/       Panduan pengguna dan kontributor
-docs/internal/     Catatan pengembangan
 ```
 
 Katalog dari Tenrai menghasilkan MAL ID; provider lokal/addon menghubungkan MAL ID ke daftar episode. Player hanya menerima URL/track yang lolos validasi. Progress/library adalah data browser (IndexedDB). Hasil pencarian tidak menjamin tersedia sumber video.

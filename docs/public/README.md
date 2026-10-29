@@ -14,4 +14,4 @@ Mulai dari **[Panduan mulai](getting-started.md)** jika ini pertama kali menjala
 
 **Perlu diketahui:** Source video anime tidak otomatis tersedia. Demo video dan subtitle Indonesia dapat dicoba melalui **Pengaturan → Test player** setelah aplikasi berjalan. Lihat [README utama](../../README.md) untuk status fitur dan penghargaan kepada proyek referensi.
 
-- [Production readiness](production-readiness.md) — release gate, HTTPS deployment, security controls, and known limitations.
+- [Persyaratan deployment dan rilis](production-readiness.md): HTTPS, pemeriksaan keamanan, dan batas dukungan.

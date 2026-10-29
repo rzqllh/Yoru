@@ -44,11 +44,11 @@ Dokumen ini mendefinisikan sistem desain, arsitektur informasi, spesifikasi toke
 - **Teks Utama & Antarmuka**: `DM Sans`, Inter, ui-sans-serif, system-ui, sans-serif (bobot 400, 500, 700) untuk label menu, deskripsi anime, dan elemen interaktif.
 - **Skala Ukuran Teks**:
   - Judul Hero: `clamp(1.75rem, 3.5vw, 2.4rem)`
-  - Judul Halaman: `1.4rem` – `1.6rem` (Manrope 700)
-  - Judul Bagian: `1.05rem` – `1.2rem` (Manrope 700)
+  - Judul Halaman: `1.4rem` - `1.6rem` (Manrope 700)
+  - Judul Bagian: `1.05rem` - `1.2rem` (Manrope 700)
   - Judul Kartu: `0.92rem` (Manrope 600, 2 baris batas elipsis)
-  - Teks Body / UI: `0.85rem` – `0.9rem` (DM Sans 400/500)
-  - Metadata / Tag: `0.75rem` – `0.78rem` (DM Sans 500)
+  - Teks Body / UI: `0.85rem` - `0.9rem` (DM Sans 400/500)
+  - Metadata / Tag: `0.75rem` - `0.78rem` (DM Sans 500)
 
 ### C. Skala Spasi (*Spacing*) & Radius
 

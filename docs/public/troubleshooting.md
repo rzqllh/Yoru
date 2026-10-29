@@ -21,8 +21,8 @@ Mulai dari browser komputer dan terminal yang menjalankan Yoru. Jika menemui err
 
 Jalankan `npm run dev`, lalu buka:
 
-- `http://127.0.0.1:8787/api/health` — API hidup.
-- `http://127.0.0.1:8787/api/providers` — daftar provider aktif, atau kosong jika belum dikonfigurasi.
+- `http://127.0.0.1:8787/api/health` : API hidup.
+- `http://127.0.0.1:8787/api/providers` : daftar provider aktif, atau kosong jika belum dikonfigurasi.
 
 Jika player contoh **berfungsi** tetapi anime dari sumbermu tidak, masalah biasanya berada pada URL, codec, CORS atau subtitle sumber tersebut, bukan katalog.
 
