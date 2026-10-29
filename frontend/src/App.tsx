@@ -386,7 +386,7 @@ function App(){
       </div>
       <div className="hero-corner"><span>POPULARITAS KATALOG</span><ArrowDownRight size={20}/></div>
      </div>}
-     {featured.length>1&&<div className="hero-top-ten" aria-label="Pilihan 10 anime populer">{featured.map((a,i)=><button key={a.malId} type="button" aria-label={`Pilih anime peringkat ${i+1}: ${a.title}`} aria-pressed={hero?.malId===a.malId} className={hero?.malId===a.malId?"active":""} onClick={()=>setFeaturedIndex(i)}>{i+1}</button>)}</div>}
+     {featured.length>1&&<div className="hero-top-ten" role="group" aria-label="Pilihan 10 anime populer">{featured.map((a,i)=><button key={a.malId} type="button" aria-label={`Pilih anime peringkat ${i+1}: ${a.title}`} aria-pressed={hero?.malId===a.malId} className={hero?.malId===a.malId?"active":""} onClick={()=>setFeaturedIndex(i)}>{i+1}</button>)}</div>}
 
      {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
       <div className="continue-grid">
