@@ -44,7 +44,7 @@ test('ASS dialogue is converted to uniform WebVTT without styling or code tags',
  assert.doesNotMatch(result,/\\\\k30/)
 })
 
-import {grantSubtitleUrl,verifySubtitleGrant} from '../backend/providers/subtitle-grants.ts'
+import {grantSubtitleUrl,verifySubtitleGrant} from '../backend/providers/subtitles.ts'
 import {findSubtitles} from '../backend/providers/subtitles.ts'
 
 test('SubDL v1 sends api_key in query, not an unsupported Bearer header',async()=>{

@@ -8,8 +8,8 @@ import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../pr
 import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../providers/stremio.js'
 import {externalStream} from '../providers/public-embed.js'
 import {getMiruroEpisodes,getMiruroStreams,isMiruroConfigured} from '../providers/miruro.js'
-import {downloadSubtitle,findSubtitles,toWebVtt,subtitleStatus,type SubtitleProvider} from '../providers/subtitles.js'
-import {verifySubtitleGrant} from '../providers/subtitle-grants.js'
+import {downloadSubtitle,findSubtitles,toWebVtt,subtitleStatus,verifySubtitleGrant,type SubtitleProvider} from '../providers/subtitles.js'
+
 
 const subtitleSearchBudget=createFixedWindowBudget(20,60_000)
 const subtitleDownloadBudget=createFixedWindowBudget(30,60_000)
