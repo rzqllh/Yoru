@@ -77,6 +77,7 @@ function mediaUrl(input:unknown,format:'hls'|'mp4'):string|null{
  }catch{return null}
 }
 export function parseMiruroStreams(payload:unknown,provider:string,episode:number){
+ if(!Number.isSafeInteger(episode)||episode<1||episode>2000)return []
  const root=obj(obj(payload)?.results),out:{format:'hls'|'mp4';url:string;subtitleMode:'soft'|'unknown';tracks:{lang:string;label:string;url:string}[];quality?:string;providerId:string}[]=[]
  const tracks:{lang:string;label:string;url:string}[]=[]
  for(const sub of arr(root?.subtitles).slice(0,15)){
