@@ -208,6 +208,8 @@ test('anime without configured sources provides clearly labelled external embed 
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
+ await expect(page.getByText(/Buka pemutar eksternal \(belum diverifikasi\)/i)).toBeVisible()
+ await page.locator('.source-options button').first().click()
  await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
  const frame=page.getByTitle('External player · Episode 1')
  await expect(frame).toHaveAttribute('src','https://www.animeembed.com/embed/mal/1/1')
