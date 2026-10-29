@@ -80,7 +80,7 @@ function Card({anime,onOpen,compact=false}:{anime:Anime;onOpen:(anime:Anime)=>vo
   <div className="card-art">
    <Poster anime={anime}/>
    <div className="card-overlay"><span>LIHAT DETAIL <ArrowUpRight size={14}/></span></div>
-   {anime.score!==null&&<span className="score-tag"><Star size={11} fill="currentColor"/>{scoreDisplay(anime.score)}</span>}
+   {anime.score!==null&&<span className="score-tag" title="Skor komunitas" aria-label={`Skor komunitas ${scoreDisplay(anime.score)} dari 10`}><Star size={11} fill="currentColor"/>{scoreDisplay(anime.score)}</span>}
   </div>
   <div className="card-copy">
    <strong title={anime.title}>{anime.title}</strong>
@@ -229,7 +229,7 @@ function App(){
   return()=>window.removeEventListener('keydown',key)
  },[route,selected,playback,navigateState])
 
- const hero=season.data[0]||top.data[0]
+ const hero=top.data[0]||season.data[0]
  const continueList=useMemo(()=>progress.filter(row=>row.seconds>0&&(!row.duration||row.seconds<row.duration-10)).slice(0,6),[progress])
 
  async function toggleSave(anime:Anime){
@@ -336,7 +336,7 @@ function App(){
 
      {hero&&<div className="hero-card" style={hero.cover?{backgroundImage:`linear-gradient(90deg,#0e1014 0%,rgba(14,16,20,.94) 36%,rgba(14,16,20,.7) 64%,rgba(14,16,20,.2) 100%),linear-gradient(0deg,#0e1014 0%,transparent 60%),url("${hero.cover.replaceAll('"','%22')}")`}:undefined}>
       <div className="hero-copy">
-       <div className="hero-badge"><span className="pulse"/> PILIHAN MUSIM INI</div>
+       <div className="hero-badge"><span className="pulse"/> ANIME POPULER</div>
        <h2>{hero.title}</h2>
        <div className="hero-meta">
         <span className="hero-rating"><Star size={14} fill="currentColor"/> {scoreDisplay(hero.score)}</span>
@@ -354,7 +354,7 @@ function App(){
         </button>
        </div>
       </div>
-      <div className="hero-corner"><span>REKOMENDASI</span><ArrowDownRight size={20}/></div>
+      <div className="hero-corner"><span>PILIHAN YORU</span><ArrowDownRight size={20}/></div>
      </div>}
 
      {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
@@ -870,10 +870,11 @@ function DetailDialog({
      <h2>{info.title}</h2>
      {info.japaneseTitle&&<p className="detail-japanese">{info.japaneseTitle}</p>}
      <div className="detail-facts">
-      <span className="hero-rating"><Star size={14} fill="currentColor"/> {scoreDisplay(info.score)}</span>
+      <span className="hero-rating" title="Skor komunitas"><Star size={14} fill="currentColor"/> {scoreDisplay(info.score)} / 10</span>
       <span>{yearLabel(info.year)}</span>
       <span>{info.type}</span>
       <span>{info.status}</span>
+       {info.rating&&<span>{info.rating}</span>}
      </div>
      <div className="genre-tags">{info.genres.map(g=><span key={g}>{g}</span>)}</div>
      <p className={`detail-synopsis ${more?'expanded':''}`}>{info.synopsis||'Sinopsis belum tersedia dari metadata.'}</p>
