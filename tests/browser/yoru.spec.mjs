@@ -440,8 +440,8 @@ test('mobile has one visible navigation dock and resets scroll on page changes',
  await expect(page.locator('.browse-filter-group')).toBeVisible()
  await expect(page.locator('.category-switch').getByRole('button',{name:'Musim ini'})).toBeVisible()
  await expect(page.locator('.category-switch').getByRole('button',{name:'Populer'})).toBeVisible()
- await expect(page.locator('.category-switch').getByRole('button',{name:'Akan datang'})).toHaveCount(0)
- await expect(page.getByRole('button',{name:/Musim berikutnya/})).toBeVisible()
+ await expect(page.locator('.category-switch').getByRole('button',{name:'Akan datang'})).toBeVisible()
+ await expect(page.getByRole('button',{name:/Musim berikutnya/})).toHaveCount(0)
 })
 
 test('watch page replaces catalog rather than opening a modal over its scroll',async({page})=>{
