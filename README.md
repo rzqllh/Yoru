@@ -87,7 +87,7 @@ Yoru adalah implementasi tersendiri. Proyek berikut dipelajari sebagai **referen
 - [CloudStream](https://github.com/recloudstream/cloudstream) dan [Aniyomi](https://github.com/aniyomiorg/aniyomi) — pola ekosistem extension dan library.
 - [Nuvio Mobile](https://github.com/NuvioMedia/NuvioMobile) — UI media multi-platform dan bring-your-own-sources.
 - [AIOStreams](https://github.com/Viren070/AIOStreams) — gagasan seleksi/penyatuan sumber; **bukan** dependency di Yoru.
-- [Aniweeb Embed API](https://api.aniweeb.net/docs) — kontrak embed berdasarkan MAL ID (pemutaran belum terverifikasi, bukan dependency runtime).\n- [Stremio Addon SDK](https://github.com/Stremio/stremio-addon-sdk) — kontrak addon manifest dan stream HTTP/JSON.
+- [JustPlay Embed API](https://justplay.boo/) — kontrak embed berdasarkan MAL ID (pemutaran belum terverifikasi, bukan dependency runtime).\n- [Stremio Addon SDK](https://github.com/Stremio/stremio-addon-sdk) — kontrak addon manifest dan stream HTTP/JSON.
 - [anime-sdk](https://github.com/hexxt-git/anime-sdk) — pendekatan normalisasi metadata dan provider; **tidak** dibundel.
 - [Wajik Anime API](https://github.com/wajik45/wajik-anime-api), [Nonton Indo](https://github.com/ExtremeBoyGG/nonton-indo) — referensi variasi sumber Sub Indo; adapter mereka **tidak** dibundel.
 - [Magnetio](https://github.com/peterdsp/Magnetio) — referensi arsitektur torrent/indexer untuk kemungkinan tahap mendatang; torrent **belum** didukung.

@@ -9,7 +9,7 @@ test('catalog migration keeps MAL IDs using Tenrai v1',()=>{
  assert.equal(readFileSync(new URL('../backend/pipeline/jikan.ts',import.meta.url),'utf8').includes('https://api.jikan.moe/v4'),false)
 })
 test('embed URLs use fixed remote domain and validated numeric MAL identity',()=>{
- assert.equal(animeEmbedUrl(52991,1),'https://api.aniweeb.net/embed/mal/52991/1?track=sub')
+ assert.equal(animeEmbedUrl(52991,1),'https://justplay.boo/embed/?mal=52991&ep=1&lang=sub')
  assert.throws(()=>animeEmbedUrl(0,1))
  assert.throws(()=>animeEmbedUrl(52991,-1))
  assert.equal(externalEpisode(52991,1).id,'public-embed:52991:1')

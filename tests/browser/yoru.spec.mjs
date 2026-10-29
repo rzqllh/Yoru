@@ -210,6 +210,6 @@ test('anime without configured sources provides clearly labelled external embed 
  await page.locator('.episode-list .episode-row').first().click()
  await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
  const frame=page.getByTitle('External player · Episode 1')
- await expect(frame).toHaveAttribute('src','https://api.aniweeb.net/embed/mal/1/1?track=sub')
+ await expect(frame).toHaveAttribute('src','https://justplay.boo/embed/?mal=1&ep=1&lang=sub')
  await expect(page.getByText(/ketersediaan episode dan bahasa subtitle belum diverifikasi/i)).toBeVisible()
 })
