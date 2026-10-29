@@ -40,6 +40,7 @@ const embedStream = {
 }
 
 test.beforeEach(async ({ page }) => {
+  await page.route('https://www.animeembed.com/**',async route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body>Fixture</body></html>'}))
   await page.route('**/api/anime/discover?**', async route =>
     route.fulfill({ json: { items: [testAnime], page: 1, hasNext: false } })
   )
@@ -70,12 +71,12 @@ test('AnimeEmbed requires explicit unverified fallback consent and displays the 
   await expect(page.getByRole('dialog', { name: 'Video player' })).toBeVisible()
 
   // Verify iframe existence and initial clean URL
-  const iframe = page.getByTitle('External player · Episode 1')
+  const iframe = page.getByTitle('Video alternatif · Episode 1')
   await expect(iframe).toBeVisible()
   await expect(iframe).toHaveAttribute('src', 'https://www.animeembed.com/embed/mal/52991/1')
 
   // Verify truthful subtitle disclosure
-  await expect(page.getByText(/Subtitle eksternal belum diverifikasi/i)).toBeVisible()
+  await expect(page.getByText(/Pilihan subtitle mengikuti video/i)).toBeVisible()
   await expect(page.getByText(/Progress tersimpan di browser ini/i)).toBeVisible()
 })
 
@@ -162,7 +163,7 @@ test('AnimeEmbed postMessage progress, pause, and ended update IndexedDB and ena
   await page.locator('.source-options button').first().click()
   await expect(page.getByRole('dialog', { name: 'Video player' })).toBeVisible()
 
-  const resumedIframe = page.getByTitle('External player · Episode 1')
+  const resumedIframe = page.getByTitle('Video alternatif · Episode 1')
   await expect(resumedIframe).toBeVisible()
 
   // Check URL has start=150
