@@ -62,7 +62,7 @@ export function extractValidPlaybackProgress(
   if (!data || typeof data !== 'object') return null
 
   const currentTime = data.currentTime
-  if (!Number.isFinite(currentTime) || currentTime < 0 || currentTime > 604800) {
+  if (typeof currentTime !== 'number' || !Number.isFinite(currentTime) || currentTime < 0 || currentTime > 604800) {
     return null
   }
 
