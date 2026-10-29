@@ -34,13 +34,13 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    }).catch(()=>{})
   }
   return()=>{alive=false}
- },[anime?.id,demo])
+ },[anime,demo])
 
  useEffect(()=>{
   const v=video.current
   if(!v||stream.format==='embed')return
   v.playbackRate=speed
- },[speed,stream.url,stream.format])
+ },[speed,stream.format])
 
  useEffect(()=>{
   const v=video.current
@@ -50,7 +50,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
   for(const track of nodes)track.addEventListener('load',apply)
   apply()
   return()=>{for(const track of nodes)track.removeEventListener('load',apply)}
- },[stream.url,stream.format,subtitleOffset])
+ },[stream.format,subtitleOffset])
 
  function changeOffset(delta:number){
   if(!anime||demo)return
@@ -233,7 +233,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p></div>}
    </>}
   </div>
-  {stream.format!=='embed'&&<div className="player-toolbar" aria-label="Kontrol pemutar Yoru">
+  {stream.format!=='embed'&&<div className="player-toolbar" role="group" aria-label="Kontrol pemutar Yoru">
    <label>Kecepatan
     <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>setSpeed(Number(e.target.value))}>
      {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
