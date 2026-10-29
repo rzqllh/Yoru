@@ -1,5 +1,24 @@
 import type {Stream} from '../types'
 
+/** Browser-side defense in depth; DNS/CORS checks and server network policy still apply. */
+function isAllowedMediaHost(hostname:string):boolean{
+ const host=hostname.toLowerCase().replace(/\.+$/,'')
+ if(!host.includes('.')||host.includes(':')||/(?:^|\.)(?:localhost|local|internal|lan)$/.test(host))return false
+ const ipv4=/^\d+(?:\.\d+){3}$/.test(host)
+ if(!ipv4)return true
+ const parts=host.split('.').map(Number)
+ if(parts.some(n=>n>255))return false
+ const [a,b,c]=parts
+ if(a===0||a===10||a===127||a>=224)return false
+ if(a===100&&b>=64&&b<=127)return false
+ if(a===169&&b===254)return false
+ if(a===172&&b>=16&&b<=31)return false
+ if(a===192&&(b===168||(b===0&&c===0)||(b===0&&c===2)))return false
+ if(a===198&&(b===18||b===19||(b===51&&c===100)))return false
+ if(a===203&&b===0&&c===113)return false
+ return true
+}
+
 /** A configured URL is a candidate, not evidence that the browser can decode it. */
 export function isNativeCandidate(stream:Stream):boolean{
  if(stream.format!=='hls'&&stream.format!=='mp4')return false
@@ -7,7 +26,7 @@ export function isNativeCandidate(stream:Stream):boolean{
  try{
   const url=new URL(stream.url)
   return url.protocol==='https:'&&!url.username&&!url.password&&
-    !/^(localhost|127\.|10\.|192\.168\.)/i.test(url.hostname)&&
+    isAllowedMediaHost(url.hostname)&&
     (stream.format==='hls'?url.pathname.endsWith('.m3u8'):url.pathname.endsWith('.mp4'))
  }catch{return false}
 }
