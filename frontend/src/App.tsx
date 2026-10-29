@@ -466,6 +466,9 @@ function Browse({
 
  // biome-ignore lint/correctness/useExhaustiveDependencies: query and kind changes reset page.
  useEffect(()=>{
+  setItems([])
+  setNext(false)
+  setError('')
   setPage(1)
  },[query,kind])
 
@@ -477,6 +480,7 @@ function Browse({
   const timer=window.setTimeout(()=>{
    const req=value?search(value,page,controller.signal):catalog(kind,page,controller.signal)
    req.then(response=>{
+    if(controller.signal.aborted)return
     setNext(response.hasNext)
     setItems(prev=>{
      if(page===1)return response.items
@@ -544,6 +548,10 @@ function Browse({
    </div>
    <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${uniqueItems.length} judul`}</span>
   </div>
+  {error&&uniqueItems.length>0&&<div className="config-error" role="alert">
+   Gagal memuat halaman berikutnya: {error}
+   <button type="button" className="btn btn-outline" onClick={()=>setRetry(n=>n+1)}>Coba lagi</button>
+  </div>}
 
   {error&&uniqueItems.length===0?<Empty
    icon={WifiOff}

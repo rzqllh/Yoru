@@ -213,3 +213,16 @@ test('anime without configured sources provides clearly labelled external embed 
  await expect(frame).toHaveAttribute('src','https://www.animeembed.com/embed/mal/1/1')
  await expect(page.getByText(/ketersediaan episode dan bahasa subtitle belum diverifikasi/i)).toBeVisible()
 })
+
+
+test('browse search failure clears stale results instead of showing old anime',async({page})=>{
+ await page.route('**/api/anime/search?**',async route=>{
+  await route.fulfill({status:503,json:{error:'CATALOG_UNAVAILABLE',message:'Katalog sedang tidak tersedia'}})
+ })
+ await page.goto('/jelajahi')
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+ await page.getByRole('textbox',{name:'Cari anime'}).fill('judul tidak tersedia')
+ await expect(page.getByText('Tidak dapat memuat katalog')).toBeVisible()
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(0)
+ await expect(page.getByRole('button',{name:/Coba lagi/})).toBeVisible()
+})

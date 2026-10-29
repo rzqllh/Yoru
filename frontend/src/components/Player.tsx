@@ -3,11 +3,13 @@ import type Hls from 'hls.js'
 import {AlertTriangle,ArrowLeft,Info,MonitorPlay,Subtitles} from 'lucide-react'
 import type {Anime,Stream} from '../types'
 import {getProgress,saveProgress} from '../lib/db'
+import {connectAnimeEmbed,extractValidPlaybackProgress} from '../lib/animeembed'
 import {useDialogFocus} from '../lib/useDialogFocus'
 
 type Props={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;onClose:()=>void}
 export default function Player({anime,episode,stream,demo=false,onClose}:Props){
  const video=useRef<HTMLVideoElement>(null)
+ const iframeRef=useRef<HTMLIFrameElement>(null)
  const [error,setError]=useState('')
  const [ready,setReady]=useState(false)
  const [resumeAt,setResumeAt]=useState(0)
@@ -91,27 +93,30 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
 
  useEffect(()=>{
   if(stream.format!=='embed'||!anime||demo)return
-  function onMessage(event:MessageEvent){
-   if(event.origin!=='https://www.animeembed.com')return
-   const msg=event.data as {channel?:string;event?:string;data?:{currentTime?:number;duration?:number}}
-   if(msg?.channel!=='animeembed')return
-   if(msg.event==='progress'||msg.event==='pause'||msg.event==='ended'){
-    const cur=Number(msg.data?.currentTime)
-    const dur=Number(msg.data?.duration)||0
-    if(Number.isFinite(cur)&&cur>=0){
-     void saveProgress({
-      anime:anime as Anime,
-      episode,
-      seconds:cur,
-      duration:dur,
-      updatedAt:Date.now()
-     }).catch(()=>{})
-    }
-   }
+  const frame=iframeRef.current
+  if(!frame)return
+  let controller:ReturnType<typeof connectAnimeEmbed>
+  try{
+   controller=connectAnimeEmbed(frame)
+  }catch{
+   setError('Pemutar eksternal tidak dikenal.')
+   return
   }
-  window.addEventListener('message',onMessage)
-  return()=>window.removeEventListener('message',onMessage)
- },[stream.format,anime,episode,demo])
+  const unsubscribe=controller.on(msg=>{
+   if(msg.event!=='progress'&&msg.event!=='pause'&&msg.event!=='ended')return
+   const progress=extractValidPlaybackProgress(msg.data)
+   if(!progress)return
+   const now=Date.now()
+   if(msg.event==='pause'||msg.event==='ended'||now-lastSave.current>=5000){
+    lastSave.current=now
+    void saveProgress({
+     anime,episode,seconds:progress.currentTime,
+     duration:progress.duration,updatedAt:now
+    }).catch(()=>{})
+   }
+  })
+  return()=>{unsubscribe();controller.destroy()}
+ },[stream.format,stream.url,anime,episode,demo])
 
  const resolvedEmbedUrl=useMemo(()=>{
   if(stream.format!=='embed')return stream.url
@@ -142,7 +147,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
      <Info size={16}/>
      <p>Pemutar eksternal AnimeEmbed. Ketersediaan episode dan bahasa subtitle belum diverifikasi secara menyeluruh. Subtitle bawaan berbahasa Inggris. Progress tontonan disinkronkan ke browser.</p>
     </div>
-    <iframe title={`External player · Episode ${episode}`} src={resolvedEmbedUrl} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen referrerPolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" loading="eager"/>
+    <iframe ref={iframeRef} title={`External player · Episode ${episode}`} src={resolvedEmbedUrl} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen referrerPolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" loading="eager"/>
     <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka pemutar di tab baru jika iframe mengalami kendala</a>
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
