@@ -185,8 +185,8 @@ test('when episode next native is unavailable, auto-next never fabricates an emb
 test('mobile: navigation and sample player remain usable at iPhone-sized viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844})
  await page.goto('/')
- await page.getByRole('button',{name:'Buka menu'}).click()
- await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
+ await expect(page.locator('.mobile-bottom')).toBeVisible()
+ await page.locator('.mobile-bottom').getByRole('button',{name:'Pengaturan'}).click()
  await expect(page.getByRole('heading',{name:/^Pengaturan/})).toBeVisible()
  await page.getByRole('button',{name:/Coba pemutar/}).click()
  await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
