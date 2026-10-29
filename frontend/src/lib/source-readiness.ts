@@ -7,7 +7,7 @@ export function isNativeCandidate(stream:Stream):boolean{
  try{
   const url=new URL(stream.url)
   return url.protocol==='https:'&&!url.username&&!url.password&&
-    !/^(localhost|127\\.|10\\.|192\\.168\\.)/i.test(url.hostname)&&
+    !/^(localhost|127\.|10\.|192\.168\.)/i.test(url.hostname)&&
     (stream.format==='hls'?url.pathname.endsWith('.m3u8'):url.pathname.endsWith('.mp4'))
  }catch{return false}
 }
