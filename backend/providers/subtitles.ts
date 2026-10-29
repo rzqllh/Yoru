@@ -190,7 +190,7 @@ export async function downloadSubtitle(provider:SubtitleProvider,ref:string){
    new URLSearchParams(),'POST',JSON.stringify({file_id:Number(ref)}))
   const link=string(object(metadata)?.link,2048)
   const fileUrl=new URL(link)
-  if(fileUrl.protocol!=='https:'||fileUrl.hostname!=='www.opensubtitles.com'||
+  if(fileUrl.protocol!=='https:'||!['www.opensubtitles.com','dl.opensubtitles.com'].includes(fileUrl.hostname)||
    !fileUrl.pathname.startsWith('/download/')||fileUrl.username||fileUrl.password||
    fileUrl.port)throw new Error('UNSAFE_PROVIDER_DOWNLOAD')
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000)
