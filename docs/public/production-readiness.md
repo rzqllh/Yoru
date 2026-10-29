@@ -36,3 +36,11 @@ Yoru is a local-first anime catalog and PWA. A passing CI build does **not** mak
 - To report vulnerabilities, do not paste credentials or private media URLs into public issues.
 
 **Current release stance:** release-candidate source awaiting public infrastructure and real-device/third-party streaming verification, not enterprise-certified production hosting.
+
+## Q12 strict source availability — implementation gate (29 October 2026)
+
+A configured source, provider episode mapping, metadata listing, or constructed embed URL is **not** proof of a playable episode. Candidate streams are browser-preflighted to the decoded-first-frame stage before the native player is opened. A successful probe is valid only in that browser and at that moment; actual playback can still fail afterward. The player must surface the error rather than silently claiming success.
+
+The fixed AnimeEmbed route is an **explicit, unverified external fallback**, not a verified catalogue provider. It requires a deliberate user action; native HLS/MP4 candidates may fail the probe because of codec, origin policy, networking, or availability. A pending or failed probe must never become a green availability badge. Strict verification for external embeds is still an unsolved release blocker unless a trustworthy playback confirmation protocol is established.
+
+**Not release-ready until**: a verified multi-adapter native provider roster, dedicated OpenSubtitles/SubSource/SubDL subtitle discovery and rendering, source/quality/episode recovery, Q6–Q11 player controls, real iPhone Safari sign-off, configured HTTPS hosting, and repeatable provider/availability measurements. The above Q12 UI fix does not satisfy those gates independently.

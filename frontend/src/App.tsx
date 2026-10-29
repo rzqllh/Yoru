@@ -997,7 +997,7 @@ function SettingsPage({
      </div>
      <div className="settings-note">
       <Info size={16}/>
-      <p>Pemutar iframe eksternal menyinkronkan progress lokal secara otomatis. Subtitle bawaan berbahasa Inggris. Untuk kontrol HLS dan subtitle kustom, tambahkan URL stream ke <code>configs/providers.local.json</code>.</p>
+      <p>Pemutar eksternal hanya dapat dicoba atas pilihan pengguna; ketersediaan dan bahasa subtitlenya belum diverifikasi. Progress disimpan jika pemutar mengirimkan event yang valid. Untuk track subtitle native, gunakan sumber yang kompatibel.</p>
      </div>
     </div>
 
