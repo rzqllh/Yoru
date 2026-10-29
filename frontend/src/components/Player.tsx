@@ -417,7 +417,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     v.muted=!v.muted
    }else if(key==='f'){
     event.preventDefault()
-    const root=dialogRef.current
+    const root=video.current?.closest<HTMLElement>('.player-overlay')
     if(document.fullscreenElement)void document.exitFullscreen().catch(()=>{})
     else if(root?.requestFullscreen)void root.requestFullscreen().catch(()=>{})
    }else if(key==='c'&&anime&&!demo&&stream.subtitleMode!=='hard'){
