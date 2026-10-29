@@ -40,7 +40,7 @@ app.get('/api/anime/:id/episodes',async c=>{
  try{return c.json(await getAnimeEpisodes(id,positive(c.req.query('page'),1000)))}catch(e){return c.json({error:'EPISODES_UNAVAILABLE',message:(e as Error).message},503)}
 })
 app.get('/api/providers',async c=>{
- const results=await Promise.allSettled([
+ const results=await Promise.allSettled<{id:string;name:string;animeCount:number|null}[]>([
   getLocalProvider().then(local=>local?[{id:local.id,name:local.name,animeCount:local.anime.length}]:[]),
   getStremioConfig().then(config=>(config?.addons??[]).map(addon=>({
    id:`stremio-${addon.id}`,name:addon.name,animeCount:addon.anime.length
