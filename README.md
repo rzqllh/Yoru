@@ -17,7 +17,7 @@ npm ci
 npm run dev
 ```
 
-Buka **http://127.0.0.1:5173** di browser komputer. Masuk ke **Pengaturan → Test player** untuk melihat contoh HLS 9 detik dan subtitle Indonesia tanpa mencari sumber anime.
+Buka **http://127.0.0.1:5173** di browser komputer. Masuk ke **Pengaturan → Coba pemutar** untuk melihat contoh HLS 9 detik dan subtitle Indonesia tanpa mencari sumber anime.
 
 **Untuk PWA yang bisa di-install:** hentikan `npm run dev`, lalu jalankan:
 
@@ -41,7 +41,9 @@ Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan
 | Backup ekspor/impor data pribadi | Tersedia | Tidak |
 | Install PWA dan shell offline | Tersedia di build produksi | Katalog baru tetap membutuhkan internet |
 | Provider lokal HTTPS dengan file JSON | Tersedia | Konfigurasi manual |
-| Jembatan addon Stremio HTTPS HLS/MP4 | Tersedia secara opt-in | Addon + mapping episode manual |
+| Addon Stremio: video HLS/MP4 dan subtitle episode | Opt-in, dengan pemeriksaan URL dan pemetaan episode | Addon HTTPS dan konfigurasi manual; kualitas nyata belum dijamin |
+| Filter genre, jenis, skor, tahun, dan urutan | Tersedia melalui katalog; muat lebih banyak untuk halaman berikutnya | Internet untuk katalog |
+| Subtitle lokal SRT/VTT, pengaturan tampilan/waktu, dan Sub Indo pilihan | Tersedia untuk video langsung; file addon memerlukan konfigurasi | Subtitle pilihan tidak otomatis berarti tersedia |
 | Rule scraper arbitrer, torrent/magnet, cloud sync | Belum tersedia | — |
 | Installer Windows / APK / IPA | Belum tersedia | — |
 
@@ -55,7 +57,7 @@ Yoru tidak memasukkan provider streaming anime secara default. Tambahkan URL HLS
 2. Ganti `malId`, `number`, `url`, serta track subtitle sesuai media yang kamu punya.
 3. Simpan dan buka kembali detail anime yang sesuai; pilih episode → source → Play.
 
-Jangan memasukkan token ke URL atau commit file `*.local.json`. Stream tanpa dukungan CORS, codec atau subtitle browser mungkin tidak bisa diputar. Untuk alternatif addon HTTP/JSON, lihat **[Panduan provider](docs/public/providers.md)**.
+Jangan memasukkan token ke URL atau commit file `*.local.json`. Stream tanpa dukungan CORS, codec atau subtitle browser mungkin tidak bisa diputar. Untuk alternatif addon HTTP/JSON dan subtitle Stremio, lihat **[Panduan provider](docs/public/providers.md)** serta **[Vercel Preview](docs/public/vercel-preview.md)**. API key dan konfigurasi addon tetap disimpan di sisi server, bukan di komponen frontend.
 
 ## Dokumentasi
 
