@@ -37,3 +37,32 @@ jobs:
             test-results/
           if-no-files-found: ignore
           retention-days: 14
+
+  webkit-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Build verified frontend and API
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Install WebKit test browser
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.64.1
+          npx playwright install --with-deps webkit
+      - name: WebKit Safari-family smoke
+        run: npx playwright test tests/browser/webkit.spec.mjs --browser=webkit
+      - name: Upload WebKit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yoru-webkit-evidence
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
