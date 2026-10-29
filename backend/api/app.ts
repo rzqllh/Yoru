@@ -78,7 +78,7 @@ app.get('/api/anime/:id/subtitles',async c=>{
 app.get('/api/subtitles/file',async c=>{
  const provider=c.req.query('provider')
  const ref=c.req.query('ref')||''
- if(!['subdl','subsource'].includes(provider||'')||ref.length>260)return c.json({error:'INVALID_REQUEST'},400)
+ if(!['subdl','subsource','opensubtitles'].includes(provider||'')||ref.length>260)return c.json({error:'INVALID_REQUEST'},400)
  try{
   const content=toWebVtt(await downloadSubtitle(provider as SubtitleProvider,ref))
   c.header('Content-Type','text/vtt; charset=utf-8')

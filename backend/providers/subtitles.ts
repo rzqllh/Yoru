@@ -96,7 +96,10 @@ async function fetchKnown(provider:SubtitleProvider,path:string,params:URLSearch
  try{
   const headers:Record<string,string>={Accept:'application/json','User-Agent':'Yoru/1.0'}
   if(provider==='subsource')headers['X-API-Key']=key
-  else if(provider==='opensubtitles')headers['Api-Key']=key
+  else if(provider==='opensubtitles'){
+   headers['Api-Key']=key
+   if(process.env.OPENSUBTITLES_ACCESS_TOKEN)headers.Authorization='Bearer '+process.env.OPENSUBTITLES_ACCESS_TOKEN
+  }
   else headers['Authorization']='Bearer '+key
   if(body)headers['Content-Type']='application/json'
   const response=await fetch(url,{method,body,headers,signal:controller.signal,redirect:'error'})
@@ -175,7 +178,26 @@ export async function downloadSubtitle(provider:SubtitleProvider,ref:string){
    return data
   }finally{clearTimeout(timer)}
  }
- throw new Error('OPENSUBTITLES_DOWNLOAD_REQUIRES_LOGIN')
+ if(provider==='opensubtitles'){
+  if(!/^\\d{1,10}$/.test(ref))throw new Error('BAD_SUBTITLE_REF')
+  if(!process.env.OPENSUBTITLES_ACCESS_TOKEN)throw new Error('OPENSUBTITLES_LOGIN_REQUIRED')
+  const metadata=await fetchKnown('opensubtitles','/api/v1/download',
+   new URLSearchParams(),'POST',JSON.stringify({file_id:Number(ref)}))
+  const link=string(object(metadata)?.link,2048)
+  const fileUrl=new URL(link)
+  if(fileUrl.protocol!=='https:'||fileUrl.hostname!=='www.opensubtitles.com'||
+   !fileUrl.pathname.startsWith('/download/')||fileUrl.username||fileUrl.password||
+   fileUrl.port)throw new Error('UNSAFE_PROVIDER_DOWNLOAD')
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000)
+  try{
+   const response=await fetch(fileUrl.toString(),{signal:controller.signal,redirect:'error'})
+   if(!response.ok)throw new Error('DOWNLOAD_FAILED')
+   const data=await response.text()
+   if(data.length>500000)throw new Error('SUBTITLE_TOO_LARGE')
+   return data
+  }finally{clearTimeout(timer)}
+ }
+ throw new Error('UNSUPPORTED_PROVIDER')
 }
 /** Pure conversion; accepts only safe dialogue cues, no HTML injection or ASS rendering claims. */
 export function toWebVtt(source:string):string{
