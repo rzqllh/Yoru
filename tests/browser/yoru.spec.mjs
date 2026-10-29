@@ -75,6 +75,7 @@ test('player keyboard shortcuts control native playback without hijacking input 
  await expect.poll(()=>video.evaluate(v=>v.currentTime)).toBeGreaterThanOrEqual(0)
  await expect(page.getByRole('button',{name:'Mundur 10 detik'})).toBeVisible()
  await expect(page.getByRole('button',{name:'Maju 10 detik'})).toBeVisible()
+ await page.getByRole('button',{name:'Pengaturan'}).click()
  const speed=page.getByRole('combobox',{name:'Kecepatan pemutaran'})
  await speed.focus()
  await page.keyboard.press('k')
@@ -86,6 +87,7 @@ test('native player speed and per-anime subtitle offset survive playback reopeni
  await page.locator('.episode-list .episode-row').first().click()
  const player=page.getByRole('main',{name:'Layar tonton'})
  await expect(player).toBeVisible()
+ await page.getByRole('button',{name:'Pengaturan'}).click()
  const speed=page.getByRole('combobox',{name:'Kecepatan pemutaran'})
  await speed.selectOption('1.5')
  await expect.poll(()=>page.locator('video').evaluate(video=>video.playbackRate)).toBe(1.5)
@@ -105,7 +107,8 @@ test('native player speed and per-anime subtitle offset survive playback reopeni
  await player.getByRole('button',{name:'Kembali'}).click()
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- await expect(page.getByRole('main',{name:'Layar tonton'}).getByText('Waktu subtitle: +0.5s')).toBeVisible()
+ await page.getByRole('main',{name:'Layar tonton'}).getByRole('button',{name:'Pengaturan'}).click()
+await expect(page.getByRole('main',{name:'Layar tonton'}).getByText('Waktu subtitle: +0.5s')).toBeVisible()
 })
 
 test('Q7 subtitle Off persists when reopening the same anime player',async({page})=>{
