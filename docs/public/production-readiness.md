@@ -56,3 +56,18 @@ The Miruro-compatible adapter is operator-configured through `MIRURO_API_BASE` a
 ## Subtitle quota fail-safe
 
 Subtitle lookup and download endpoints enforce small **process-local** fixed-window budgets (20 lookups and 30 downloads/minute) to avoid unlimited uncontrolled upstream requests. Exceeding them returns HTTP 429 with `Retry-After`. These limits are global per Node process, intentionally conservative, and may cause shared-user contention; they are **not sufficient** for public hosting. Configure identity-aware throttling and abuse prevention in the HTTPS ingress; do not share provider credentials with browsers.
+
+## Reproducible live subtitle sign-off (never infer from CI fixtures)
+
+The project now provides an **opt-in live test**, deliberately separate from mock-based CI:
+`npm run verify:subtitles:live`. It fails closed unless all three backend API keys, the OpenSubtitles login token, and three explicit, owner-approved title/episode fixtures are present. Define `YORU_LIVE_SUBTITLE_FIXTURES` as the absolute path to a **local, untracked** JSON file:
+
+```json
+[
+  {"provider":"subdl","title":"Replace with a verified anime title","type":"TV","episode":1,"language":"id"},
+  {"provider":"subsource","title":"Replace with a verified anime title","type":"TV","episode":1,"language":"id"},
+  {"provider":"opensubtitles","title":"Replace with a verified anime title","type":"TV","episode":1,"language":"en"}
+]
+```
+
+Each test searches the actual provider, validates episode/language identity, verifies the signed download grant, downloads a bounded native subtitle file using the backend credentials, and checks a WebVTT cue. It prints only provider/status codes, never credentials, full subtitle text, or temporary download URLs. **Passing the script is evidence only for the exact three fixtures**; it does not certify coverage for every anime, native video playability, physical iPhone Safari, or a production deployment. Secrets stay in environment variables, not committed JSON files.
