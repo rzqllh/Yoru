@@ -3,7 +3,7 @@ const LIMIT = 500_000
 const clean=(value:string)=>value
   .replace(/<(?:script|style|iframe)\b[^>]*>[\s\S]*?<\/(?:script|style|iframe)>/gi,'')
   .replace(/<[^>]+>/g,'')
-  .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'')
+  .split('').filter(char=>{const code=char.charCodeAt(0);return code>=32||code===10||code===13||code===9}).join('')
 
 export function parseLocalSubtitle(content:string,filename:string,byteLength:number):string{
  if(byteLength>LIMIT||content.length>LIMIT)throw new Error('SUBTITLE_TOO_LARGE')
