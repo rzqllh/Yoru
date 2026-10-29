@@ -1,9 +1,9 @@
 /** Fixed third-party iframe player; catalog coverage and actual playback are external claims. */
-const ORIGIN='https://justplay.boo'
+const ORIGIN='https://www.animeembed.com'
 const positive=(n:unknown)=>typeof n==='number'&&Number.isSafeInteger(n)&&n>0&&n<=99999999
 export function animeEmbedUrl(malId:number,episode:number):string{
  if(!positive(malId)||!positive(episode))throw new Error('Invalid anime or episode ID')
- return `${ORIGIN}/embed/?mal=${malId}&ep=${episode}&lang=sub`
+ return `${ORIGIN}/embed/mal/${malId}/${episode}`
 }
 export function externalEpisode(malId:number,episode:number){
  if(!positive(malId)||!positive(episode))throw new Error('Invalid anime or episode ID')

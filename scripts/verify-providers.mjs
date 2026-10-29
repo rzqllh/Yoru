@@ -46,7 +46,7 @@ try{
  result=await readApi('/api/streams?episodeRef=public-embed%3A1%3A1')
  assert.equal(result.status,200)
  assert.equal(result.data.items[0].format,'embed')
- assert.equal(result.data.items[0].url,'https://justplay.boo/embed/?mal=1&ep=1&lang=sub')
+ assert.equal(result.data.items[0].url,'https://www.animeembed.com/embed/mal/1/1')
  console.log('Verified: configured provider -> episodes -> stream, and healthy addon survives invalid local provider.')
 }finally{
  await Promise.all([
