@@ -21,9 +21,9 @@ test('WebKit desktop displays anime catalog and does not invent playable episode
  await page.getByRole('button',{name:'Buka Yoru WebKit Fixture'}).first().click()
  const dialog=page.getByRole('dialog',{name:'Detail Yoru WebKit Fixture'})
  await expect(dialog).toBeVisible()
- await expect(dialog.getByText(/Belum ada sumber native terverifikasi/).first()).toBeVisible()
+ await expect(dialog.getByText(/Belum menemukan video yang bisa diputar/).first()).toBeVisible()
  await dialog.locator('.episode-list .episode-row').first().click()
- await expect(dialog.getByText(/Buka pemutar eksternal \(belum diverifikasi\)/)).toBeVisible()
+ await expect(dialog.getByText(/Coba video alternatif/)).toBeVisible()
  await expect(page.getByRole('dialog',{name:'Video player'})).toHaveCount(0)
 })
 test('WebKit iPhone-sized layout keeps navigation and unverified fallback accessible',async({page})=>{
