@@ -5,7 +5,7 @@ import {resolve,dirname} from 'node:path'
 import {fileURLToPath} from 'node:url'
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..')
-const docs=['README.md','docs/public/README.md','docs/public/getting-started.md','docs/public/using-yoru.md','docs/public/providers.md','docs/public/troubleshooting.md','docs/public/development.md','docs/public/releases.md']
+const docs=['README.md','docs/public/README.md','docs/public/getting-started.md','docs/public/using-yoru.md','docs/public/providers.md','docs/public/troubleshooting.md','docs/public/development.md','docs/public/releases.md','docs/public/production-readiness.md','DESIGN.md']
 
 test('public navigation points to real checked-in docs',()=>{
  for(const file of docs){
@@ -25,4 +25,14 @@ test('release workflow never publishes a source-like web ZIP',()=>{
  assert.equal(content.includes('gh release create'),false)
  assert.equal(content.includes('zip -qr'),false)
  assert.ok(content.includes('gh release delete-asset'))
+})
+
+
+
+test('internal notes are excluded and this documentation branch cannot auto-deploy',()=>{
+ assert.equal(existsSync(resolve(root,'docs/internal/README.md')),false)
+ assert.equal(existsSync(resolve(root,'docs/internal/.gitkeep')),false)
+ const config=JSON.parse(readFileSync(resolve(root,'vercel.json'),'utf8'))
+ assert.equal(config.git.deploymentEnabled['docs/cleanup-public-guides-20261029'],false)
+ assert.equal(config.git.deploymentEnabled.main,undefined)
 })

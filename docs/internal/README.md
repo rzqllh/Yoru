@@ -1,1 +1,0 @@
-No audit documents. User-approved decisions remain: Japanese anime, Indonesian subtitle preference, local-first, extensible provider contract, direct streaming first, permissive MIT source, eventual native conversion. This package deliberately does not ship unofficial source adapters or torrent integrations.
