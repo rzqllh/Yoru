@@ -2556,7 +2556,7 @@ body {
 .detail-modal .modal-close{position:sticky;top:10px;float:right;margin:10px 10px -62px 0;z-index:12;min-width:44px;min-height:44px}
 .source-picker{scroll-margin-block:18px;border-radius:var(--yoru-radius-card)}
 .subtitle-indonesia-state{padding:12px;border:1px solid var(--line);border-radius:var(--yoru-radius-control);color:var(--soft);background:#202c3b}
-.hero-top-ten{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
+.hero-top-ten{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0;border:0;padding:0;min-width:0}
 .hero-top-ten button{min-height:44px;min-width:44px;border-radius:var(--yoru-radius-control);background:var(--yoru-panel);border:1px solid var(--line-strong);color:var(--soft);font-weight:750}
 .hero-top-ten button.active{background:var(--yoru-accent);border-color:var(--yoru-accent);color:#162414}
 .ranked-anime{position:relative;min-width:0}
