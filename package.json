@@ -18,7 +18,7 @@
     "lint": "biome lint --max-diagnostics=200 frontend/src backend/api backend/pipeline backend/providers frontend/vite.config.ts tests scripts",
     "typecheck": "npm run typecheck -w backend && npm run typecheck -w frontend",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "build": "npm run build -w frontend && npm run build -w backend",
+    "build": "npm run build -w frontend && node scripts/inject-precache.mjs && npm run build -w backend",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "start": "node scripts/start.mjs"
   },
