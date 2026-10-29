@@ -381,21 +381,26 @@ test('glass watch screen has Yoru-owned transport and local subtitle upload',asy
  await expect(player.locator('video track[src^="blob:"]')).toHaveCount(1)
 })
 
-test('embedded fallback stays in Yoru watch screen with truthful subtitle limits',async({page})=>{
- await page.route('https://www.animeembed.com/**',async route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body>Video alternatif</body></html>'}))
- await page.route('**/api/anime/1/provider-episodes',async route=>route.fulfill({json:{items:[]}}))
- await page.goto('/')
- await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
- await page.locator('.episode-list .episode-row').first().click()
- await page.locator('.source-options button').first().click()
- const player=page.getByRole('dialog',{name:'Video player'})
- await expect(player).toBeVisible()
- await expect(player.locator('.player-subtitle-trigger')).toBeVisible()
- await player.locator('.player-subtitle-trigger').click()
- await expect(player.getByText(/diatur oleh pemutar video alternatif/i)).toBeVisible()
- await expect(player.getByRole('slider',{name:'Posisi video'})).toHaveCount(0)
+test('embedded fallback keeps an honest Yoru subtitle panel',async({page})=>{
+ await page.route('https://www.animeembed.com/**',route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Video alternative</title>'}))
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[]}}))
+ await test.step('Choose an episode without playable native streams',async()=>{
+  await page.goto('/')
+  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+  await page.locator('.episode-list .episode-row').first().click()
+  await expect(page.locator('.source-picker .source-options button')).toHaveCount(1)
+ })
+ await test.step('Select the explicit embedded fallback',async()=>{
+  await page.locator('.source-picker .source-options button').first().click()
+  await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
+ })
+ await test.step('Expose a truthful subtitle limitation and no fake seek',async()=>{
+  const player=page.getByRole('dialog',{name:'Video player'})
+  await player.locator('.player-subtitle-trigger').click()
+  await expect(player.getByText(/diatur oleh pemutar video alternatif/i)).toBeVisible()
+  await expect(player.getByRole('slider',{name:'Posisi video'})).toHaveCount(0)
+ })
 })
-
 
 test('browse filters loaded anime and header has a single deliberate discovery entry',async({page})=>{
  await page.goto('/')
