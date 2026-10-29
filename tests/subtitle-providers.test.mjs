@@ -43,3 +43,46 @@ test('ASS dialogue is converted to uniform WebVTT without styling or code tags',
  assert.match(result,/Halo, dunia/)
  assert.doesNotMatch(result,/\\\\k30/)
 })
+
+import {grantSubtitleUrl,verifySubtitleGrant} from '../backend/providers/subtitles.ts'
+import {findSubtitles} from '../backend/providers/subtitles.ts'
+
+test('SubDL v1 sends api_key in query, not an unsupported Bearer header',async()=>{
+ const oldKey=process.env.SUBDL_API_KEY,oldFetch=globalThis.fetch
+ delete process.env.OPENSUBTITLES_API_KEY
+ delete process.env.SUBSOURCE_API_KEY
+ process.env.SUBDL_API_KEY='fixture-v1-key'
+ let seen=false
+ try{
+  globalThis.fetch=async(url,options)=>{
+   const parsed=new URL(String(url))
+   assert.equal(parsed.origin,'https://api.subdl.com')
+   assert.equal(parsed.pathname,'/api/v1/subtitles')
+   assert.equal(parsed.searchParams.get('api_key'),'fixture-v1-key')
+   assert.equal(options.headers.Authorization,undefined)
+   seen=true
+   return new Response(JSON.stringify({status:true,subtitles:[{unpack_files:[{
+    episode:5,language:'ID',url:'/subtitle/parent/abc123',release_name:'Episode 05'}]}]}),
+    {status:200,headers:{'content-type':'application/json'}})
+  }
+  const res=await findSubtitles({title:'Example Anime',episode:5,type:'TV'})
+  assert.equal(seen,true)
+  assert.equal(res.items.length,1)
+  const signed=new URL(res.items[0].sourceUrl,'http://yoru.local')
+  assert.equal(signed.searchParams.has('api_key'),false)
+  assert.equal(verifySubtitleGrant('subdl',signed.searchParams.get('ref'),signed.searchParams.get('expires'),signed.searchParams.get('token')),true)
+ }finally{
+  globalThis.fetch=oldFetch
+  if(oldKey===undefined)delete process.env.SUBDL_API_KEY
+  else process.env.SUBDL_API_KEY=oldKey
+ }
+})
+test('subtitle grant rejects tampering and expires',()=>{
+ const url=new URL(grantSubtitleUrl('/api/subtitles/file?provider=subdl&ref=%2Fsubtitle%2F20%2Ffile1',1000000000000),'http://yoru.local')
+ const query=url.searchParams
+ const expiry=query.get('expires'),token=query.get('token'),ref=query.get('ref')
+ assert.equal(verifySubtitleGrant('subdl',ref,expiry,token,1000000000000),true)
+ assert.equal(verifySubtitleGrant('subdl',ref+'-evil',expiry,token,1000000000000),false)
+ assert.equal(verifySubtitleGrant('subdl',ref,expiry,token,1000000000000+600001),false)
+ assert.equal(verifySubtitleGrant('subdl',ref,expiry,'0'.repeat(64),1000000000000),false)
+})

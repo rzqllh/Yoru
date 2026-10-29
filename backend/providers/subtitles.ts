@@ -7,6 +7,30 @@ export type SubtitleCandidate={
  id:string;provider:SubtitleProvider;language:'id'|'en';label:string;
  release:string;episode:number;score:number;sourceUrl?:string;fileId?:number;
 }
+import {createHmac,randomBytes,timingSafeEqual} from 'node:crypto'
+const secret=process.env.YORU_SUBTITLE_SIGNING_SECRET||randomBytes(32).toString('hex')
+const ttlMs=10*60*1000
+const validProvider=(v:string)=>v==='subdl'||v==='subsource'||v==='opensubtitles'
+function signature(provider:string,ref:string,expires:string){
+ return createHmac('sha256',secret).update(JSON.stringify([provider,ref,expires])).digest('hex')
+}
+export function grantSubtitleUrl(sourceUrl:string,now=Date.now()):string{
+ const base=new URL(sourceUrl,'http://yoru.local')
+ const provider=base.searchParams.get('provider')||'',ref=base.searchParams.get('ref')||''
+ if(base.pathname!=='/api/subtitles/file'||base.origin!=='http://yoru.local'||!validProvider(provider)||!ref)throw new Error('INVALID_SUBTITLE_GRANT')
+ const expires=String(now+ttlMs)
+ base.searchParams.set('expires',expires)
+ base.searchParams.set('token',signature(provider,ref,expires))
+ return base.pathname+base.search
+}
+export function verifySubtitleGrant(provider:string,ref:string,expires:string,token:string,now=Date.now()):boolean{
+ if(!validProvider(provider)||!ref||ref.length>260||!/^[1-9]\d{12}$/.test(expires)||!/^[a-f0-9]{64}$/.test(token))return false
+ const time=Number(expires)
+ if(time<now||time>now+ttlMs)return false
+ const expected=Buffer.from(signature(provider,ref,expires),'hex'),actual=Buffer.from(token,'hex')
+ return expected.length===actual.length&&timingSafeEqual(expected,actual)
+}
+
 type Obj=Record<string,unknown>
 const object=(value:unknown):Obj|null=>value&&typeof value==='object'&&!Array.isArray(value)?value as Obj:null
 const string=(value:unknown,max=200)=>typeof value==='string'?value.slice(0,max).trim():''
@@ -91,7 +115,10 @@ const allowedOrigins:Record<SubtitleProvider,string>={
 async function fetchKnown(provider:SubtitleProvider,path:string,params:URLSearchParams,method='GET',body?:string){
  const key=provider==='subdl'?process.env.SUBDL_API_KEY:provider==='subsource'?process.env.SUBSOURCE_API_KEY:process.env.OPENSUBTITLES_API_KEY
  if(!key)throw new Error('PROVIDER_NOT_CONFIGURED')
- const url=allowedOrigins[provider]+path+(params.size?'?'+params.toString():'')
+ // SubDL v1 explicitly requires api_key in its query (Bearer applies to v2, not v1).
+ const query=new URLSearchParams(params)
+ if(provider==='subdl'&&path.startsWith('/api/v1/'))query.set('api_key',key)
+ const url=allowedOrigins[provider]+path+(query.size?'?'+query.toString():'')
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),7000)
  try{
   const headers:Record<string,string>={Accept:'application/json','User-Agent':'Yoru/1.0'}
@@ -100,7 +127,7 @@ async function fetchKnown(provider:SubtitleProvider,path:string,params:URLSearch
    headers['Api-Key']=key
    if(process.env.OPENSUBTITLES_ACCESS_TOKEN)headers.Authorization='Bearer '+process.env.OPENSUBTITLES_ACCESS_TOKEN
   }
-  else headers['Authorization']='Bearer '+key
+  else if(!path.startsWith('/api/v1/'))headers.Authorization='Bearer '+key
   if(body)headers['Content-Type']='application/json'
   const response=await fetch(url,{method,body,headers,signal:controller.signal,redirect:'error'})
   if(!response.ok)throw new Error(response.status===429?'RATE_LIMITED':'PROVIDER_UNAVAILABLE')
@@ -144,7 +171,8 @@ export async function findSubtitles(input:{title:string;episode:number;type:stri
   if(s.status==='fulfilled')items.push(...s.value)
   else warnings.push(jobs[i][0]+': '+(s.reason instanceof Error?s.reason.message:'UNAVAILABLE'))
  })
- return {items:items.sort((a,b)=>b.score-a.score||(a.language==='id'?-1:1)).slice(0,45),warnings,configured:subtitleStatus()}
+ return {items:items.sort((a,b)=>b.score-a.score||(a.language==='id'?-1:1)).slice(0,45)
+  .map(item=>({...item,sourceUrl:item.sourceUrl?grantSubtitleUrl(item.sourceUrl):undefined})),warnings,configured:subtitleStatus()}
 }
 /** No upstream raw URL is accepted. Only bounded, provider-owned refs are fetched. */
 export async function downloadSubtitle(provider:SubtitleProvider,ref:string){
@@ -185,7 +213,7 @@ export async function downloadSubtitle(provider:SubtitleProvider,ref:string){
    new URLSearchParams(),'POST',JSON.stringify({file_id:Number(ref)}))
   const link=string(object(metadata)?.link,2048)
   const fileUrl=new URL(link)
-  if(fileUrl.protocol!=='https:'||fileUrl.hostname!=='www.opensubtitles.com'||
+  if(fileUrl.protocol!=='https:'||!['www.opensubtitles.com','dl.opensubtitles.com'].includes(fileUrl.hostname)||
    !fileUrl.pathname.startsWith('/download/')||fileUrl.username||fileUrl.password||
    fileUrl.port)throw new Error('UNSAFE_PROVIDER_DOWNLOAD')
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000)
