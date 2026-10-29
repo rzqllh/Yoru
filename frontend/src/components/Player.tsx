@@ -603,6 +603,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p>{onRecoverSource&&<button type="button" disabled={recovering} onClick={()=>void recoverManually()}>{recovering?'Mencoba sumber lain…':'Coba sumber lain'}</button>}{recoverMessage&&<p role="status">{recoverMessage}</p>}</div>}
    </>}
   </div>
+  {stream.format==='embed'&&<div className="player-embed-controls"><span>Mode video alternatif</span><button type="button" className="player-subtitle-trigger" aria-expanded={subtitlePanel} aria-controls="yoru-subtitle-panel" onClick={()=>setSubtitlePanel(value=>!value)}><Subtitles size={17}/> Subtitle</button></div>}
   {nextCountdown!==null&&nextStream&&<div className="player-next" role="status">
    <strong>Episode {episode+1} dalam {nextCountdown} detik</strong>
    <button type="button" onClick={()=>setNextCountdown(null)}>Batal</button>
