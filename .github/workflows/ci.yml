@@ -64,3 +64,20 @@ jobs:
             backend/dist/
           if-no-files-found: error
           retention-days: 14
+
+  windows-validate:
+    name: Windows / Node 22 / production smoke
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Lint, typecheck, unit tests and production build on Windows
+        run: npm run check
+      - name: Windows production server and HLS smoke
+        run: node scripts/verify-windows-smoke.mjs
