@@ -39,7 +39,7 @@ app.get('/api/providers',async c=>{
   })))
  ])
  const result=combineProviderResults(results,['local','stremio'])
- return c.json({providers:[...result.items,{id:'public-embed',name:'External anime player (unverified)',animeCount:0}],warnings:result.warnings},200)
+ return c.json({providers:[...result.items,{id:'public-embed',name:'External anime player (unverified)',animeCount:null}],warnings:result.warnings},200)
 })
 app.get('/api/anime/:id/provider-episodes',async c=>{
  const id=validId(c.req.param('id'));if(!id)return c.json({error:'INVALID_ID'},400)

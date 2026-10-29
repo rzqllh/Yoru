@@ -10,4 +10,4 @@ export const detail=(malId:number,signal?:AbortSignal)=>api<Anime>(`/api/anime/$
 export const episodes=(malId:number,page=1,signal?:AbortSignal)=>api<{items:Episode[];hasNext:boolean;page:number}>(`/api/anime/${malId}/episodes?page=${page}`,signal)
 export const providerEpisodes=(malId:number,signal?:AbortSignal)=>api<{items:Episode[]}>(`/api/anime/${malId}/provider-episodes`,signal)
 export const streams=(providerEpisodeId:string,signal?:AbortSignal)=>api<{items:Stream[]}>(`/api/streams?episodeRef=${encodeURIComponent(providerEpisodeId)}`,signal)
-export const providers=()=>api<{providers:{id:string;name:string;animeCount:number}[];warnings?:string[]}>('/api/providers')
+export const providers=()=>api<{providers:{id:string;name:string;animeCount:number|null}[];warnings?:string[]}>('/api/providers')
