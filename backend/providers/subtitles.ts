@@ -199,10 +199,48 @@ export async function downloadSubtitle(provider:SubtitleProvider,ref:string){
  }
  throw new Error('UNSUPPORTED_PROVIDER')
 }
-/** Pure conversion; accepts only safe dialogue cues, no HTML injection or ASS rendering claims. */
+/**
+ * Uniform ASS/SSA dialogue renderer: deliberately drops animation, karaoke,
+ * typesetting and custom positions. Never imply visual parity with fansubs.
+ */
+export function assToWebVtt(source:string):string{
+ const lines=source.replace(/\r\n?/g,'\n').split('\n')
+ const out:string[]=['WEBVTT','']
+ let inEvents=false
+ let fields=['layer','start','end','style','name','marginl','marginr','marginv','effect','text']
+ const toClock=(raw:string)=>{
+  const m=/^(\d{1,2}):(\d{2}):(\d{2})\.(\d{2})$/.exec(raw.trim())
+  if(!m)return null
+  return [m[1].padStart(2,'0'),m[2],m[3]].join(':')+'.'+m[4]+'0'
+ }
+ for(const raw of lines){
+  const line=raw.trim()
+  if(/^\[[^\]]+\]$/.test(line)){inEvents=/^\[Events\]$/i.test(line);continue}
+  if(!inEvents)continue
+  if(/^Format:/i.test(line)){
+   fields=line.slice(7).split(',').map(v=>v.trim().toLowerCase());continue
+  }
+  if(!/^Dialogue:/i.test(line))continue
+  const index=fields.indexOf('text'),startIndex=fields.indexOf('start'),endIndex=fields.indexOf('end')
+  if(index<0||startIndex<0||endIndex<0)continue
+  const parts=line.slice(9).split(',')
+  if(parts.length<fields.length)continue
+  const start=toClock(parts[startIndex]),end=toClock(parts[endIndex])
+  if(!start||!end)continue
+  const dialogue=parts.slice(index,parts.length-(fields.length-index-1)).join(',')
+   .replace(/\{[^}]*\}/g,'').replace(/\\[Nn]/g,'\n').replace(/\\h/g,' ')
+   .replace(/<[^>]*>/g,'').trim()
+  if(!dialogue)continue
+  out.push(start+' --> '+end,dialogue,'')
+ }
+ if(out.length===2)throw new Error('UNSUPPORTED_SUBTITLE_FORMAT')
+ return out.join('\n')
+}
+/** Convert raw SRT/ASS to uniform WebVTT. Content is never treated as executable markup. */
 export function toWebVtt(source:string):string{
  const text=source.replace(/^\uFEFF/,'').replace(/\r\n?/g,'\n').trim()
  if(text.startsWith('WEBVTT'))return text
+ if(/^\[(?:Script Info|Events)\]/i.test(text))return assToWebVtt(text)
  if(!/\d{2}:\d{2}:\d{2},\d{3}\s*-->/.test(text))throw new Error('UNSUPPORTED_SUBTITLE_FORMAT')
  return 'WEBVTT\n\n'+text.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g,'$1.$2')+'\n'
 }
