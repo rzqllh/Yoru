@@ -485,6 +485,11 @@ function Browse({
  const [next,setNext]=useState(false)
  const [page,setPage]=useState(1)
  const [retry,setRetry]=useState(0)
+ const [genre,setGenre]=useState('')
+ const [format,setFormat]=useState('')
+ const [minimumScore,setMinimumScore]=useState(0)
+ const [year,setYear]=useState('')
+ const [order,setOrder]=useState('default')
  const value=query.trim()
 
  // biome-ignore lint/correctness/useExhaustiveDependencies: normalized query and kind changes reset page.
@@ -533,6 +538,16 @@ function Browse({
   })
  },[items])
 
+ const filteredItems=useMemo(()=>{
+  const results=uniqueItems.filter(a=>
+   (!genre||a.genres.includes(genre))&&(!format||a.type===format)&&
+   (!minimumScore||(a.score!==null&&a.score>=minimumScore))&&
+   (!year||String(a.year)===year))
+  return order==='rating'?[...results].sort((a,b)=>(b.score??-1)-(a.score??-1)):
+   order==='newest'?[...results].sort((a,b)=>(b.year??0)-(a.year??0)):results
+ },[uniqueItems,genre,format,minimumScore,year,order])
+ const years=useMemo(()=>[...new Set(uniqueItems.map(item=>item.year).filter((entry):entry is number=>entry!==null))].sort((a,b)=>b-a),[uniqueItems])
+
  return <div className="page-body">
   <div className="page-intro">
    <div>
@@ -565,12 +580,21 @@ function Browse({
     </button>)}
    </fieldset>
   </div>
+  <div className="browse-filters" aria-label="Saring anime">
+   <label>Genre<select aria-label="Genre" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
+   <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>setFormat(e.target.value)}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
+   <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>setMinimumScore(Number(e.target.value))}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
+   <label>Tahun<select aria-label="Tahun rilis" value={year} onChange={e=>setYear(e.target.value)}><option value="">Semua tahun</option>{years.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
+   <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>setOrder(e.target.value)}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
+   {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>{setGenre('');setFormat('');setMinimumScore(0);setYear('');setOrder('default')}}>Reset filter</button>}
+  </div>
+  <p className="browse-filter-note">Filter berlaku untuk hasil yang sudah dimuat. Pilih “Muat lebih banyak” untuk melihat hasil lain.</p>
 
   <div className="browse-results-header">
    <div>
     <h2>{value?`Hasil pencarian: “${value}”`:kind==='season'?'Musim ini':kind==='top'?'Anime terpopuler':'Akan datang'}</h2>
    </div>
-   <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${uniqueItems.length} judul`}</span>
+   <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${filteredItems.length} judul`}</span>
   </div>
   {error&&uniqueItems.length>0&&<div className="config-error" role="alert">
    Belum bisa memuat lebih banyak anime.
@@ -582,12 +606,12 @@ function Browse({
    title="Tidak dapat memuat katalog"
    body="Belum bisa menampilkan anime. Periksa koneksi lalu coba lagi."
    action={<button type="button" className="btn btn-outline" onClick={()=>setRetry(n=>n+1)}><RefreshCw size={15}/> Coba lagi</button>}
-  />:uniqueItems.length===0&&!loading?<Empty
+  />:filteredItems.length===0&&!loading?<Empty
    icon={Search}
    title="Tidak ada judul yang cocok"
    body="Periksa ejaan kata kunci atau pilih kategori penjelajahan yang berbeda."
   />:<div className="card-grid browse-grid">
-   {uniqueItems.map(a=><Card key={a.id} anime={a} onOpen={onOpen}/>)}
+   {filteredItems.map(a=><Card key={a.id} anime={a} onOpen={onOpen}/>)}
    {loading&&SKELETON_KEYS.slice(0,page===1?12:6).map(key=><CardSkeleton key={key}/>)}
   </div>}
 
