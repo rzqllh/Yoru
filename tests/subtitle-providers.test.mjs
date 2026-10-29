@@ -37,7 +37,7 @@ test('ASS dialogue is converted to uniform WebVTT without styling or code tags',
   '[Script Info]','Title: test','[Events]',
   'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
   'Dialogue: 0,0:00:01.00,0:00:03.50,Default,,0,0,0,,{\\\\k30}Halo, dunia\\\\Nbaris dua'
- ].join('\\n')
+ ].join('\n')
  const result=toWebVtt(source)
  assert.match(result,/00:00:01.000 --> 00:00:03.500/)
  assert.match(result,/Halo, dunia/)
