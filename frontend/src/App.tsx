@@ -583,7 +583,7 @@ function Browse({
     <span className="browse-filter-title">Jelajahi berdasarkan</span>
     <fieldset className="category-switch"><legend className="sr-only">Urutan katalog</legend>
      {([['season','Musim ini'],['top','Populer']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
-    </div>
+    </fieldset>
    </div>}
    <label>Genre<select aria-label="Genre" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
    <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>setFormat(e.target.value)}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
