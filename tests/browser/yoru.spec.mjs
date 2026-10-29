@@ -81,7 +81,7 @@ test('native player speed and per-anime subtitle offset survive playback reopeni
  await speed.selectOption('1.5')
  await expect.poll(()=>page.locator('video').evaluate(video=>video.playbackRate)).toBe(1.5)
  await player.getByRole('button',{name:'Subtitle 0.5 detik lebih lambat'}).click()
- await expect(player.getByText('Sync sub: +0.5s')).toBeVisible()
+ await expect(player.getByText('Waktu subtitle: +0.5s')).toBeVisible()
  await expect.poll(async()=>page.evaluate(async()=>{
   const request=indexedDB.open('yoru-local-v1')
   return new Promise(resolve=>{
@@ -96,7 +96,7 @@ test('native player speed and per-anime subtitle offset survive playback reopeni
  await player.getByRole('button',{name:'Kembali'}).click()
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- await expect(page.getByRole('dialog',{name:'Video player'}).getByText('Sync sub: +0.5s')).toBeVisible()
+ await expect(page.getByRole('dialog',{name:'Video player'}).getByText('Waktu subtitle: +0.5s')).toBeVisible()
 })
 
 test('Q7 subtitle Off persists when reopening the same anime player',async({page})=>{
@@ -137,7 +137,7 @@ test('native subtitle picker loads a validated Indonesian external track and res
  const cc=page.getByRole('button',{name:/Subtitle/})
  await expect(cc).toContainText(/Indonesia/)
  await cc.click()
- await expect(page.getByText(/Indonesia · subdl · file berhasil dimuat|Indonesia · subdl · dipilih otomatis/i)).toBeVisible()
+ await expect(page.getByText(/Subtitle Indonesia siap|Subtitle Indonesia dipilih otomatis/i)).toBeVisible()
  await page.getByRole('button',{name:'Off',exact:true}).click()
  await expect(cc).toContainText('Off')
  await expect(page.getByText(/dimatikan atas pilihan pengguna/i)).toBeVisible()
@@ -166,7 +166,7 @@ test('when episode next native is unavailable, auto-next never fabricates an emb
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
  await page.locator('video').evaluate(video=>video.dispatchEvent(new Event('ended')))
- await expect(page.getByText('Episode berikutnya belum mempunyai sumber native terverifikasi.')).toBeVisible()
+ await expect(page.getByText('Episode berikutnya belum bisa diputar.')).toBeVisible()
  await expect(page.getByRole('button',{name:'Lanjut sekarang'})).toHaveCount(0)
 })
 
@@ -279,12 +279,12 @@ test('real HLS playback writes progress to IndexedDB and keeps it after reload',
 
 test('settings reports a degraded provider while keeping healthy providers listed',async({page})=>{
  await page.route('**/api/providers',async route=>route.fulfill({json:{
-  providers:[{id:'local',name:'Configured local source',animeCount:2}],
+  providers:[{id:'local',name:'Sumber pribadi',animeCount:2}],
   warnings:['stremio']
  }}))
  await page.goto('/')
  await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
- await expect(page.getByText('Configured local source')).toBeVisible()
+ await expect(page.getByText('Sumber pribadi')).toBeVisible()
  await expect(page.locator('.config-error')).toContainText('stremio')
 })
 
@@ -333,9 +333,9 @@ test('anime without configured sources provides clearly labelled external embed 
  await expect(page.getByText(/Coba video alternatif/i)).toBeVisible()
  await page.locator('.source-options button').first().click()
  await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
- const frame=page.getByTitle('External player · Episode 1')
+ const frame=page.getByTitle('Video alternatif · Episode 1')
  await expect(frame).toHaveAttribute('src','https://www.animeembed.com/embed/mal/1/1')
- await expect(page.getByText(/ketersediaan episode dan bahasa subtitle belum diverifikasi/i)).toBeVisible()
+ await expect(page.getByText(/Mode video alternatif/i)).toBeVisible()
 })
 
 
@@ -360,4 +360,37 @@ test('browse keeps results when a search changes only in trailing whitespace',as
  await input.fill('Yoru ')
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await expect(page.getByText('Tidak ada judul yang cocok')).toHaveCount(0)
+})
+
+
+test('glass watch screen has Yoru-owned transport and local subtitle upload',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const player=page.getByRole('dialog',{name:'Video player'})
+ await expect(player).toBeVisible()
+ await expect(page.locator('video')).not.toHaveAttribute('controls')
+ await expect(player.getByRole('slider',{name:'Posisi video'})).toBeVisible()
+ await expect(player.getByRole('button',{name:/Putar video|Jeda video/})).toBeVisible()
+ await player.getByRole('button',{name:/Subtitle/}).click()
+ await player.locator('input[type=file][accept*=".srt"]').setInputFiles({
+  name:'uji.srt',mimeType:'text/plain',
+  buffer:Buffer.from('1\n00:00:01,000 --> 00:00:03,000\nHalo dari berkas pribadi\n')
+ })
+ await expect(player.getByText(/Subtitle pribadi.*siap/i)).toBeVisible()
+ await expect(player.locator('video track[src^="blob:"]')).toHaveCount(1)
+})
+
+test('embedded fallback stays in Yoru watch screen with truthful subtitle limits',async({page})=>{
+ await page.route('**/api/anime/1/provider-episodes',async route=>route.fulfill({json:{items:[]}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ await page.locator('.source-options button').first().click()
+ const player=page.getByRole('dialog',{name:'Video player'})
+ await expect(player).toBeVisible()
+ await expect(player.getByRole('button',{name:/Subtitle/})).toBeVisible()
+ await player.getByRole('button',{name:/Subtitle/}).click()
+ await expect(player.getByText(/diatur oleh pemutar video alternatif/i)).toBeVisible()
+ await expect(player.getByRole('slider',{name:'Posisi video'})).toHaveCount(0)
 })
