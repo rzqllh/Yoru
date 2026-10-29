@@ -5,13 +5,20 @@ import {join} from 'node:path'
 const localPath=join('configs','providers.local.json')
 const addonPath=join('configs','stremio.local.json')
 const base='http://127.0.0.1:8787'
+const fixtureFiles=new Set()
+async function createFixture(path,content){
+ // Exclusive creation prevents CI smoke from replacing personal local config.
+ await writeFile(path,content,{flag:'wx'})
+ fixtureFiles.add(path)
+}
+
 async function readApi(path){
  const response=await fetch(base+path)
  return {status:response.status,data:await response.json()}
 }
 try{
  const streamUrl='https://media.example.org/episode-1.m3u8'
- await writeFile(localPath,JSON.stringify({
+ await createFixture(localPath,JSON.stringify({
   id:'ci-local',name:'Configured test provider',anime:[{
    malId:1,title:'Fixture',episodes:[{
     number:1,streams:[{format:'hls',url:streamUrl,subtitleMode:'unknown',tracks:[]}]
@@ -28,7 +35,7 @@ try{
  assert.equal(result.status,200)
  assert.equal(result.data.items[0].url,streamUrl)
 
- await writeFile(addonPath,JSON.stringify({addons:[{
+ await createFixture(addonPath,JSON.stringify({addons:[{
   id:'ci-addon',name:'Configured test addon',
   manifestUrl:'https://addon.example.com/manifest.json',
   anime:[{malId:1,stremioId:'kitsu:1',season:1,episodes:[1]}]
@@ -49,8 +56,5 @@ try{
  assert.equal(result.data.items[0].url,'https://www.animeembed.com/embed/mal/1/1')
  console.log('Verified: configured provider -> episodes -> stream, and healthy addon survives invalid local provider.')
 }finally{
- await Promise.all([
-  unlink(localPath).catch(()=>{}),
-  unlink(addonPath).catch(()=>{})
- ])
+ await Promise.all([...fixtureFiles].map(path=>unlink(path)))
 }
