@@ -7,6 +7,7 @@ import {
  Bookmark,
  Check,
  ChevronDown,
+ ChevronLeft,
  ChevronRight,
  Clapperboard,
  Clock3,
@@ -20,6 +21,7 @@ import {
  LoaderCircle,
  Menu,
  MonitorPlay,
+ Pause,
  Play,
  Plus,
  RefreshCw,
@@ -33,7 +35,7 @@ import {
  X,
 } from 'lucide-react'
 import type {Anime,Episode,LibraryEntry,LibraryStatus,ProgressEntry,Stream} from './types'
-import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered} from './lib/api'
+import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered,dailyTrends,type DailyTrendResponse} from './lib/api'
 import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime,getPreference,setPreference} from './lib/db'
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {getBreadcrumbs,parseRoute,routeToPath,type RouteState} from './lib/router'
@@ -123,6 +125,15 @@ function useCatalog(kind:'season'|'top'|'upcoming'){
  return {data,loading,error,retry:()=>setRetry(v=>v+1)}
 }
 
+function useDailyTrends(){
+ const [data,setData]=useState<DailyTrendResponse|null>(null)
+ useEffect(()=>{
+  const controller=new AbortController()
+  dailyTrends(controller.signal).then(setData).catch(()=>{if(!controller.signal.aborted)setData(null)})
+  return()=>controller.abort()
+ },[])
+ return data
+}
 function AppLogo(){
  return <div className="logo"><span className="logo-symbol"><span/></span><span className="logo-type">yoru<span className="logo-punct">.</span></span></div>
 }
@@ -155,6 +166,8 @@ function App(){
  const [library,setLibrary]=useState<LibraryEntry[]>([])
  const [progress,setProgress]=useState<ProgressEntry[]>([])
  const [featuredIndex,setFeaturedIndex]=useState(0)
+ const [rotateHero,setRotateHero]=useState(true)
+ const daily=useDailyTrends()
  const season=useCatalog('season')
  const top=useCatalog('top')
  const upcoming=useCatalog('upcoming')
@@ -238,8 +251,18 @@ function App(){
   return()=>window.removeEventListener('keydown',key)
  },[route,selected,playback,navigateState])
 
- const featured=top.data.slice(0,10)
+ const dailyAvailable=daily?.items.length===10
+ const featured=dailyAvailable?daily.items:top.data.slice(0,10)
  const hero=featured[featuredIndex%Math.max(1,featured.length)]||season.data[0]
+ const sourceDate=dailyAvailable?new Date(daily.date+'T00:00:00Z').toLocaleDateString('id-ID',{timeZone:'UTC',day:'numeric',month:'short',year:'numeric'}):''
+ useEffect(()=>{
+  if(route.page!=='home'||selected||playback||!rotateHero||featured.length<2)return
+  const motion=window.matchMedia('(prefers-reduced-motion: reduce)')
+  const timer=window.setInterval(()=>{
+   if(!document.hidden&&!motion.matches)setFeaturedIndex(index=>(index+1)%featured.length)
+  },8000)
+  return()=>window.clearInterval(timer)
+ },[route.page,selected,playback,rotateHero,featured.length])
  const continueList=useMemo(()=>progress.filter(row=>row.seconds>0&&(!row.duration||row.seconds<row.duration-10)).slice(0,6),[progress])
 
  async function toggleSave(anime:Anime){
@@ -366,7 +389,7 @@ function App(){
 
      {hero&&<div className="hero-card" style={hero.cover?{backgroundImage:`linear-gradient(90deg,#0e1014 0%,rgba(14,16,20,.94) 36%,rgba(14,16,20,.7) 64%,rgba(14,16,20,.2) 100%),linear-gradient(0deg,#0e1014 0%,transparent 60%),url("${hero.cover.replaceAll('"','%22')}")`}:undefined}>
       <div className="hero-copy">
-       <div className="hero-badge"><span className="pulse"/> 10 ANIME POPULER</div>
+       <div className="hero-badge"><span className="pulse"/> {dailyAvailable?'TREN HARIAN ANILIST':'10 ANIME POPULER'}</div>
        <h2>{hero.title}</h2>
        <div className="hero-meta">
         <span className="hero-rating"><Star size={14} fill="currentColor"/> {scoreDisplay(hero.score)}</span>
@@ -375,6 +398,7 @@ function App(){
         <span>{hero.episodes?`${hero.episodes} Episode`:'Sedang tayang'}</span>
        </div>
        <p>{description(hero.synopsis).slice(0,210)+(hero.synopsis.length>210?'…':'')}</p>
+       <div className="hero-source"><span>{dailyAvailable?`Aktivitas AniList · ${sourceDate} (UTC)`:'Popularitas katalog · MyAnimeList'}</span>{dailyAvailable&&<a href={daily.sourceUrl} target="_blank" rel="noopener noreferrer">Lihat sumber</a>}</div>
        <div className="hero-actions">
         <button type="button" className="btn btn-primary" onClick={()=>setSelected(hero)}>
          <Play size={16} fill="currentColor"/> Buka anime
@@ -384,9 +408,16 @@ function App(){
         </button>
        </div>
       </div>
-      <div className="hero-corner"><span>POPULARITAS KATALOG</span><ArrowDownRight size={20}/></div>
+      <div className="hero-corner"><span>{dailyAvailable?'TREN HARIAN · ANILIST':'POPULARITAS KATALOG'}</span><ArrowDownRight size={20}/></div>
      </div>}
-     {featured.length>1&&<fieldset className="hero-top-ten"><legend className="sr-only">Pilihan 10 anime populer</legend>{featured.map((a,i)=><button key={a.malId} type="button" aria-label={`Pilih anime peringkat ${i+1}: ${a.title}`} aria-pressed={hero?.malId===a.malId} className={hero?.malId===a.malId?"active":""} onClick={()=>setFeaturedIndex(i)}>{i+1}</button>)}</fieldset>}
+     {featured.length>1&&<div className="hero-navigation">
+      <fieldset className="hero-top-ten"><legend className="sr-only">{dailyAvailable?'Pilihan tren harian AniList':'Pilihan anime populer'}</legend>{featured.map((a,i)=><button key={a.malId} type="button" aria-label={`Pilih anime peringkat ${i+1}: ${a.title}`} aria-pressed={hero?.malId===a.malId} className={hero?.malId===a.malId?"active":""} onClick={()=>setFeaturedIndex(i)}>{i+1}</button>)}</fieldset>
+      <div className="hero-navigation-actions">
+       <button type="button" aria-label="Anime sebelumnya" onClick={()=>setFeaturedIndex(i=>(i-1+featured.length)%featured.length)}><ChevronLeft size={18}/></button>
+       <button type="button" aria-label={rotateHero?'Jeda pergantian hero':'Lanjutkan pergantian hero'} aria-pressed={!rotateHero} onClick={()=>setRotateHero(value=>!value)}>{rotateHero?<Pause size={17}/>:<Play size={17}/>}</button>
+       <button type="button" aria-label="Anime berikutnya" onClick={()=>setFeaturedIndex(i=>(i+1)%featured.length)}><ChevronRight size={18}/></button>
+      </div>
+     </div>}
 
      {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
       <div className="continue-grid">
@@ -411,11 +442,11 @@ function App(){
      </Section>
 
      <Section
-      eyebrow="BERDASARKAN POPULARITAS KATALOG"
-      title="10 anime populer"
+      eyebrow={dailyAvailable?`AKTIVITAS ANILIST · ${sourceDate} UTC`:"BERDASARKAN POPULARITAS KATALOG"}
+      title={dailyAvailable?"10 anime tren harian":"10 anime populer"}
       action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'top',libraryView:'all',searchQuery:''})}>Lihat semua <ArrowRight size={16}/></button>}
      >
-      {top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):top.data.slice(0,10).map((a,i)=><div className="ranked-anime" key={a.id}><span className="ranked-anime-number">{i+1}</span><Card anime={a} onOpen={setSelected}/></div>)}</div>}
+      {!dailyAvailable&&top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{!dailyAvailable&&top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):featured.map((a,i)=><div className="ranked-anime" key={a.id}><span className="ranked-anime-number">{i+1}</span><Card anime={a} onOpen={setSelected}/></div>)}</div>}
      </Section>
      <Section eyebrow="MUSIM SELANJUTNYA" title="Segera tayang"
       action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'upcoming',libraryView:'all',searchQuery:''})}>Lihat pratinjau <ArrowRight size={16}/></button>}>

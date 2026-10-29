@@ -27,3 +27,7 @@ export const browseFiltered=(filters:BrowseRequest,page=1,signal?:AbortSignal)=>
  if(filters.order!=='default')params.set('order',filters.order)
  return api<CatalogResponse>('/api/anime/browse?'+params.toString(),signal)
 }
+
+
+export type DailyTrendResponse={items:Anime[];source:'AniList';sourceUrl:'https://anilist.co';date:string;metric:'daily-media-activity'}
+export const dailyTrends=(signal?:AbortSignal)=>api<DailyTrendResponse>('/api/anime/daily-trends',signal)

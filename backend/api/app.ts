@@ -3,6 +3,7 @@ import { SECURITY_HEADERS } from './security.js'
 import {createFixedWindowBudget} from './request-budget.js'
 import {combineProviderResults} from '../pipeline/provider-aggregation.js'
 import { createHealthPayload } from '../pipeline/status.js'
+import {getDailyAnimeTrends} from '../pipeline/daily-trends.js'
 import { getAnime, getAnimeEpisodes, getDiscover, searchAnime, browseAnime, type BrowseFilters } from '../pipeline/jikan.js'
 import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../providers/local.js'
 import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../providers/stremio.js'
@@ -30,6 +31,10 @@ app.get('/api/anime/discover',async c=>{
  const kind=c.req.query('kind')
  if(kind!=='season'&&kind!=='top'&&kind!=='upcoming')return c.json({error:'INVALID_KIND'},400)
  try{return c.json(await getDiscover(kind,positive(c.req.query('page'))))}catch(e){return c.json({error:'CATALOG_UNAVAILABLE',message:(e as Error).message},503)}
+})
+app.get('/api/anime/daily-trends',async c=>{
+ try{return c.json(await getDailyAnimeTrends())}
+ catch{return c.json({error:'DAILY_TRENDS_UNAVAILABLE'},503)}
 })
 app.get('/api/anime/search',async c=>{
  const q=(c.req.query('q')||'').trim()

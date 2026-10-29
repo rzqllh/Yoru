@@ -86,3 +86,17 @@ test('subtitle grant rejects tampering and expires',()=>{
  assert.equal(verifySubtitleGrant('subdl',ref,expiry,token,1000000000000+600001),false)
  assert.equal(verifySubtitleGrant('subdl',ref,expiry,'0'.repeat(64),1000000000000),false)
 })
+
+
+import {compareSubtitleCandidates} from '../backend/providers/subtitles.ts'
+test('Indonesian addon subtitles outrank other verified Indonesian tracks and English alternatives',()=>{
+ const example=(id,provider,language,score)=>({id,provider,language,score,episode:1,label:language==='id'?'Indonesia':'English',release:'',sourceUrl:'/api/subtitles/file?ref=x'})
+ const list=[
+  example('english-stremio','stremio','en',99),
+  example('id-subdl','subdl','id',99),
+  example('id-stremio','stremio','id',70),
+  example('en-subsource','subsource','en',70)
+ ]
+ list.sort(compareSubtitleCandidates)
+ assert.deepEqual(list.map(x=>x.id),['id-stremio','id-subdl','english-stremio','en-subsource'])
+})
