@@ -120,3 +120,11 @@ Yoru uses three optional **built-in server-side** subtitle adapters; there is no
 - `GET /api/subtitles/status` reports which adapters are configured (boolean only; **not** their health). `GET /api/anime/:id/subtitles?episode=N` returns candidates and warnings. No keys or protected URLs are returned.
 
 **Limits:** Without actual keys and authenticated live-provider checks, search and downloads are not end-to-end verified. There is no guarantee that an anime title has a subtitle or that its timing matches a particular video release. The API is intended to be run behind an HTTPS gateway and abuse controls in public deployments.
+
+## Miruro-compatible multi-provider adapter (opt-in)
+
+Set `MIRURO_API_BASE` to the HTTPS origin of an **approved/self-hosted Miruro-compatible API**. By default this adapter is disabled. The public Miruro demo is documented by its maintainer as a test service, and its pipe streaming endpoints may return upstream 503/500 due to Cloudflare. Do not depend on it as a public production SLA.
+
+Yoru resolves MAL → AniList via AniList GraphQL, fetches the provider-specific SUB episode lists, rejects mismatched AniList IDs and episode numbers, and exposes candidate HLS/MP4 streams only. External embeds and stream links requiring unsupported Referer/headers are not silently proxied; the browser native preflight determines whether a candidate can actually decode.
+
+The adapter implements the external API contract without copying or vendoring its code. The upstream author describes the project as educational only. Confirm relevant terms and video rights before making this provider part of a public production distribution. Configured upstream != episode playable; strict verification still applies.

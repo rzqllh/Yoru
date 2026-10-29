@@ -48,3 +48,7 @@ The fixed AnimeEmbed route is an **explicit, unverified external fallback**, not
 ## Subtitle integration verification
 
 The three subtitle adapters are opt-in backend integrations and may be **unconfigured**. CI mocks only validate response parsing, fixed-domain request construction, SRT/ASS dialogue conversion, and picker behavior. Do not mark the real-provider availability gate PASS until each key and official endpoint has been exercised with real anime/episode fixtures, rate-limit handling, denied/expired download cases, and verification on the intended devices. Server-side download endpoints require request throttling/authentication controls before untrusted public traffic is allowed to consume provider quotas.
+
+## Optional third-party video aggregation
+
+The Miruro-compatible adapter is operator-configured through `MIRURO_API_BASE` and off by default. AniList cross-ID mapping, episode parsing and stream filtering have deterministic contract tests; those tests are **not** proof that the third-party hosted API is live or that all third-party CDNs support CORS, seek, iPhone codecs, or permitted playback. A public release requires representative live-provider evidence and affirmative authorization where needed.
