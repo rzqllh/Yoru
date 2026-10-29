@@ -2380,3 +2380,11 @@ body{background:radial-gradient(ellipse 800px 610px at 76% -140px,rgba(85,128,12
  .browse-filters label{flex:1 1 calc(50% - 10px)}
  .browse-filters select{width:100%;min-width:0;max-width:none}
 }
+
+
+.settings-nav{display:flex;gap:9px;flex-wrap:wrap;margin:-10px 0 26px}
+.settings-nav a{display:inline-flex;align-items:center;min-height:42px;padding:8px 14px;border-radius:999px;background:rgba(40,53,68,.74);border:1px solid var(--line-strong);color:var(--soft);font-size:12px;text-decoration:none}
+.settings-nav a:hover,.settings-nav a:focus-visible{color:var(--accent);border-color:rgba(199,246,140,.42)}
+.settings-heading{scroll-margin-top:95px}
+.settings-box select{border:1px solid var(--line-strong);border-radius:11px;background:#273448;color:var(--text);min-height:42px;padding:8px 12px;max-width:210px}
+@media(max-width:600px){.settings-nav{gap:7px}.settings-nav a{padding:7px 10px;font-size:11px}.settings-box select{max-width:170px}}
