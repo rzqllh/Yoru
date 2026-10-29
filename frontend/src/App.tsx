@@ -682,7 +682,7 @@ function LibraryPage({
      <div>
       <strong>{row.anime.title}</strong>
       <span>Episode {row.episode} · {durationDisplay(row.seconds)} ditonton</span>
-     </fieldset>
+     </div>
      <ArrowRight size={18}/>
     </button>)}
    </div>}
