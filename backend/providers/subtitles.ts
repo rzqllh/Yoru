@@ -179,7 +179,7 @@ export async function downloadSubtitle(provider:SubtitleProvider,ref:string){
   }finally{clearTimeout(timer)}
  }
  if(provider==='opensubtitles'){
-  if(!/^\\d{1,10}$/.test(ref))throw new Error('BAD_SUBTITLE_REF')
+  if(!/^\d{1,10}$/.test(ref))throw new Error('BAD_SUBTITLE_REF')
   if(!process.env.OPENSUBTITLES_ACCESS_TOKEN)throw new Error('OPENSUBTITLES_LOGIN_REQUIRED')
   const metadata=await fetchKnown('opensubtitles','/api/v1/download',
    new URLSearchParams(),'POST',JSON.stringify({file_id:Number(ref)}))
