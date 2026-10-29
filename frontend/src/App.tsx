@@ -581,14 +581,14 @@ function Browse({
     </button>)}
    </fieldset>
   </div>
-  <div className="browse-filters" role="group" aria-label="Saring anime">
+  <fieldset className="browse-filters"><legend className="sr-only">Saring anime</legend>
    <label>Genre<select aria-label="Genre" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
    <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>setFormat(e.target.value)}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
    <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>setMinimumScore(Number(e.target.value))}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
    <label>Tahun<select aria-label="Tahun rilis" value={year} onChange={e=>setYear(e.target.value)}><option value="">Semua tahun</option>{years.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
    <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>setOrder(e.target.value)}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
    {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>{setGenre('');setFormat('');setMinimumScore(0);setYear('');setOrder('default')}}>Reset filter</button>}
-  </div>
+  </fieldset>
   <p className="browse-filter-note">Filter berlaku untuk hasil yang sudah dimuat. Pilih “Muat lebih banyak” untuk melihat hasil lain.</p>
 
   <div className="browse-results-header">
