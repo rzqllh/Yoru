@@ -459,7 +459,7 @@ test('watch page replaces catalog rather than opening a modal over its scroll',a
 
 
 test('iPhone detail modal scrolls independently and restores page scroll on close',async({page})=>{
- await page.setViewportSize({width:390,height:844})
+ await page.setViewportSize({width:390,height:568})
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
@@ -478,5 +478,5 @@ test('discover filter and search panels share the same corner radius on mobile',
  await page.goto('/')
  await page.getByRole('button',{name:'Jelajahi anime'}).click()
  const panels=await Promise.all(['.browse-toolbar','.browse-filters'].map(sel=>page.locator(sel).evaluate(el=>getComputedStyle(el).borderRadius)))
- assert.equal(panels[0],panels[1])
+ expect(panels[0]).toBe(panels[1])
 })
