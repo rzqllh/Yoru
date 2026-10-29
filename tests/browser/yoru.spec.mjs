@@ -197,7 +197,7 @@ test('quick links navigate to different views: current season vs saved progress'
  await page.goto('/')
  await page.getByRole('button',{name:/Anime musim ini/}).click()
  await expect(page.getByRole('heading',{name:'Jelajahi.'})).toBeVisible()
- await expect(page.getByRole('button',{name:'Musim ini'})).toHaveClass(/active/)
+ await expect(page.locator('.category-switch button').first()).toHaveClass(/active/)
  await page.getByRole('button',{name:/Lanjut menonton/}).first().click()
  await expect(page.getByRole('heading',{name:'Koleksiku.'})).toBeVisible()
  await expect(page.getByRole('heading',{name:'Lanjut menonton'})).toBeVisible()
