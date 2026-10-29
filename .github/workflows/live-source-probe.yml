@@ -9,24 +9,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Check Tenrai and candidate embed HTTP response
+      - name: Verify public anime metadata and source candidates
         run: |
           node --input-type=module <<'JS'
           const urls=[
            'https://api.tenrai.org/v1/anime/1',
-           'https://api.aniweeb.net/embed/mal/21/1?track=sub',
-           'https://www.animeembed.com/embed/mal/21/1',
+           'https://api.tenrai.org/v1/seasons/now?page=1&limit=2',
+           'https://api.tenrai.org/v1/top/anime?page=1&limit=2',
            'https://justplay.boo/embed/?mal=21&ep=1&lang=sub',
-           'https://nikastream.blog/embed/mal/21/1/sub',
-           'https://megavid.buzz/mal/21/1/sub',
-           'https://anixo.buzz/embed/mal/21/1?track=sub',
-           'https://api.yenime.net/'
+           'https://streamapi.web.id/p/anime/home?page=1',
+           'https://streamapi.web.id/p/anime/search?q=naruto&page=1',
+           'https://wajik-anime-api.vercel.app/otakudesu/ongoing?page=1'
           ]
           for(const url of urls){
            try{
             const r=await fetch(url,{signal:AbortSignal.timeout(12000),redirect:'manual',headers:{'Accept':'text/html,application/json'}})
-            console.log('PROBE',r.status,r.headers.get('content-type')??'',r.headers.get('location')??'',url)
-            if(r.ok&&url.includes('tenrai.org'))console.log('MAL', (await r.json())?.data?.mal_id)
+            console.log('PROBE',r.status,r.headers.get('content-type')??'',url)
+            if(r.ok&&r.headers.get('content-type')?.includes('json')){
+              const data=await r.json()
+              const keys=Object.keys(data??{}).slice(0,15)
+              const summary=JSON.stringify(data).slice(0,480)
+              console.log('DATA_KEYS',keys.join(','))
+              console.log('DATA_PREVIEW',summary)
+            }
            }catch(e){console.log('PROBE ERROR',e?.message,url)}
           }
           JS
