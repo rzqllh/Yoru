@@ -2258,3 +2258,15 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .subtitle-picker-header{display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .player-subtitle-panel small{color:#aeb5c0;}
 @media(max-width:600px){.player-subtitle-panel{max-height:46vh;padding:12px;}}
+
+.subtitle-style-controls{display:flex;flex-wrap:wrap;gap:12px;margin:4px 0;}
+.subtitle-style-controls label{display:inline-flex;align-items:center;gap:6px;}
+.subtitle-style-controls select{background:#222831;color:#f5f6f8;border:1px solid #3b4653;border-radius:7px;min-height:38px;padding:5px;}
+.player-stage video.subtitle-font-sans::cue{font-family:Arial,Helvetica,sans-serif;}
+.player-stage video.subtitle-font-serif::cue{font-family:Georgia,'Times New Roman',serif;}
+.player-stage video.subtitle-size-75::cue{font-size:75%;}
+.player-stage video.subtitle-size-100::cue{font-size:100%;}
+.player-stage video.subtitle-size-125::cue{font-size:125%;}
+.player-stage video.subtitle-size-150::cue{font-size:150%;}
+.player-stage video.subtitle-backdrop-dark::cue{background-color:rgba(0,0,0,.70);}
+.player-stage video.subtitle-backdrop-clear::cue{background-color:transparent;text-shadow:0 1px 2px #000,0 0 4px #000;}

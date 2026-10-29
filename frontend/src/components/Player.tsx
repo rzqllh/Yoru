@@ -25,6 +25,10 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
  const [selectedSubtitle,setSelectedSubtitle]=useState<{id:string;lang:string;url:string}|null>(null)
  const [subtitleOff,setSubtitleOff]=useState(false)
  const [subtitleManual,setSubtitleManual]=useState(false)
+ const [captionFont,setCaptionFont]=useState<'sans'|'serif'>('sans')
+ const [captionSize,setCaptionSize]=useState(100)
+ const [captionBackdrop,setCaptionBackdrop]=useState<'dark'|'clear'>('dark')
+ const [captionScope,setCaptionScope]=useState<'global'|'anime'>('anime')
  const subtitleUrlRef=useRef<string|null>(null)
  const [subtitleOffset,setSubtitleOffset]=useState(0)
  const [error,setError]=useState('')
@@ -60,6 +64,36 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
   apply()
   return()=>{for(const track of nodes)track.removeEventListener('load',apply)}
  },[stream.format,subtitleOffset])
+
+ useEffect(()=>{
+  let active=true
+  const animeKey=anime&&!demo?'subtitle-style:'+anime.id:null
+  void Promise.all([
+   getPreference('subtitle-style:global',''),
+   animeKey?getPreference(animeKey,''):Promise.resolve('')
+  ]).then(([globalValue,animeValue])=>{
+   if(!active)return
+   const saved=animeValue||globalValue
+   setCaptionScope(animeValue?'anime':'global')
+   if(!saved)return
+   try{
+    const obj=JSON.parse(saved) as {font?:string;size?:number;backdrop?:string}
+    if(obj.font==='sans'||obj.font==='serif')setCaptionFont(obj.font)
+    if([75,100,125,150].includes(obj.size||0))setCaptionSize(obj.size||100)
+    if(obj.backdrop==='dark'||obj.backdrop==='clear')setCaptionBackdrop(obj.backdrop)
+   }catch{/* invalid preference falls back to safe defaults */}
+  }).catch(()=>{})
+  return()=>{active=false}
+ },[anime,demo])
+
+ function saveCaptionStyle(font:'sans'|'serif',size:number,backdrop:'dark'|'clear',scope:'global'|'anime'){
+  setCaptionFont(font)
+  setCaptionSize(size)
+  setCaptionBackdrop(backdrop)
+  setCaptionScope(scope)
+  const key=scope==='anime'&&anime&&!demo?'subtitle-style:'+anime.id:'subtitle-style:global'
+  void setPreference(key,JSON.stringify({font,size,backdrop})).catch(()=>{})
+ }
 
  useEffect(()=>{
   if(demo||!anime||stream.format==='embed')return
@@ -335,7 +369,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
     <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka pemutar di tab baru jika iframe mengalami kendala</a>
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
-   <video ref={video} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onPause={saveLocal} onEnded={saveLocal} autoPlay>
+   <video ref={video} className={`subtitle-font-${captionFont} subtitle-size-${captionSize} subtitle-backdrop-${captionBackdrop}`} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onPause={saveLocal} onEnded={saveLocal} autoPlay>
     {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={t.lang==='id'&&!selectedSubtitle&&!subtitleOff}/>)}
     {selectedSubtitle&&!subtitleOff&&<track key={selectedSubtitle.url} kind="subtitles" srcLang={selectedSubtitle.lang} label={selectedSubtitle.id} src={selectedSubtitle.url} default onLoad={()=>{
      const tracks=video.current?.textTracks
@@ -383,6 +417,20 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    {subtitleChoices.map(item=><button type="button" key={item.id} onClick={()=>{setSubtitleManual(true);void activateSubtitle(item,true)}} aria-pressed={selectedSubtitle?.id===item.id}>
     {item.label} · {item.provider} {item.release?('· '+item.release):''} · Episode cocok, sinkronisasi belum dijamin
    </button>)}
+   <div className="subtitle-style-controls">
+    <label>Font <select aria-label="Font subtitle" value={captionFont} onChange={event=>saveCaptionStyle(event.target.value as 'sans'|'serif',captionSize,captionBackdrop,captionScope)}>
+     <option value="sans">Sans-serif</option><option value="serif">Serif</option>
+    </select></label>
+    <label>Ukuran <select aria-label="Ukuran subtitle" value={captionSize} onChange={event=>saveCaptionStyle(captionFont,Number(event.target.value),captionBackdrop,captionScope)}>
+     {[75,100,125,150].map(size=><option value={size} key={size}>{size}%</option>)}
+    </select></label>
+    <label>Background <select aria-label="Background subtitle" value={captionBackdrop} onChange={event=>saveCaptionStyle(captionFont,captionSize,event.target.value as 'dark'|'clear',captionScope)}>
+     <option value="dark">Gelap</option><option value="clear">Transparan</option>
+    </select></label>
+    <label>Simpan untuk <select aria-label="Lingkup preferensi subtitle" value={captionScope} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,event.target.value as 'global'|'anime')}>
+     <option value="global">Seluruh Yoru</option><option value="anime">Anime ini</option>
+    </select></label>
+   </div>
    <small role="status">{subtitleSearch?'Mencari kandidat subtitle…':subtitleState||'Hanya track yang benar-benar berhasil dimuat akan diaktifkan.'}</small>
   </div>}
   <div className="player-footer">
