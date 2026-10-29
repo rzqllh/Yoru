@@ -48,6 +48,34 @@ test('desktop: catalog, search, detail, library and playback with Indonesian VTT
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
 })
+test('native player speed and per-anime subtitle offset survive playback reopening',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const player=page.getByRole('dialog',{name:'Video player'})
+ await expect(player).toBeVisible()
+ const speed=page.getByRole('combobox',{name:'Kecepatan pemutaran'})
+ await speed.selectOption('1.5')
+ await expect.poll(()=>page.locator('video').evaluate(video=>video.playbackRate)).toBe(1.5)
+ await player.getByRole('button',{name:'Subtitle 0.5 detik lebih lambat'}).click()
+ await expect(player.getByText('Sync sub: +0.5s')).toBeVisible()
+ await expect.poll(async()=>page.evaluate(async()=>{
+  const request=indexedDB.open('yoru-local-v1')
+  return new Promise(resolve=>{
+   request.onsuccess=()=>{
+    const db=request.result
+    const tx=db.transaction('preferences','readonly')
+    const get=tx.objectStore('preferences').get('subtitle-offset:mal:1')
+    get.onsuccess=()=>{resolve(get.result?.value);db.close()}
+   }
+  })
+ })).toBe('0.5')
+ await player.getByRole('button',{name:'Kembali'}).click()
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ await expect(page.getByRole('dialog',{name:'Video player'}).getByText('Sync sub: +0.5s')).toBeVisible()
+})
+
 test('mobile: navigation and sample player remain usable at iPhone-sized viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844})
  await page.goto('/')
@@ -208,6 +236,8 @@ test('anime without configured sources provides clearly labelled external embed 
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
+ await expect(page.getByText(/Buka pemutar eksternal \(belum diverifikasi\)/i)).toBeVisible()
+ await page.locator('.source-options button').first().click()
  await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
  const frame=page.getByTitle('External player · Episode 1')
  await expect(frame).toHaveAttribute('src','https://www.animeembed.com/embed/mal/1/1')

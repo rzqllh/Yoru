@@ -63,3 +63,15 @@ test('corrupt optional backup metadata cannot be carried into app rendering',asy
  assert.equal(normalized.trailerYoutubeId,null)
  assert.equal(normalized.status,'Unknown')
 })
+
+test('backup v1 can optionally include safe preferences without breaking old exports',()=>{
+ assert.equal(validateBackup(backup),true)
+ assert.equal(validateBackup({...backup,preferences:[{key:'subtitle:mal:100:offset',value:'-2.0'}]}),true)
+ for(const preferences of [
+  [{key:'subtitle:mal:100:offset',value:'0'},{key:'subtitle:mal:100:offset',value:'1'}],
+  [{key:'__proto__[x]',value:'attack'}],
+  [{key:'test',value:'a'.repeat(2049)}],
+  'bad-value',
+  [null],
+ ])assert.equal(validateBackup({...backup,preferences}),false)
+})

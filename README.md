@@ -74,7 +74,7 @@ Jangan memasukkan token ke URL atau commit file `*.local.json`. Stream tanpa duk
 
 Dalam pemeriksaan Chromium menggunakan origin lokal Yoru pada 29 Oktober 2026, AnimeEmbed mengembalikan media dengan metadata durasi untuk MAL ID **21 (One Piece)**, **52991 (Frieren)**, dan **1535 (Death Note)**. Pada sampel **One Piece episode 1**, video berhasil berjalan dengan buffer aktif dan tanpa error media.
 
-Player embed AnimeEmbed kini menangkap event `postMessage` (`channel: 'animeembed'`, event `progress`, `pause`, `ended`) untuk mencatat posisi tontonan ke IndexedDB lokal secara otomatis. Saat pengguna kembali menonton episode tersebut, Yoru menyematkan parameter `?start=<detik>` ke URL iframe agar pemutar melanjutkan tontonan dari titik terakhir. Subtitle bawaan AnimeEmbed adalah Bahasa Inggris (English); subtitle Bahasa Indonesia didukung penuh melalui sumber HLS/MP4 lokal atau provider kustom.
+Player embed AnimeEmbed kini menangkap event `postMessage` (`channel: 'animeembed'`, event `progress`, `pause`, `ended`) untuk mencatat posisi tontonan ke IndexedDB lokal secara otomatis. Saat pengguna kembali menonton episode tersebut, Yoru menyematkan parameter `?start=<detik>` ke URL iframe agar pemutar melanjutkan tontonan dari titik terakhir. Bahasa subtitle AnimeEmbed tidak dapat dijamin oleh Yoru dan bergantung pada player eksternal; subtitle Indonesia hanya bisa dikontrol melalui track yang benar-benar tersedia pada sumber native yang kompatibel.
 
 ## Pengembangan
 

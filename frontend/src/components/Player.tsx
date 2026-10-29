@@ -2,7 +2,8 @@ import {useEffect,useMemo,useRef,useState} from 'react'
 import type Hls from 'hls.js'
 import {AlertTriangle,ArrowLeft,Info,MonitorPlay,Subtitles} from 'lucide-react'
 import type {Anime,Stream} from '../types'
-import {getProgress,saveProgress} from '../lib/db'
+import {getPreference,getProgress,saveProgress,setPreference} from '../lib/db'
+import {applySubtitleOffset,type CueBaseline} from '../lib/subtitle-offset'
 import {connectAnimeEmbed,extractValidPlaybackProgress} from '../lib/animeembed'
 import {useDialogFocus} from '../lib/useDialogFocus'
 
@@ -10,11 +11,53 @@ type Props={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;onClose:
 export default function Player({anime,episode,stream,demo=false,onClose}:Props){
  const video=useRef<HTMLVideoElement>(null)
  const iframeRef=useRef<HTMLIFrameElement>(null)
+ const hlsRef=useRef<Hls|null>(null)
+ const cueBaselines=useRef(new WeakMap<object,CueBaseline>())
+ const [speed,setSpeed]=useState(1)
+ const [qualityLevels,setQualityLevels]=useState<{index:number;height:number}[]>([])
+ const [qualityIndex,setQualityIndex]=useState<number|null>(null)
+ const [qualityNote,setQualityNote]=useState('')
+ const [subtitleOffset,setSubtitleOffset]=useState(0)
  const [error,setError]=useState('')
  const [ready,setReady]=useState(false)
  const [resumeAt,setResumeAt]=useState(0)
  const lastSave=useRef(0)
  const dialogRef=useDialogFocus()
+
+ useEffect(()=>{
+  let alive=true
+  setSubtitleOffset(0)
+  if(anime&&!demo){
+   void getPreference(`subtitle-offset:${anime.id}`,'0').then(value=>{
+    const n=Number(value)
+    if(alive&&Number.isFinite(n)&&n>=-30&&n<=30)setSubtitleOffset(n)
+   }).catch(()=>{})
+  }
+  return()=>{alive=false}
+ },[anime,demo])
+
+ useEffect(()=>{
+  const v=video.current
+  if(!v||stream.format==='embed')return
+  v.playbackRate=speed
+ },[speed,stream.format])
+
+ useEffect(()=>{
+  const v=video.current
+  if(!v||stream.format==='embed')return
+  const apply=()=>applySubtitleOffset(v.textTracks,subtitleOffset,cueBaselines.current)
+  const nodes=Array.from(v.querySelectorAll('track'))
+  for(const track of nodes)track.addEventListener('load',apply)
+  apply()
+  return()=>{for(const track of nodes)track.removeEventListener('load',apply)}
+ },[stream.format,subtitleOffset])
+
+ function changeOffset(delta:number){
+  if(!anime||demo)return
+  const next=Math.max(-30,Math.min(30,Math.round((subtitleOffset+delta)*10)/10))
+  setSubtitleOffset(next)
+  void setPreference(`subtitle-offset:${anime.id}`,String(next)).catch(()=>{})
+ }
 
  useEffect(()=>{
   let alive=true
@@ -35,6 +78,28 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
   let hls:Hls|null=null
   setError('')
   setReady(false)
+  setQualityLevels([])
+  setQualityIndex(null)
+  setQualityNote('')
+  cueBaselines.current=new WeakMap()
+
+  let stallTimes:number[]=[]
+  let activeLevels:{index:number;height:number}[]=[]
+  const onWaiting=()=>{
+   const now=Date.now()
+   stallTimes=[...stallTimes.filter(t=>now-t<60000),now]
+   if(stallTimes.length<3||!hls||activeLevels.length<2)return
+   const current=hls.currentLevel>=0?hls.currentLevel:activeLevels[0].index
+   const position=activeLevels.findIndex(level=>level.index===current)
+   if(position>=0&&position<activeLevels.length-1){
+    const lower=activeLevels[position+1]
+    hls.nextLevel=lower.index
+    setQualityIndex(lower.index)
+    setQualityNote('Kualitas diturunkan sementara setelah buffering berulang.')
+    stallTimes=[]
+   }
+  }
+  element.addEventListener('waiting',onWaiting)
 
   if(stream.format==='hls'){
    if(element.canPlayType('application/vnd.apple.mpegurl')){
@@ -47,6 +112,14 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
       return
      }
      hls=new HlsModule({enableWorker:true})
+     hlsRef.current=hls
+     hls.on(HlsModule.Events.MANIFEST_PARSED,()=>{
+      if(!hls||!alive)return
+      activeLevels=hls.levels.map((level,index)=>({index,height:level.height||0})).filter(level=>level.height>0).sort((a,b)=>b.height-a.height)
+      setQualityLevels(activeLevels)
+      const highest=activeLevels[0]
+      if(highest){hls.startLevel=highest.index;setQualityIndex(highest.index)}
+     })
      hls.loadSource(stream.url)
      hls.attachMedia(element)
      hls.on(HlsModule.Events.ERROR,(_event,data)=>{
@@ -66,6 +139,8 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    alive=false
    element.pause()
    element.removeEventListener('error',onError)
+   element.removeEventListener('waiting',onWaiting)
+   hlsRef.current=null
    hls?.destroy()
    element.removeAttribute('src')
    element.load()
@@ -145,7 +220,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    {stream.format==='embed'?<div className="embedded-source">
     <div className="embed-notice">
      <Info size={16}/>
-     <p>Pemutar eksternal AnimeEmbed. Ketersediaan episode dan bahasa subtitle belum diverifikasi secara menyeluruh. Subtitle bawaan berbahasa Inggris. Progress tontonan disinkronkan ke browser.</p>
+     <p>Pemutar eksternal AnimeEmbed. Ketersediaan episode dan bahasa subtitle belum diverifikasi secara menyeluruh. Bahasa subtitle dan ketersediaan video belum dapat diverifikasi Yoru. Progress dapat disimpan jika pemutar mengirim event yang valid.</p>
     </div>
     <iframe ref={iframeRef} title={`External player · Episode ${episode}`} src={resolvedEmbedUrl} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen referrerPolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" loading="eager"/>
     <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka pemutar di tab baru jika iframe mengalami kendala</a>
@@ -158,8 +233,36 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p></div>}
    </>}
   </div>
+  {stream.format!=='embed'&&<div className="player-toolbar">
+   <label>Kecepatan
+    <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>setSpeed(Number(e.target.value))}>
+     {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
+    </select>
+   </label>
+   {qualityLevels.length>1&&<label>Kualitas
+    <select aria-label="Kualitas video" value={qualityIndex??''} onChange={e=>{
+     const level=Number(e.target.value)
+     if(hlsRef.current&&qualityLevels.some(item=>item.index===level)){
+      hlsRef.current.currentLevel=level
+      setQualityIndex(level)
+      setQualityNote('')
+     }
+    }}>
+     {qualityLevels.map(level=><option key={level.index} value={level.index}>{level.height}p</option>)}
+    </select>
+   </label>}
+   {stream.subtitleMode!=='hard'&&stream.tracks.length>0&&<div className="player-offset">
+    <span>Sync sub: {subtitleOffset>0?'+':''}{subtitleOffset.toFixed(1)}s</span>
+    <button type="button" onClick={()=>changeOffset(-0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih awal">−0.5</button>
+    <button type="button" onClick={()=>changeOffset(-0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih awal">−0.1</button>
+    <button type="button" onClick={()=>changeOffset(-subtitleOffset)} disabled={!anime||demo} aria-label="Reset sinkronisasi subtitle">Reset</button>
+    <button type="button" onClick={()=>changeOffset(0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih lambat">+0.1</button>
+    <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
+   </div>}
+   {qualityNote&&<small role="status">{qualityNote}</small>}
+  </div>}
   <div className="player-footer">
-   <span><Subtitles size={16}/> {stream.format==='embed'?'Subtitle English (bawaan provider)':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':stream.tracks.length?`${stream.tracks.length} track subtitle tersedia`:'Subtitle tidak tersedia'}</span>
+   <span><Subtitles size={16}/> {stream.format==='embed'?'Subtitle eksternal belum diverifikasi':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':stream.tracks.length?`${stream.tracks.length} track subtitle tersedia`:'Subtitle tidak tersedia'}</span>
    <span><Info size={16}/> {demo?'Sampel lokal untuk menguji HLS & VTT.':stream.format==='embed'?'Progress tersimpan di browser ini.':'Stream bersumber dari konfigurasi lokal.'}</span>
   </div>
  </div>

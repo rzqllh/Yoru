@@ -1,6 +1,7 @@
 import type {Anime,LibraryEntry,ProgressEntry} from '../types'
 
-type Backup={version:number;library:LibraryEntry[];progress:ProgressEntry[]}
+type PreferenceRecord={key:string;value:string}
+type Backup={version:number;library:LibraryEntry[];progress:ProgressEntry[];preferences?:PreferenceRecord[]}
 const isRecord=(value:unknown):value is Record<string,unknown>=>typeof value==='object'&&value!==null&&!Array.isArray(value)
 const isSafeNumber=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)&&value>=0
 function isAnime(value:unknown):value is Anime{
@@ -18,6 +19,16 @@ function validProgress(value:unknown):value is ProgressEntry{
  return isAnime(value.anime)&&Number.isSafeInteger(value.episode)&&Number(value.episode)>0&&
   isSafeNumber(value.seconds)&&isSafeNumber(value.duration)&&isSafeNumber(value.updatedAt)
 }
+function validPreferences(value:unknown):value is PreferenceRecord[]{
+ if(!Array.isArray(value)||value.length>1000)return false
+ const keys=new Set<string>()
+ for(const item of value){
+  if(!isRecord(item)||typeof item.key!=='string'||!/^[a-z0-9:._-]{1,120}$/i.test(item.key)||
+   typeof item.value!=='string'||item.value.length>2048||keys.has(item.key))return false
+  keys.add(item.key)
+ }
+ return true
+}
 function uniqueAnimeIds(rows:(LibraryEntry|ProgressEntry)[]):boolean{
  const ids=rows.map(row=>row.anime.id)
  return new Set(ids).size===ids.length
@@ -26,6 +37,7 @@ export function validateBackup(value:unknown):value is Backup{
  if(!isRecord(value)||value.version!==1||!Array.isArray(value.library)||!Array.isArray(value.progress))return false
  if(value.library.length>10000||value.progress.length>10000)return false
  return value.library.every(validLibrary)&&value.progress.every(validProgress)&&
+   (value.preferences===undefined||validPreferences(value.preferences))&&
    uniqueAnimeIds(value.library)&&uniqueAnimeIds(value.progress)
 }
 

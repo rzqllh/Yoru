@@ -2216,3 +2216,32 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Native player controls: progressive, touch-sized, hidden for external embeds. */
+.player-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 8px 24px;
+  background: #101319;
+  color: #c0c5ce;
+  border-top: 1px solid #262a31;
+  font-size: 12px;
+}
+.player-toolbar label,.player-offset { display: inline-flex; align-items: center; gap: 8px; }
+.player-toolbar select,.player-offset button {
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #38404a;
+  border-radius: 8px;
+  background: #1c2129;
+  color: #f5f6f8;
+}
+.player-offset {flex-wrap:wrap;}
+.player-stage video::cue { font-family: 'DM Sans', system-ui, sans-serif; color: white; background-color: rgba(0,0,0,.55); }
+@media (max-width:600px) {
+  .player-toolbar { padding: 8px 12px; gap: 8px; }
+  .player-offset { width: 100%; }
+  .player-toolbar select,.player-offset button { min-height: 40px; }
+}

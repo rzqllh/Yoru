@@ -30,15 +30,17 @@ export async function saveProgress(value:ProgressEntry){
  const db=await open();await db.put('progress',value);notify()
 }
 export async function getProgress(id:string){const db=await open();return db.get('progress',id)}
+export async function listPreferences(){const db=await open();return db.getAll('preferences')}
 export async function setPreference(key:string,value:string){const db=await open();await db.put('preferences',{key,value});notify()}
 export async function getPreference(key:string,fallback=''){const db=await open();return (await db.get('preferences',key))?.value??fallback}
-export async function exportUserData(){return {version:1,exportedAt:new Date().toISOString(),library:await listLibrary(),progress:await listProgress()}}
+export async function exportUserData(){return {version:1,exportedAt:new Date().toISOString(),library:await listLibrary(),progress:await listProgress(),preferences:await listPreferences()}}
 export {validateBackup} from './backup'
 export async function importUserData(value:unknown){
  if(!validateBackup(value))throw new Error('Format backup tidak valid')
- const db=await open();const tx=db.transaction(['library','progress'],'readwrite')
+ const db=await open();const tx=db.transaction(['library','progress','preferences'],'readwrite')
+ for(const row of value.preferences??[])await tx.objectStore('preferences').put(row)
  for(const row of value.library)await tx.objectStore('library').put({...row,anime:normalizeBackupAnime(row.anime)})
  for(const row of value.progress)await tx.objectStore('progress').put({...row,anime:normalizeBackupAnime(row.anime)})
  await tx.done;notify()
 }
-export async function clearUserData(){const db=await open();const tx=db.transaction(['library','progress'],'readwrite');await tx.objectStore('library').clear();await tx.objectStore('progress').clear();await tx.done;notify()}
+export async function clearUserData(){const db=await open();const tx=db.transaction(['library','progress','preferences'],'readwrite');await tx.objectStore('library').clear();await tx.objectStore('progress').clear();await tx.objectStore('preferences').clear();await tx.done;notify()}
