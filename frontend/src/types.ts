@@ -6,7 +6,7 @@ export type Anime = {
 }
 export type Episode = {id:string;animeId:string;number:number;title:string;filler?:boolean;recap?:boolean;providerId?:string}
 export type Track = {lang:string;label:string;url:string}
-export type Stream = {id?:string;providerId?:string;format:'hls'|'mp4';url:string;subtitleMode:'hard'|'soft'|'unknown';tracks:Track[];quality?:string}
+export type Stream = {id?:string;providerId?:string;format:'hls'|'mp4'|'embed';url:string;subtitleMode:'hard'|'soft'|'unknown';tracks:Track[];quality?:string}
 export type Page = 'home'|'browse'|'library'|'settings'
 export type LibraryStatus = 'watching'|'planned'|'completed'
 export type LibraryEntry = { anime:Anime;status:LibraryStatus;updatedAt:number }
