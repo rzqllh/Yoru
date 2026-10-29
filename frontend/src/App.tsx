@@ -181,12 +181,13 @@ function App(){
    window.history.pushState(null,'',path)
   }
   setMobileNav(false)
-  window.scrollTo({top:0,behavior:'smooth'})
+  if(!replace)window.scrollTo({top:0,behavior:'instant'})
  },[])
 
  useEffect(()=>{
   function onPopState(){
    setRoute(parseRoute(window.location.pathname,window.location.search))
+   window.scrollTo({top:0,behavior:'instant'})
   }
   window.addEventListener('popstate',onPopState)
   return()=>window.removeEventListener('popstate',onPopState)
@@ -248,6 +249,26 @@ function App(){
  }
 
  const breadcrumbs=useMemo(()=>getBreadcrumbs(route),[route])
+ const closeWatch=()=>{
+  const shouldRestoreDemo=Boolean(playback?.demo)
+  setPlayback(null)
+  window.scrollTo({top:0,behavior:'instant'})
+  if(shouldRestoreDemo)window.requestAnimationFrame(()=>{
+   document.querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')?.focus()
+  })
+ }
+ if(playback)return <Player
+  key={`${playback.anime?.id||'demo'}:${playback.episode}:${playback.stream.url}`}
+  anime={playback.anime}
+  episode={playback.episode}
+  stream={playback.stream}
+  demo={playback.demo}
+  manualSource={playback.manualSource===true}
+  onPrepareNext={prepareNext}
+  onContinueNext={continueNext}
+  onRecoverSource={recoverSource}
+  onClose={closeWatch}
+ />
 
  return <div className="app-shell">
   <aside className={`sidebar ${mobileNav?'is-open':''}`}>
@@ -446,19 +467,6 @@ function App(){
    onClose={()=>setSelected(null)}
    onToggleSave={()=>void toggleSave(selected)}
    onWatch={value=>{setPlayback(value);setSelected(null)}}
-  />}
-
-  {playback&&<Player
-   key={`${playback.anime?.id||'demo'}:${playback.episode}:${playback.stream.url}`}
-   anime={playback.anime}
-   episode={playback.episode}
-   stream={playback.stream}
-   demo={playback.demo}
-   manualSource={playback.manualSource===true}
-   onPrepareNext={prepareNext}
-   onContinueNext={continueNext}
-   onRecoverSource={recoverSource}
-   onClose={()=>setPlayback(null)}
   />}
 
   {toast&&<div role="status" className="toast"><Check size={16}/>{toast}</div>}
