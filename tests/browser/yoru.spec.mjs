@@ -105,7 +105,7 @@ test('Q7 subtitle Off persists when reopening the same anime player',async({page
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
  const player=page.getByRole('dialog',{name:'Video player'})
- const cc=player.getByRole('button',{name:/Subtitle/})
+ const cc=player.locator('.player-subtitle-trigger')
  await cc.click()
  await player.getByRole('button',{name:'Off',exact:true}).click()
  await expect(cc).toContainText('Off')
@@ -113,8 +113,8 @@ test('Q7 subtitle Off persists when reopening the same anime player',async({page
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
  const reopened=page.getByRole('dialog',{name:'Video player'})
- await expect(reopened.getByRole('button',{name:/Subtitle/})).toContainText('Off')
- await reopened.getByRole('button',{name:/Subtitle/}).click()
+ await expect(reopened.locator('.player-subtitle-trigger')).toContainText('Off')
+ await reopened.locator('.player-subtitle-trigger').click()
  await expect(reopened.getByRole('button',{name:'Off',exact:true})).toHaveAttribute('aria-pressed','true')
 })
 
@@ -134,7 +134,7 @@ test('native subtitle picker loads a validated Indonesian external track and res
  await page.locator('.episode-list .episode-row').first().click()
  const player=page.getByRole('dialog',{name:'Video player'})
  await expect(player).toBeVisible()
- const cc=page.getByRole('button',{name:/Subtitle/})
+ const cc=page.locator('.player-subtitle-trigger')
  await expect(cc).toContainText(/Indonesia/)
  await cc.click()
  await expect(page.getByText(/Subtitle Indonesia siap|Subtitle Indonesia dipilih otomatis/i)).toBeVisible()
@@ -204,7 +204,7 @@ test('search query always restarts from page one after browsing another page',as
  await page.goto('/')
  await page.locator('.main-nav').getByRole('button',{name:'Jelajahi'}).click()
  await page.getByRole('button',{name:/Muat lebih banyak/}).click()
- await page.getByRole('textbox',{name:'Cari judul anime'}).fill('Yoru')
+ await page.getByRole('textbox',{name:'Cari anime'}).fill('Yoru')
  await expect.poll(()=>searchPages.at(-1),{timeout:10000}).toBe(1)
 })
 
@@ -335,7 +335,7 @@ test('anime without configured sources provides clearly labelled external embed 
  await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
  const frame=page.getByTitle('Video alternatif · Episode 1')
  await expect(frame).toHaveAttribute('src','https://www.animeembed.com/embed/mal/1/1')
- await expect(page.getByText(/Mode video alternatif/i)).toBeVisible()
+ await expect(page.getByText('Mode video alternatif',{exact:true})).toBeVisible()
 })
 
 
@@ -372,7 +372,7 @@ test('glass watch screen has Yoru-owned transport and local subtitle upload',asy
  await expect(page.locator('video')).not.toHaveAttribute('controls')
  await expect(player.getByRole('slider',{name:'Posisi video'})).toBeVisible()
  await expect(player.getByRole('button',{name:/Putar video|Jeda video/})).toBeVisible()
- await player.getByRole('button',{name:/Subtitle/}).click()
+ await player.locator('.player-subtitle-trigger').click()
  await player.locator('input[type=file][accept*=".srt"]').setInputFiles({
   name:'uji.srt',mimeType:'text/plain',
   buffer:Buffer.from('1\n00:00:01,000 --> 00:00:03,000\nHalo dari berkas pribadi\n')
@@ -382,6 +382,7 @@ test('glass watch screen has Yoru-owned transport and local subtitle upload',asy
 })
 
 test('embedded fallback stays in Yoru watch screen with truthful subtitle limits',async({page})=>{
+ await page.route('https://www.animeembed.com/**',async route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body>Video alternatif</body></html>'}))
  await page.route('**/api/anime/1/provider-episodes',async route=>route.fulfill({json:{items:[]}}))
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
@@ -389,8 +390,8 @@ test('embedded fallback stays in Yoru watch screen with truthful subtitle limits
  await page.locator('.source-options button').first().click()
  const player=page.getByRole('dialog',{name:'Video player'})
  await expect(player).toBeVisible()
- await expect(player.getByRole('button',{name:/Subtitle/})).toBeVisible()
- await player.getByRole('button',{name:/Subtitle/}).click()
+ await expect(player.locator('.player-subtitle-trigger')).toBeVisible()
+ await player.locator('.player-subtitle-trigger').click()
  await expect(player.getByText(/diatur oleh pemutar video alternatif/i)).toBeVisible()
  await expect(player.getByRole('slider',{name:'Posisi video'})).toHaveCount(0)
 })
