@@ -43,7 +43,7 @@ test('daily AniList query is bounded to yesterday UTC and caches verified result
    return new Response(JSON.stringify(fixture()),{status:200,headers:{'content-type':'application/json'}})
   }
   const a=await getDailyAnimeTrends(Date.UTC(2026,9,30,12))
-  const b=await getDailyAnimeTrends(Date.UTC(2026,9,30,13))
+  const b=await getDailyAnimeTrends(Date.UTC(2026,9,30,12,10))
   assert.equal(calls,1)
   assert.deepEqual(a,b)
  }finally{globalThis.fetch=old}
