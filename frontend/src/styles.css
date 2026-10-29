@@ -2270,3 +2270,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .player-stage video.subtitle-size-150::cue{font-size:150%;}
 .player-stage video.subtitle-backdrop-dark::cue{background-color:rgba(0,0,0,.70);}
 .player-stage video.subtitle-backdrop-clear::cue{background-color:transparent;text-shadow:0 1px 2px #000,0 0 4px #000;}
+
+.player-next{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;
+ background:#172017;padding:12px;color:#e4f2da;border-top:1px solid #344431;font-size:13px;}
+.player-next button,.player-error button{background:#293529;border:1px solid #6b875d;color:#f5fff0;
+ padding:8px 14px;min-height:40px;border-radius:8px;}
+.player-error{pointer-events:auto;}

@@ -41,7 +41,7 @@ import Player from './components/Player'
 import {verifyNativeSource} from './lib/source-readiness'
 import {useDialogFocus} from './lib/useDialogFocus'
 
-type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean}
+type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean}
 
 const TEST_STREAM:Stream={
  id:'demo',
@@ -126,6 +126,25 @@ function AppLogo(){
  return <div className="logo"><span className="logo-symbol"><span/></span><span className="logo-type">yoru<span className="logo-punct">.</span></span></div>
 }
 
+/** Resolve only native sources proven to decode in this browser. */
+async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:string):Promise<Stream|null>{
+ try{
+  const providers=await providerEpisodes(malId)
+  const matches=providers.items.filter(item=>item.number===episode&&item.providerId!=='public-embed').slice(0,6)
+  const resolved=await Promise.allSettled(matches.map(item=>streams(item.id)))
+  const candidates=resolved.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
+   .filter(source=>source.format!=='embed'&&source.url!==exceptUrl)
+  const visited=new Set<string>()
+  for(const candidate of candidates){
+   if(visited.has(candidate.url))continue
+   visited.add(candidate.url)
+   if(visited.size>6)break
+   try{await verifyNativeSource(candidate,10000);return candidate}catch{/* test other native */}
+  }
+ }catch{/* failed provider is not available */}
+ return null
+}
+
 function App(){
  const [route,setRoute]=useState<RouteState>(()=>parseRoute(window.location.pathname,window.location.search))
  const [selected,setSelected]=useState<Anime|null>(null)
@@ -137,6 +156,20 @@ function App(){
  const season=useCatalog('season')
  const top=useCatalog('top')
  const searchInputRef=useRef<HTMLInputElement>(null)
+ const prepareNext=useCallback(async():Promise<Stream|null>=>{
+  if(!playback?.anime||playback.demo)return null
+  return resolveHealthyNative(playback.anime.malId,playback.episode+1)
+ },[playback])
+ const continueNext=useCallback((stream:Stream)=>{
+  setPlayback(current=>current?.anime?{...current,episode:current.episode+1,stream,manualSource:false}:current)
+ },[])
+ const recoverSource=useCallback(async()=>{
+  if(!playback?.anime||playback.demo)return false
+  const candidate=await resolveHealthyNative(playback.anime.malId,playback.episode,playback.stream.url)
+  if(!candidate)return false
+  setPlayback(current=>current?{...current,stream:candidate,manualSource:false}:current)
+  return true
+ },[playback])
 
  const navigateState=useCallback((next:RouteState,replace=false)=>{
   setRoute(next)
@@ -433,10 +466,15 @@ function App(){
   />}
 
   {playback&&<Player
+   key={`${playback.anime?.id||'demo'}:${playback.episode}:${playback.stream.url}`}
    anime={playback.anime}
    episode={playback.episode}
    stream={playback.stream}
    demo={playback.demo}
+   manualSource={playback.manualSource===true}
+   onPrepareNext={prepareNext}
+   onContinueNext={continueNext}
+   onRecoverSource={recoverSource}
    onClose={()=>setPlayback(null)}
   />}
 
@@ -770,17 +808,17 @@ function DetailDialog({
   url:`https://www.animeembed.com/embed/mal/${info.malId}/${ep}`,
   subtitleMode:'unknown',tracks:[],
  })
- async function checkAndWatch(stream:Stream,ep:number){
+ async function checkAndWatch(stream:Stream,ep:number,manual=false){
   if(stream.format==='embed'){
    // Deliberate selection here is the user consent to leave native playback.
-   onWatch({anime:info,episode:ep,stream})
+   onWatch({anime:info,episode:ep,stream,manualSource:manual})
    return
   }
   setPlaying(String(ep))
   setError('')
   try{
    await verifyNativeSource(stream)
-   onWatch({anime:info,episode:ep,stream})
+   onWatch({anime:info,episode:ep,stream,manualSource:manual})
   }catch(e){
    setError(`Sumber belum bisa diputar di browser ini: ${(e as Error).message} Pilih sumber lain atau coba lagi.`)
   }finally{setPlaying('')}
@@ -858,7 +896,7 @@ function DetailDialog({
       <button type="button" className="icon-button" onClick={()=>setChoices(null)} aria-label="Tutup pilihan sumber"><X size={15}/></button>
      </div>
      <div className="source-options">
-      {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode)}>
+      {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
        <MonitorPlay size={17}/>
        <span>
         <strong>{stream.format==='embed'?'Buka pemutar eksternal (belum diverifikasi)':stream.quality||stream.format.toUpperCase()} · {stream.subtitleMode==='hard'?'Hardsub':stream.tracks.some(t=>t.lang==='id')?'Track Indonesia terdaftar':'Subtitle belum diverifikasi'}</strong>

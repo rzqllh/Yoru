@@ -101,6 +101,33 @@ test('native subtitle picker loads a validated Indonesian external track and res
  await expect(page.getByText(/dimatikan atas pilihan pengguna/i)).toBeVisible()
 })
 
+test('verified episode two activates auto-next countdown and navigates only after confirmation',async({page})=>{
+ const second={...configured,id:'fixture:1:2',number:2,title:'Episode 2'}
+ await page.route('**/api/anime/1/provider-episodes',async route=>route.fulfill({json:{items:[configured,second]}}))
+ await page.route('**/api/streams?**',async route=>{
+  const episodeRef=new URL(route.request().url()).searchParams.get('episodeRef')
+  await route.fulfill({json:{items:[{...testStream,id:episodeRef+':0'}]}})
+ })
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const first=page.getByRole('dialog',{name:'Video player'})
+ await expect(first).toBeVisible()
+ await page.locator('video').evaluate(video=>video.dispatchEvent(new Event('ended')))
+ await expect(page.getByText(/Episode 2 dalam \d+ detik/)).toBeVisible({timeout:25000})
+ await page.getByRole('button',{name:'Lanjut sekarang'}).click()
+ await expect(page.getByRole('dialog',{name:'Video player'}).getByText(/Episode 2/).first()).toBeVisible()
+})
+
+test('when episode next native is unavailable, auto-next never fabricates an embed',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ await page.locator('video').evaluate(video=>video.dispatchEvent(new Event('ended')))
+ await expect(page.getByText('Episode berikutnya belum mempunyai sumber native terverifikasi.')).toBeVisible()
+ await expect(page.getByRole('button',{name:'Lanjut sekarang'})).toHaveCount(0)
+})
+
 test('mobile: navigation and sample player remain usable at iPhone-sized viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844})
  await page.goto('/')
