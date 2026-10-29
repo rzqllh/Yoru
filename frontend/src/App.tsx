@@ -224,7 +224,13 @@ function App(){
    }
    if(event.key==='Escape'){
     if(selected){setSelected(null)}
-    else if(playback){setPlayback(null)}
+    else if(playback){
+     const wasDemo=Boolean(playback.demo)
+     setPlayback(null)
+     if(wasDemo)window.requestAnimationFrame(()=>{
+      document.querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')?.focus()
+     })
+    }
    }
   }
   window.addEventListener('keydown',key)
