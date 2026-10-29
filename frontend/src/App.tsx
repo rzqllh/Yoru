@@ -464,13 +464,13 @@ function Browse({
  const [retry,setRetry]=useState(0)
  const value=query.trim()
 
- // biome-ignore lint/correctness/useExhaustiveDependencies: query and kind changes reset page.
+ // biome-ignore lint/correctness/useExhaustiveDependencies: normalized query and kind changes reset page.
  useEffect(()=>{
   setItems([])
   setNext(false)
   setError('')
   setPage(1)
- },[query,kind])
+ },[value,kind])
 
  // biome-ignore lint/correctness/useExhaustiveDependencies: retry value intentionally forces new browse request.
  useEffect(()=>{

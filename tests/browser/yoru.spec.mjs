@@ -226,3 +226,14 @@ test('browse search failure clears stale results instead of showing old anime',a
  await expect(page.locator('.browse-grid .anime-card')).toHaveCount(0)
  await expect(page.getByRole('button',{name:/Coba lagi/})).toBeVisible()
 })
+
+
+test('browse keeps results when a search changes only in trailing whitespace',async({page})=>{
+ await page.goto('/jelajahi')
+ const input=page.getByRole('textbox',{name:'Cari anime'})
+ await input.fill('Yoru')
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+ await input.fill('Yoru ')
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+ await expect(page.getByText('Tidak ada judul yang cocok')).toHaveCount(0)
+})
