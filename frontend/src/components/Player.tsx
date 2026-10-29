@@ -159,7 +159,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
      typeof item.sourceUrl==='string'&&item.sourceUrl.startsWith('/api/subtitles/file?')&&item.score>=70)
     choices.sort((a,b)=>(a.language==='id'?0:1)-(b.language==='id'?0:1)||b.score-a.score)
     setSubtitleChoices(choices)
-    if(!choices.length)setSubtitleState((data.warnings||[]).length?'Provider subtitle belum siap atau tidak ada hasil yang cocok.':'Subtitle eksternal belum ditemukan.')
+    if(!choices.length)setSubtitleState((data.warnings||[]).length?'Subtitle belum tersedia dari layanan saat ini. Coba file dari perangkat.':'Belum menemukan subtitle untuk episode ini.')
    }).catch(()=>{
     if(alive)setSubtitleState('Layanan pencarian subtitle tidak tersedia.')
    }).finally(()=>{if(alive)setSubtitleSearch(false)})
@@ -671,6 +671,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    {subtitleChoices.map(item=><button type="button" key={item.id} onClick={()=>{setSubtitleManual(true);void activateSubtitle(item,true)}} aria-pressed={selectedSubtitle?.id===item.id}>
     {item.label} · Pilihan {subtitleChoices.indexOf(item)+1}
    </button>)}
+   {!subtitleSearch&&!stream.tracks.some(t=>t.lang==='id')&&!subtitleChoices.some(item=>item.language==='id')&&<p className="subtitle-indonesia-state" role="status">Sub Indo belum tersedia untuk episode ini. Tambahkan file SRT atau VTT dari perangkat.</p>}
    <div className="subtitle-upload">
     <label htmlFor="yoru-subtitle-upload"><Upload size={16}/> Tambahkan subtitle dari perangkat</label>
     <input id="yoru-subtitle-upload" type="file" accept=".srt,.vtt,text/vtt,text/plain" onChange={event=>void importSubtitle(event)} aria-label="Unggah subtitle SRT atau VTT"/>
