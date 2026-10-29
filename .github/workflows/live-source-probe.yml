@@ -57,8 +57,9 @@ jobs:
           import {chromium} from '@playwright/test'
           const browser=await chromium.launch()
           const checks=[
-           ['justplay','https://justplay.boo/embed/?mal=21&ep=1&lang=sub'],
-           ['animeembed','https://www.animeembed.com/embed/mal/21/1']
+           ['one-piece','https://www.animeembed.com/embed/mal/21/1'],
+           ['frieren','https://www.animeembed.com/embed/mal/52991/1'],
+           ['death-note','https://www.animeembed.com/embed/mal/1535/1']
           ]
           for(const [name,url] of checks){
             const page=await browser.newPage()
@@ -69,6 +70,11 @@ jobs:
               await page.waitForTimeout(15000)
               const summary=await frame.locator('body').innerText({timeout:10000}).catch(e=>e.message.slice(0,120))
               const videos=await frame.locator('video').evaluateAll(vs=>vs.map(v=>({readyState:v.readyState,currentTime:v.currentTime,duration:v.duration,networkState:v.networkState,src:!!v.currentSrc}))).catch(()=>[])
+              const video=frame.locator('video').first()
+              const playResult=await video.evaluate(async v=>{v.muted=true;try{await v.play();return 'playing'}catch(e){return e.message}}).catch(e=>e.message)
+              await page.waitForTimeout(2000)
+              const elapsed=await video.evaluate(v=>v.currentTime).catch(()=>-1)
+              console.log('IFRAME_PLAY_RESULT',name,playResult,'elapsed',elapsed)
               console.log('IFRAME_PLAYER',name,'body',summary.slice(0,350))
               console.log('IFRAME_VIDEO',name,JSON.stringify(videos))
               await page.screenshot({path:'remote-player-'+name+'.png',fullPage:true})
