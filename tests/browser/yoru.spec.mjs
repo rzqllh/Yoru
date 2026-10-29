@@ -456,3 +456,27 @@ test('watch page replaces catalog rather than opening a modal over its scroll',a
  await watch.getByRole('button',{name:'Kembali'}).click()
  await expect(page.locator('.app-shell')).toBeVisible()
 })
+
+
+test('iPhone detail modal scrolls independently and restores page scroll on close',async({page})=>{
+ await page.setViewportSize({width:390,height:844})
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog).toBeVisible()
+ await expect(dialog).toHaveCSS('overflow-y','auto')
+ await expect(page.locator('.modal-backdrop')).toHaveCSS('overflow-y','hidden')
+ await expect(page.locator('body')).toHaveCSS('position','fixed')
+ await dialog.evaluate(el=>{el.scrollTop=150})
+ await expect.poll(()=>dialog.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
+ await dialog.getByRole('button',{name:'Tutup detail anime'}).click()
+ await expect(page.locator('body')).not.toHaveCSS('position','fixed')
+})
+
+test('discover filter and search panels share the same corner radius on mobile',async({page})=>{
+ await page.setViewportSize({width:390,height:844})
+ await page.goto('/')
+ await page.getByRole('button',{name:'Jelajahi anime'}).click()
+ const panels=await Promise.all(['.browse-toolbar','.browse-filters'].map(sel=>page.locator(sel).evaluate(el=>getComputedStyle(el).borderRadius)))
+ assert.equal(panels[0],panels[1])
+})
