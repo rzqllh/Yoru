@@ -955,9 +955,12 @@ function SettingsPage({
  const [apiOnline,setApiOnline]=useState(false)
  const [importing,setImporting]=useState(false)
  const [defaultSubtitle,setDefaultSubtitle]=useState<'auto'|'id'|'en'|'off'>('id')
+ const [autoNext,setAutoNext]=useState(true)
+ const [defaultSpeed,setDefaultSpeed]=useState(1)
  const inputRef=useRef<HTMLInputElement>(null)
  useEffect(()=>{
   let active=true
+  void Promise.all([getPreference('auto-next','on'),getPreference('playback-speed','1')]).then(([next,rate])=>{if(!active)return;setAutoNext(next!=='off');const n=Number(rate);if([0.5,0.75,1,1.25,1.5,2].includes(n))setDefaultSpeed(n)}).catch(()=>{})
   void getPreference('subtitle-default-language','id').then(value=>{
    if(active&&['auto','id','en','off'].includes(value))setDefaultSubtitle(value as 'auto'|'id'|'en'|'off')
   }).catch(()=>{})
@@ -1025,7 +1028,7 @@ function SettingsPage({
   <div className="page-intro">
    <div>
     <h1>Pengaturan</h1>
-    <p>Pengaturan pemutar, sumber tontonan, dan data penyimpanan lokal.</p>
+    <p>Atur cara menonton, subtitle, dan koleksi dalam satu tempat.</p>
    </div>
   </div>
 
@@ -1042,38 +1045,29 @@ function SettingsPage({
      <div className="settings-heading-icon"><MonitorPlay size={20}/></div>
      <div>
       <h2>Pemutaran</h2>
-      <p>Atur pengalaman menontonmu.</p>
+      <p>Preferensi untuk seluruh episode.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Pemutar Yoru</strong>
-       <small>Pengalaman menonton yang nyaman di setiap layar</small>
-      </div>
-      <span className="setting-state good"><span/>Didukung</span>
-     </div>
-     <div className="setting-row">
-      <div>
-       <strong>Coba pemutar Yoru</strong>
-       <small>Lihat contoh pemutaran dengan subtitle Indonesia.</small>
+       <strong>Pratinjau pemutar</strong>
+       <small>Coba kontrol, kualitas, dan pengaturan subtitle sebelum menonton.</small>
       </div>
       <button type="button" className="btn btn-primary" onClick={onDemo} aria-label="Coba pemutar">
        <Play size={15} fill="currentColor"/> Coba pemutar
       </button>
      </div>
-     <div className="settings-note">
-      <Info size={16}/>
-      <p>Jika video utama belum tersedia, Yoru akan menawarkan pilihan lain. Bahasa dan pengaturan subtitle dapat berbeda menurut video.</p>
-     </div>
+     <div className="setting-row"><div><strong>Lanjut ke episode berikutnya</strong><small>Hitung mundur 8 detik setelah video selesai.</small></div><select aria-label="Lanjut otomatis ke episode berikutnya" value={autoNext?'on':'off'} onChange={e=>{const next=e.target.value==='on';setAutoNext(next);void setPreference('auto-next',next?'on':'off').catch(()=>onNotify('Pilihan belum tersimpan'))}}><option value="on">Aktif</option><option value="off">Nonaktif</option></select></div>
+     <div className="setting-row"><div><strong>Kecepatan bawaan</strong><small>Berlaku saat memutar episode baru.</small></div><select aria-label="Kecepatan bawaan" value={defaultSpeed} onChange={e=>{const next=Number(e.target.value);setDefaultSpeed(next);void setPreference('playback-speed',String(next)).catch(()=>onNotify('Pilihan belum tersimpan'))}}>{[0.5,0.75,1,1.25,1.5,2].map(n=><option key={n} value={n}>{n}×</option>)}</select></div>
      <div className="setting-row">
-      <div><strong>Bahasa subtitle pilihan</strong><small>Prioritas untuk episode baru; bisa diganti saat menonton.</small></div>
+      <div><strong>Bahasa subtitle</strong><small>Indonesia diutamakan; English jika belum tersedia. Bisa diganti saat menonton.</small></div>
       <select aria-label="Bahasa subtitle utama" value={defaultSubtitle} onChange={event=>{
        const next=event.target.value as 'auto'|'id'|'en'|'off'
        setDefaultSubtitle(next)
        void setPreference('subtitle-default-language',next).catch(()=>onNotify('Gagal menyimpan pilihan subtitle'))
       }}>
-       <option value="id">Bahasa Indonesia</option><option value="en">English</option><option value="auto">Otomatis</option><option value="off">Tidak ada subtitle</option>
+       <option value="id">Bahasa Indonesia</option><option value="en">English</option><option value="auto">Indonesia, lalu English</option><option value="off">Tidak ada subtitle</option>
       </select>
      </div>
     </div>
@@ -1082,14 +1076,14 @@ function SettingsPage({
      <div className="settings-heading-icon"><Layers3 size={20}/></div>
      <div>
       <h2>Sumber tontonan</h2>
-      <p>Periksa sumber video yang tersedia untuk menonton.</p>
+      <p>Pilih video terbaik yang tersedia untuk setiap episode.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Koneksi layanan</strong>
-       <small>Agar katalog dan pencarian bisa berjalan</small>
+       <strong>Status katalog</strong>
+       <small>Mendukung pencarian judul dan informasi episode</small>
       </div>
       <span className={`setting-state ${apiOnline?'good':'bad'}`}>
        <span/>{apiOnline?'Terhubung':'Tidak terhubung'}
@@ -1097,8 +1091,8 @@ function SettingsPage({
      </div>
      <div className="setting-row">
       <div>
-       <strong>Pilihan video</strong>
-       <small>{providerList.length?providerList.map(p=>`${p.id==='public-embed'?'Video alternatif':p.id==='miruro'?'Pilihan langsung':p.id.startsWith('stremio-')?'Sumber tambahan':'Sumber pribadi'}${p.animeCount===null?'':` · ${p.animeCount} judul`}`).join(', '):'Belum ada sumber video tambahan'}</small>
+       <strong>Sumber tersedia</strong>
+       <small>{providerList.length?providerList.map(p=>`${p.id==='public-embed'?'Video alternatif':p.id==='miruro'?'Pilihan langsung':p.id.startsWith('stremio-')?'Add-on video':'Sumber pribadi'}${p.animeCount===null?'':` · ${p.animeCount} judul`}`).join(', '):'Belum ada sumber video tambahan'}</small>
       </div>
       <button type="button" className="icon-button" aria-label="Perbarui daftar sumber video" onClick={refresh}><RefreshCw size={17}/></button>
      </div>
@@ -1109,31 +1103,31 @@ function SettingsPage({
    <div className="settings-section">
     <div id="pengaturan-akun" className="settings-heading">
      <div className="settings-heading-icon"><Bookmark size={20}/></div>
-     <div><h2>Akun & perangkat</h2><p>Identitas dan penyimpanan tontonan.</p></div>
+     <div><h2>Akun & perangkat</h2><p>Akun dapat ditambahkan tanpa mengubah koleksi saat ini.</p></div>
     </div>
     <div className="settings-box">
-     <div className="setting-row"><div><strong>Mode tamu</strong><small>Koleksi, tontonan, dan subtitle tersimpan di perangkat ini.</small></div><span className="setting-state good"><span/>Aktif</span></div>
-     <div className="settings-note"><Info size={16}/><p>Login dan sinkronisasi antarperangkat belum tersedia. Yoru tidak akan berpura-pura akun sudah terhubung. Gunakan cadangan data untuk memindahkan koleksi.</p></div>
+     <div className="setting-row"><div><strong>Tanpa akun</strong><small>Koleksi tetap tersimpan di browser ini.</small></div><span className="setting-state good"><span/>Aktif</span></div>
+     <div className="settings-note"><Info size={16}/><p>Login dan sinkronisasi belum tersedia. Gunakan cadangan untuk memindahkan koleksi.</p></div>
     </div>
     <div id="pengaturan-data" className="settings-heading">
      <div className="settings-heading-icon"><Bookmark size={20}/></div>
      <div>
       <h2>Data & privasi</h2>
-      <p>Koleksi dan riwayat menonton tersimpan di perangkat ini.</p>
+      <p>Pindahkan atau hapus data yang tersimpan di browser.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Ekspor cadangan</strong>
-       <small>Simpan salinan koleksi dan riwayat tontonanmu.</small>
+       <strong>Unduh cadangan</strong>
+       <small>Simpan koleksi, progress, dan preferensi sebagai file.</small>
       </div>
       <button type="button" className="setting-action" onClick={()=>void exportData()}><Download size={16}/> Ekspor</button>
      </div>
      <div className="setting-row">
       <div>
-       <strong>Impor cadangan</strong>
-       <small>Kembalikan koleksi dan riwayat dari cadangan sebelumnya.</small>
+       <strong>Pulihkan cadangan</strong>
+       <small>Pulihkan koleksi dan preferensi dari file Yoru.</small>
       </div>
       <button type="button" className="setting-action" onClick={()=>inputRef.current?.click()} disabled={importing}><Upload size={16}/> {importing?'Memulihkan...':'Impor'}</button>
       <input type="file" accept="application/json,.json" className="visually-hidden" ref={inputRef} onChange={e=>{void importData(e.target.files?.[0]||null);e.target.value=''}}/>
@@ -1141,7 +1135,7 @@ function SettingsPage({
      <div className="setting-row">
       <div>
        <strong>Hapus data lokal</strong>
-       <small>Hapus koleksi dan riwayat tontonan dari perangkat ini.</small>
+       <small>Menghapus koleksi, riwayat, dan semua preferensi tersimpan.</small>
       </div>
       <button type="button" className="setting-action danger" onClick={()=>void reset()}><Trash2 size={16}/> Hapus</button>
      </div>
@@ -1151,12 +1145,12 @@ function SettingsPage({
      <div className="settings-heading-icon"><Heart size={20}/></div>
      <div>
       <h2>Tentang Yoru</h2>
-      <p>Informasi aplikasi dan lisensi.</p>
+      <p>Versi aplikasi dan informasi proyek.</p>
      </div>
     </div>
     <div className="settings-box about-box">
      <div className="about-mark"><AppLogo/></div>
-     <p>Jelajahi anime, atur koleksi, dan lanjutkan menonton di perangkat ini tanpa membuat akun.</p>
+     <p>Yoru menyatukan penjelajahan anime, koleksi pribadi, dan pemutaran video.</p>
      <div className="about-meta"><span>Versi</span><strong>v1.0.0-rc.2 (Web PWA)</strong></div>
      <div className="about-meta"><span>Katalog</span><strong>Anime Jepang</strong></div>
      <div className="about-meta"><span>Lisensi</span><strong>MIT License</strong></div>
