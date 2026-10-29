@@ -156,6 +156,7 @@ function App(){
  const [progress,setProgress]=useState<ProgressEntry[]>([])
  const season=useCatalog('season')
  const top=useCatalog('top')
+ const upcoming=useCatalog('upcoming')
  const searchInputRef=useRef<HTMLInputElement>(null)
  const prepareNext=useCallback(async():Promise<Stream|null>=>{
   if(!playback?.anime||playback.demo)return null
@@ -407,6 +408,10 @@ function App(){
      >
       {top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):top.data.slice(0,6).map(a=><Card key={a.id} anime={a} onOpen={setSelected}/>)}</div>}
      </Section>
+     <Section eyebrow="MUSIM SELANJUTNYA" title="Segera tayang"
+      action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'upcoming',libraryView:'all',searchQuery:''})}>Lihat pratinjau <ArrowRight size={16}/></button>}>
+      {upcoming.error&&!upcoming.data.length?<Empty icon={WifiOff} title="Pratinjau belum tersedia" body="Coba lagi untuk melihat judul yang akan datang." action={<button type="button" className="btn btn-outline" onClick={upcoming.retry}>Coba lagi</button>}/>:<div className="card-grid">{upcoming.loading?SKELETON_KEYS.slice(0,4).map(key=><CardSkeleton key={key}/>):upcoming.data.slice(0,4).map(a=><Card key={a.id} anime={a} onOpen={setSelected}/>)}</div>}
+     </Section>
     </>}
 
     {route.page==='browse'&&<Browse
@@ -555,7 +560,7 @@ function Browse({
   <div className="page-intro">
    <div>
     <h1>Jelajahi</h1>
-    <p>Temukan anime berdasarkan musim rilis, popularitas, atau pencarian judul.</p>
+    <p>Cari judul favoritmu, pilih genre, atau urutkan sesuai selera.</p>
    </div>
   </div>
 
@@ -571,19 +576,15 @@ function Browse({
     />
     {query&&<button type="button" aria-label="Bersihkan pencarian" onClick={()=>onQueryChange('')}><X size={17}/></button>}
    </div>
-   <fieldset className="category-switch">
-    <legend className="sr-only">Kategori katalog</legend>
-    {([['season','Musim ini'],['top','Populer'],['upcoming','Akan datang']] as const).map(([id,label])=><button
-     type="button"
-     className={!value&&kind===id?'active':''}
-     key={id}
-     onClick={()=>onTabChange(id)}
-    >
-     {label}
-    </button>)}
-   </fieldset>
+   {kind!=='upcoming'?<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('upcoming')}>Musim berikutnya <ArrowUpRight size={15}/></button>:<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('season')}>Kembali ke katalog <ArrowRight size={15}/></button>}
   </div>
   <fieldset className="browse-filters"><legend className="sr-only">Saring anime</legend>
+   {kind!=='upcoming'&&<div className="browse-filter-group">
+    <span className="browse-filter-title">Jelajahi berdasarkan</span>
+    <div className="category-switch" role="group" aria-label="Urutan katalog">
+     {([['season','Musim ini'],['top','Populer']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
+    </div>
+   </div>}
    <label>Genre<select aria-label="Genre" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
    <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>setFormat(e.target.value)}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
    <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>setMinimumScore(Number(e.target.value))}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
@@ -591,11 +592,11 @@ function Browse({
    <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>setOrder(e.target.value)}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
    {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>{setGenre('');setFormat('');setMinimumScore(0);setYear('');setOrder('default')}}>Reset filter</button>}
   </fieldset>
-  <p className="browse-filter-note">Filter berlaku untuk seluruh katalog. Pilih “Muat lebih banyak” untuk hasil selanjutnya.</p>
+  <p className="browse-filter-note">Pilih filter untuk menemukan anime di seluruh katalog.</p>
 
   <div className="browse-results-header">
    <div>
-    <h2>{value?`Hasil pencarian: “${value}”`:kind==='season'?'Musim ini':kind==='top'?'Anime terpopuler':'Akan datang'}</h2>
+    <h2>{value?`Hasil pencarian: “${value}”`:kind==='season'?'Musim ini':kind==='top'?'Anime terpopuler':'Pratinjau musim berikutnya'}</h2>
    </div>
    <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${filteredItems.length} judul`}</span>
   </div>
