@@ -1,6 +1,6 @@
 # Menambahkan sumber video ke Yoru
 
-**Default: tidak ada provider anime yang diaktifkan.** Yoru hanya memberikan katalog Jikan dan video demo. Provider dipilih sendiri melalui **file konfigurasi lokal**; saat ini belum ada marketplace extension atau scraper bawaan.
+**Default: tidak ada provider anime yang diaktifkan.** Yoru hanya memberikan katalog Tenrai dan video demo. Provider dipilih sendiri melalui **file konfigurasi lokal**; saat ini belum ada marketplace extension atau scraper bawaan.
 
 ## Pilihan A: URL video HTTPS (paling sederhana)
 
@@ -53,7 +53,7 @@ Buka file hasil salinan dengan editor. Format intinya:
 Alamat `example.org` di atas **contoh format**, bukan stream yang dapat ditonton. Isi dengan URL media yang memang dapat diakses dari perangkatmu.
 
 **Pemetaan penting:**
-- `malId` = ID numerik anime di MyAnimeList/Jikan (misalnya URL detail MAL berakhiran `/anime/1` → ID 1).
+- `malId` = ID numerik anime di MyAnimeList/Tenrai (misalnya URL detail MAL berakhiran `/anime/1` → ID 1).
 - `number` = episode pada provider, harus cocok dengan episode yang kamu buka.
 - `format` = `hls` untuk file `.m3u8` atau `mp4` untuk video `.mp4`.
 - `subtitleMode` = `soft`, `hard`, atau `unknown` sesuai sumber.
@@ -102,3 +102,7 @@ Salin `configs/stremio.local.json.example` menjadi `configs/stremio.local.json` 
 File `configs/providers.local.json` dan `configs/stremio.local.json` di-ignore oleh Git. Jangan commit token/API key, memasukkan credential ke URL, atau mengarahkan addon ke jaringan internal. Untuk instalasi publik, jangan mengekspos backend tanpa pembatasan tambahan.
 
 Buka [Panduan penggunaan](using-yoru.md) untuk memilih episode dan memutar media.
+
+## Pilihan C: Coba pemutar eksternal tanpa menyiapkan JSON
+
+Pada detail anime, pilih episode untuk mencoba player embed berbasis MAL ID dari layanan pihak ketiga. Ini **tidak mengonfirmasi episode ada atau bisa ditonton**, tidak menjamin subtitle Indonesia, dan progress dalam iframe tidak masuk ke IndexedDB Yoru. Jika tidak berfungsi, gunakan provider HTTPS pribadi yang terverifikasi. Browser bisa membatasi pemutaran iframe, cookie, dan fullscreen. Link langsung tersedia di panel player untuk diagnosis.

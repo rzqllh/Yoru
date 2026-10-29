@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import {getDiscover,searchAnime} from '../backend/dist/pipeline/jikan.js'
 
-const upstream='https://api.jikan.moe/v4'
+const upstream='https://api.tenrai.org/v1'
 const fixture={data:[{mal_id:98765,title:'Yoru metadata fixture',genres:[{name:'Action'}]}],pagination:{has_next_page:false}}
 const calls=[]
 const originalFetch=globalThis.fetch
@@ -35,7 +35,7 @@ try{
  const recovered=await searchAnime('429 scenario',1)
  assert.equal(recovered.items[0].malId,98765)
  assert.equal(calls.filter(x=>x.includes('q=429%20scenario')).length,2,'Failure must not poison inflight cache')
- console.log('Verified compiled Jikan pipeline: search, normalized metadata, cache, inflight dedupe and retry after upstream 429.')
+ console.log('Verified compiled Tenrai-compatible metadata pipeline: search, normalized metadata, cache, inflight dedupe and retry after upstream 429.')
 }finally{
  globalThis.fetch=originalFetch
 }
