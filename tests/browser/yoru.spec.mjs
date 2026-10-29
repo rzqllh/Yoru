@@ -99,6 +99,25 @@ test('native player speed and per-anime subtitle offset survive playback reopeni
  await expect(page.getByRole('dialog',{name:'Video player'}).getByText('Sync sub: +0.5s')).toBeVisible()
 })
 
+test('Q7 subtitle Off persists when reopening the same anime player',async({page})=>{
+ await page.route('**/api/anime/1/subtitles?**',async route=>route.fulfill({json:{items:[],warnings:[]}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const player=page.getByRole('dialog',{name:'Video player'})
+ const cc=player.getByRole('button',{name:/CC/})
+ await cc.click()
+ await player.getByRole('button',{name:'Off',exact:true}).click()
+ await expect(cc).toContainText('Off')
+ await player.getByRole('button',{name:'Kembali'}).click()
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const reopened=page.getByRole('dialog',{name:'Video player'})
+ await expect(reopened.getByRole('button',{name:/CC/})).toContainText('Off')
+ await reopened.getByRole('button',{name:/CC/}).click()
+ await expect(reopened.getByRole('button',{name:'Off',exact:true})).toHaveAttribute('aria-pressed','true')
+})
+
 test('native subtitle picker loads a validated Indonesian external track and respects Off override',async({page})=>{
  await page.route('**/api/anime/1/subtitles?**',async route=>route.fulfill({json:{
   items:[
