@@ -25,6 +25,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [selectedSubtitle,setSelectedSubtitle]=useState<{id:string;lang:string;url:string}|null>(null)
  const [subtitleOff,setSubtitleOff]=useState(false)
  const [subtitleManual,setSubtitleManual]=useState(false)
+ const [subtitlePreference,setSubtitlePreference]=useState<'auto'|'id'|'en'|'off'>('auto')
+ const [subtitlePreferenceReady,setSubtitlePreferenceReady]=useState(false)
  const [captionFont,setCaptionFont]=useState<'sans'|'serif'>('sans')
  const [captionSize,setCaptionSize]=useState(100)
  const [captionBackdrop,setCaptionBackdrop]=useState<'dark'|'clear'>('dark')
@@ -105,14 +107,34 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  }
 
  useEffect(()=>{
+  let alive=true
+  setSubtitlePreferenceReady(false)
+  if(!anime||demo){
+   setSubtitlePreference('auto')
+   setSubtitlePreferenceReady(true)
+   return()=>{alive=false}
+  }
+  void getPreference(`subtitle-language:${anime.id}`,'auto').then(value=>{
+   if(!alive)return
+   const saved=value==='off'||value==='id'||value==='en'?value:'auto'
+   setSubtitlePreference(saved)
+   setSubtitleOff(saved==='off')
+   setSubtitleManual(saved==='off')
+  }).catch(()=>{
+   if(alive)setSubtitlePreference('auto')
+  }).finally(()=>{
+   if(alive)setSubtitlePreferenceReady(true)
+  })
+  return()=>{alive=false}
+ },[anime,demo])
+
+ useEffect(()=>{
   if(demo||!anime||stream.format==='embed')return
   const controller=new AbortController()
   let alive=true
   setSubtitleChoices([])
   setSubtitleState('')
   setSubtitleSearch(true)
-  setSubtitleOff(false)
-  setSubtitleManual(false)
   setSelectedSubtitle(null)
   void fetch(`/api/anime/${anime.malId}/subtitles?episode=${episode}`,{signal:controller.signal})
    .then(async response=>{
@@ -151,6 +173,10 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    setSubtitleOff(false)
    setSubtitleManual(manual)
    setSubtitleState(item.label+' · '+item.provider+' · file berhasil dimuat')
+   if(manual&&anime&&!demo){
+    setSubtitlePreference(item.language)
+    void setPreference(`subtitle-language:${anime.id}`,item.language).catch(()=>{})
+   }
    return true
   }catch{
    setSubtitleState('Subtitle '+item.label+' gagal dimuat. Pilih versi lain.')
@@ -158,6 +184,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   }
  }
  function disableSubtitle(){
+  setSubtitlePreference('off')
+  if(anime&&!demo)void setPreference(`subtitle-language:${anime.id}`,'off').catch(()=>{})
   setSubtitleManual(true)
   setSubtitleOff(true)
   setSelectedSubtitle(null)
@@ -166,10 +194,11 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   if(tracks)for(let i=0;i<tracks.length;i++)tracks[i].mode='disabled'
  }
  useEffect(()=>{
-  if(subtitleManual||subtitleOff||selectedSubtitle||subtitleSearch||!subtitleChoices.length)return
+  if(!subtitlePreferenceReady||subtitlePreference==='off'||subtitleManual||subtitleOff||selectedSubtitle||subtitleSearch||!subtitleChoices.length)return
   let alive=true
   void (async()=>{
-   for(const item of subtitleChoices){
+   const candidates=subtitlePreference==='auto'?subtitleChoices:subtitleChoices.filter(item=>item.language===subtitlePreference)
+   for(const item of candidates){
     if(!alive)return
     if(!item.sourceUrl)continue
     const response=await fetch(item.sourceUrl).catch(()=>null)
@@ -184,10 +213,10 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     setSubtitleState(item.label+' · '+item.provider+' · dipilih otomatis')
     return
    }
-   if(alive)setSubtitleState('Tidak ada subtitle eksternal yang berhasil dimuat.')
+   if(alive)setSubtitleState(subtitlePreference==='auto'?'Tidak ada subtitle eksternal yang berhasil dimuat.':'Subtitle bahasa pilihan sebelumnya belum tersedia di episode ini; pilihan tidak diganti otomatis.')
   })()
   return()=>{alive=false}
- },[subtitleChoices,subtitleManual,subtitleOff,selectedSubtitle,subtitleSearch])
+ },[subtitleChoices,subtitleManual,subtitleOff,selectedSubtitle,subtitleSearch,subtitlePreference,subtitlePreferenceReady])
 
  useEffect(()=>{
   if(stream.format==='embed')return
@@ -197,12 +226,16 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    for(let i=0;i<v.textTracks.length;i++)v.textTracks[i].mode='disabled'
    return
   }
-  if(!selectedSubtitle)return
-  for(let i=0;i<v.textTracks.length;i++){
-   const track=v.textTracks[i]
-   track.mode=track.label===selectedSubtitle.id?'showing':'disabled'
+  if(!subtitlePreferenceReady)return
+  const nativeTracks=Array.from(v.textTracks)
+  const preferredLanguage=subtitlePreference==='en'?'en':'id'
+  const fallbackLanguage=subtitlePreference==='auto'&&
+   !nativeTracks.some(track=>track.language.toLowerCase()==='id')?'en':preferredLanguage
+  for(const track of nativeTracks){
+   track.mode=selectedSubtitle?track.label===selectedSubtitle.id?'showing':'disabled':
+    track.language.toLowerCase()===fallbackLanguage?'showing':'disabled'
   }
- },[subtitleOff,selectedSubtitle,stream.format])
+ },[subtitleOff,selectedSubtitle,stream.format,subtitlePreference,subtitlePreferenceReady])
 
  function changeOffset(delta:number){
   if(!anime||demo)return
@@ -503,7 +536,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
    <video ref={video} className={`subtitle-font-${captionFont} subtitle-size-${captionSize} subtitle-backdrop-${captionBackdrop}`} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onPause={saveLocal} onEnded={()=>{saveLocal();void prepareNextEpisode()}} autoPlay>
-    {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={t.lang==='id'&&!selectedSubtitle&&!subtitleOff}/>)}
+    {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={subtitlePreferenceReady&&!subtitleOff&&!selectedSubtitle&&t.lang===(subtitlePreference==='en'?'en':'id')}/>)}
     {selectedSubtitle&&!subtitleOff&&<track key={selectedSubtitle.url} kind="subtitles" srcLang={selectedSubtitle.lang} label={selectedSubtitle.id} src={selectedSubtitle.url} default onLoad={()=>{
      const tracks=video.current?.textTracks
      if(tracks)for(let i=0;i<tracks.length;i++)tracks[i].mode=tracks[i].label===selectedSubtitle.id?'showing':'disabled'
