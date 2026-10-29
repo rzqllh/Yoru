@@ -210,7 +210,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    const url=URL.createObjectURL(new Blob([body],{type:'text/vtt'}))
    if(subtitleUrlRef.current)URL.revokeObjectURL(subtitleUrlRef.current)
    subtitleUrlRef.current=url
-   setSelectedSubtitle({id:`local:${file.name}`,lang:'id',url})
+   setSelectedSubtitle({id:`local:${file.name}`,lang:'und',url})
    setUploadedName(file.name)
    setSubtitleOff(false)
    setSubtitleManual(true)
@@ -651,7 +651,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
    </div>}
    <button type="button" className="player-subtitle-trigger" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
-    <Subtitles size={15}/> Subtitle · {selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':'English'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
+    <Subtitles size={15}/> Subtitle · {selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':selectedSubtitle.lang==='en'?'English':'pribadi'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
    </button>
    {qualityNote&&<small role="status">{qualityNote}</small>}
   </div>}
