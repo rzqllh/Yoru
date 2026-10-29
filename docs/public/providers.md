@@ -106,3 +106,17 @@ Buka [Panduan penggunaan](using-yoru.md) untuk memilih episode dan memutar media
 ## Pilihan C: Coba pemutar eksternal tanpa menyiapkan JSON
 
 Pada detail anime, pilih episode untuk mencoba player embed berbasis MAL ID dari layanan pihak ketiga. Ini **tidak mengonfirmasi episode ada atau bisa ditonton**, tidak menjamin subtitle Indonesia, dan progress dalam iframe tidak masuk ke IndexedDB Yoru. Jika tidak berfungsi, gunakan provider HTTPS pribadi yang terverifikasi. Browser bisa membatasi pemutaran iframe, cookie, dan fullscreen. Link langsung tersedia di panel player untuk diagnosis.
+
+## External subtitle discovery (release-candidate contract)
+
+Yoru uses three optional **built-in server-side** subtitle adapters; there is no user-installable subtitle-addon marketplace. Set `OPENSUBTITLES_API_KEY`, `OPENSUBTITLES_ACCESS_TOKEN` (for downloads), `SUBDL_API_KEY`, and `SUBSOURCE_API_KEY` in the **backend process environment**, not in source control or browser settings. All secrets stay on the backend.
+
+- OpenSubtitles: searches by official REST API using catalogue title and episode, downloads require an authenticated account token.
+- SubDL: searches episode subtitles with the documented API, selecting raw unpacked files; ZIP downloads are unsupported rather than silently mislabeled.
+- SubSource: uses fixed-host API with `X-API-Key`; uncertain provider response shapes are discarded pending verified live responses.
+- SRT, WebVTT, and dialogue cues from ASS/SSA can be rendered in a **uniform Yoru style**. Karaoke, typesetting, fancy placement, and embedded fonts do not carry over to this simplified presentation.
+- The CC menu never assumes found results are correctly synchronized. A subtitle must be successfully downloaded as VTT before it is selected. Indonesian is tried before English, but malformed/unknown results are rejected.
+- Manual **Off** and explicit subtitle selection override automatic fallback within the current player session.
+- `GET /api/subtitles/status` reports which adapters are configured (boolean only; **not** their health). `GET /api/anime/:id/subtitles?episode=N` returns candidates and warnings. No keys or protected URLs are returned.
+
+**Limits:** Without actual keys and authenticated live-provider checks, search and downloads are not end-to-end verified. There is no guarantee that an anime title has a subtitle or that its timing matches a particular video release. The API is intended to be run behind an HTTPS gateway and abuse controls in public deployments.
