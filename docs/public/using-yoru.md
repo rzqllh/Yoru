@@ -2,10 +2,10 @@
 
 ## Beranda dan Jelajahi
 
-- **Beranda** menampilkan rekomendasi dan kategori anime dari katalog Jikan.
+- **Beranda** menampilkan rekomendasi dan kategori anime dari katalog Tenrai.
 - **Jelajahi** memuat daftar berdasarkan kategori/halaman.
 - **Cari** berdasarkan judul; pilih kartu untuk membuka detail, sinopsis dan daftar episode.
-- Gambar, metadata, dan hasil pencarian membutuhkan koneksi. Jika Jikan sedang terbatas, coba beberapa saat lagi.
+- Gambar, metadata, dan hasil pencarian membutuhkan koneksi. Jika Tenrai sedang terbatas, coba beberapa saat lagi.
 
 ## Koleksi dan progress
 
@@ -29,3 +29,11 @@ Buka **Pengaturan** dan gunakan tombol ekspor untuk menyimpan backup koleksi/pro
 ## Beda PWA dan aplikasi native
 
 PWA dapat dipasang dari browser yang mendukung, tetapi **bukan** APK/IPA/EXE. Browser masih memiliki batasan codec, CORS, fullscreen dan storage masing-masing platform. Lihat [Status distribusi](releases.md) sebelum mencari installer.
+
+## Akses cepat
+
+**Anime musim ini** membuka tab Musim ini di Jelajahi. **Lanjut menonton** membuka daftar khusus episode dengan progress HLS/MP4 tersimpan; berbeda dari menu Koleksi yang menampilkan watchlist. Jika belum ada tontonan, halaman Lanjut menonton menjelaskan kenapa masih kosong.
+
+## Coba sumber anime eksternal
+
+Dari detail anime, klik episode untuk mencoba embed player berbasis MAL ID. Hanya beberapa judul pernah diuji dari runner Chromium dan ketersediaannya dapat berubah sewaktu-waktu. Embed pihak ketiga mungkin menggunakan track subtitle selain Bahasa Indonesia dan Yoru tidak dapat membaca progres pemutaran iframe. Untuk subtitle WebVTT Indonesia dan progress lokal yang dapat diuji, gunakan sumber HLS/MP4 langsung melalui konfigurasi.

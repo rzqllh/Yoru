@@ -14,7 +14,7 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
  const lastSave=useRef(0)
  const dialogRef=useDialogFocus()
  useEffect(()=>{
-  const element=video.current;if(!element)return
+  const element=video.current;if(!element||stream.format==='embed')return
   let alive=true
   if(!demo&&anime){void getProgress(anime.id).then(value=>{if(alive&&value?.episode===episode)setResumeAt(value.seconds)}).catch(()=>{})}
   let hls:Hls|null=null
@@ -49,12 +49,14 @@ export default function Player({anime,episode,stream,demo=false,onClose}:Props){
    <div className="player-provider">{stream.providerId||'Demo source'}</div>
   </div>
   <div className="player-stage">
+   {stream.format==='embed'?<div className="embedded-source"><p>Player dari situs eksternal. Ketersediaan episode dan bahasa subtitle belum diverifikasi; kontrol progress lokal tidak tersedia untuk iframe.</p><iframe title={`External player · Episode ${episode}`} src={stream.url} allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowFullScreen referrerPolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation" loading="eager"/><a href={stream.url} target="_blank" rel="noopener noreferrer">Buka player eksternal jika iframe gagal</a></div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
    <video ref={video} controls playsInline preload="metadata" crossOrigin="anonymous" onLoadedMetadata={()=>{setReady(true);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onTimeUpdate={()=>{if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();save()}}} onPause={save} onEnded={save} autoPlay>
     {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={t.lang==='id'}/>)}
    </video>
    {!ready&&!error&&<div className="player-loading"><MonitorPlay size={34}/><span>Menyiapkan video…</span></div>}
    {error&&<div className="player-error"><AlertTriangle size={28}/><strong>Gagal memuat video</strong><p>{error}</p></div>}
+   </>}
   </div>
   <div className="player-footer"><span><Subtitles size={16}/> {stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':stream.tracks.length?`${stream.tracks.length} subtitle tersedia`:'Subtitle tidak tersedia'}</span><span><Info size={16}/> {demo?'Video sampel bukan anime.':'Stream dikonfigurasi dari sumber lokal.'}</span></div>
  </div>

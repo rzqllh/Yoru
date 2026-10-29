@@ -28,7 +28,7 @@ Browser E2E menggunakan workflow **Browser E2E** GitHub Actions dengan Chromium,
 
 ```text
 backend/api/       Endpoint REST Hono
-backend/pipeline/  Metadata Jikan, normalisasi dan validasi
+backend/pipeline/  Metadata Tenrai, normalisasi dan validasi
 backend/providers/ Adapter provider lokal dan jembatan addon
 frontend/src/      Halaman UI, player, library IndexedDB
 frontend/public/   PWA manifest, service worker, demo HLS dan WebVTT
@@ -39,7 +39,7 @@ docs/public/       Panduan pengguna dan kontributor
 docs/internal/     Catatan pengembangan
 ```
 
-Katalog dari Jikan menghasilkan MAL ID; provider lokal/addon menghubungkan MAL ID ke daftar episode. Player hanya menerima URL/track yang lolos validasi. Progress/library adalah data browser (IndexedDB). Hasil pencarian tidak menjamin tersedia sumber video.
+Katalog dari Tenrai menghasilkan MAL ID; provider lokal/addon menghubungkan MAL ID ke daftar episode. Player hanya menerima URL/track yang lolos validasi. Progress/library adalah data browser (IndexedDB). Hasil pencarian tidak menjamin tersedia sumber video.
 
 ## API dasar
 

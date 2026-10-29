@@ -1,6 +1,6 @@
 import { normalizeAnime, normalizeEpisode, normalizeList } from './normalize.js'
+import {getCatalogEndpoint} from './catalog-sources.js'
 
-const BASE = 'https://api.jikan.moe/v4'
 const cache = new Map<string,{ expires:number; payload:unknown }>()
 const inflight = new Map<string,Promise<unknown>>()
 const CACHE_MS=1000*60*15
@@ -12,10 +12,10 @@ async function request(path:string):Promise<Record<string,unknown>> {
  if(pending)return pending as Promise<Record<string,unknown>>
  const operation=(async()=>{
   const controller=new AbortController()
-  const timer=setTimeout(()=>controller.abort(),9000)
+  const timer=setTimeout(()=>controller.abort(),12000)
   try{
-   const response=await fetch(`${BASE}${path}`,{signal:controller.signal,headers:{Accept:'application/json','User-Agent':'YoruAnimePortfolio/1.0'}})
-   if(!response.ok)throw new Error(`Jikan returned HTTP ${response.status}`)
+   const response=await fetch(getCatalogEndpoint(path),{signal:controller.signal,headers:{Accept:'application/json','User-Agent':'YoruAnimePortfolio/1.0'}})
+   if(!response.ok)throw new Error(`Metadata service returned HTTP ${response.status}`)
    const data=await response.json() as Record<string,unknown>
    cache.set(path,{payload:data,expires:Date.now()+CACHE_MS})
    if(cache.size>100)cache.delete(cache.keys().next().value ?? '')

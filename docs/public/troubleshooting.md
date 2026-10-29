@@ -7,7 +7,7 @@ Mulai dari browser komputer dan terminal yang menjalankan Yoru. Jika menemui err
 | `node` / `npm` tidak ditemukan | Node belum terinstal atau PATH lama | Instal Node 22.12+, buka terminal baru |
 | `npm ci` gagal | Jaringan, lockfile, cache atau Node tidak cocok | Periksa versi Node dan koneksi; jangan hapus lockfile untuk mengakalinya |
 | Port 5173/8787 sudah dipakai | Ada server lain yang berjalan | Hentikan instance lama, tutup terminal, lalu jalankan ulang |
-| Beranda kosong / gagal memuat | Backend atau Jikan tidak tersedia | Periksa `/api/health`, koneksi internet dan coba ulang |
+| Beranda kosong / gagal memuat | Backend atau Tenrai tidak tersedia | Periksa `/api/health`, koneksi internet dan coba ulang |
 | Kartu anime ada, tetapi tidak ada tombol play | Belum ada provider untuk MAL ID/episode | Isi config lokal; cocokkan `malId` dan nomor episode |
 | `INVALID_PROVIDER_CONFIG` | Format JSON/ID/URL salah | Bandingkan dengan file `.example` dan pastikan JSON valid |
 | `SOURCE_UNAVAILABLE` | Addon gagal atau URL stream tidak didukung | Cek URL manifest HTTPS, ID episode, timeout dan respons addon |
@@ -35,3 +35,7 @@ Jika masih gagal, buat issue di [GitHub Issues](https://github.com/rzqllh/Yoru/i
 ## Ketika sebagian provider masih bekerja
 
 Jika satu provider memiliki konfigurasi rusak, API tetap mengembalikan episode/provider sehat serta `warnings` berisi ID sumber yang gagal. **Pengaturan** menampilkan sumber yang bermasalah. Perbaiki file lokal terkait dan klik refresh provider. Jika *semua* konfigurasi gagal dibaca, API mengembalikan 422. Jangan menafsirkan daftar kosong sebagai keberhasilan streaming.
+
+## Metadata sesudah 1 Oktober 2026
+
+Jikan Public API sudah dihentikan. Yoru menggunakan Tenrai `/v1` untuk katalog MyAnimeList. Jika katalog tetap kosong, cek respon `GET /api/anime/discover?kind=season&page=1` dan status Tenrai; kode `503` menandakan upstream belum tersedia. Tombol *Coba lagi* tidak dapat memperbaiki upstream yang offline.
