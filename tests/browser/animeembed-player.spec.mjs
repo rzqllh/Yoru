@@ -68,7 +68,7 @@ test('AnimeEmbed requires explicit unverified fallback consent and displays the 
 
   await page.locator('.episode-list .episode-row').first().click()
   await page.locator('.source-options button').first().click()
-  await expect(page.getByRole('dialog', { name: 'Video player' })).toBeVisible()
+  await expect(page.getByRole('main', { name: 'Layar tonton' })).toBeVisible()
 
   // Verify iframe existence and initial clean URL
   const iframe = page.getByTitle('Video alternatif · Episode 1')
@@ -85,7 +85,7 @@ test('AnimeEmbed postMessage progress, pause, and ended update IndexedDB and ena
   await page.getByRole('button', { name: 'Buka Sousou no Frieren' }).first().click()
   await page.locator('.episode-list .episode-row').first().click()
   await page.locator('.source-options button').first().click()
-  await expect(page.getByRole('dialog', { name: 'Video player' })).toBeVisible()
+  await expect(page.getByRole('main', { name: 'Layar tonton' })).toBeVisible()
 
   const helperReadDB = () =>
     page.evaluate(async () => {
@@ -155,13 +155,13 @@ test('AnimeEmbed postMessage progress, pause, and ended update IndexedDB and ena
 
   // 3. Close the player
   await page.getByRole('button', { name: 'Kembali' }).click()
-  await expect(page.getByRole('dialog', { name: 'Video player' })).not.toBeVisible()
+  await expect(page.getByRole('main', { name: 'Layar tonton' })).not.toBeVisible()
 
   // 4. Reopen episode 1: verify that resume position is loaded into the iframe src query parameter (?start=150)
   await page.getByRole('button', { name: 'Buka Sousou no Frieren' }).first().click()
   await page.locator('.episode-list .episode-row').first().click()
   await page.locator('.source-options button').first().click()
-  await expect(page.getByRole('dialog', { name: 'Video player' })).toBeVisible()
+  await expect(page.getByRole('main', { name: 'Layar tonton' })).toBeVisible()
 
   const resumedIframe = page.getByTitle('Video alternatif · Episode 1')
   await expect(resumedIframe).toBeVisible()

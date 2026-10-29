@@ -156,6 +156,7 @@ function App(){
  const [progress,setProgress]=useState<ProgressEntry[]>([])
  const season=useCatalog('season')
  const top=useCatalog('top')
+ const upcoming=useCatalog('upcoming')
  const searchInputRef=useRef<HTMLInputElement>(null)
  const prepareNext=useCallback(async():Promise<Stream|null>=>{
   if(!playback?.anime||playback.demo)return null
@@ -181,12 +182,13 @@ function App(){
    window.history.pushState(null,'',path)
   }
   setMobileNav(false)
-  window.scrollTo({top:0,behavior:'smooth'})
+  if(!replace)window.scrollTo({top:0,behavior:'instant'})
  },[])
 
  useEffect(()=>{
   function onPopState(){
    setRoute(parseRoute(window.location.pathname,window.location.search))
+   window.scrollTo({top:0,behavior:'instant'})
   }
   window.addEventListener('popstate',onPopState)
   return()=>window.removeEventListener('popstate',onPopState)
@@ -222,7 +224,13 @@ function App(){
    }
    if(event.key==='Escape'){
     if(selected){setSelected(null)}
-    else if(playback){setPlayback(null)}
+    else if(playback){
+     const wasDemo=Boolean(playback.demo)
+     setPlayback(null)
+     if(wasDemo)window.requestAnimationFrame(()=>{
+      document.querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')?.focus()
+     })
+    }
    }
   }
   window.addEventListener('keydown',key)
@@ -248,6 +256,26 @@ function App(){
  }
 
  const breadcrumbs=useMemo(()=>getBreadcrumbs(route),[route])
+ const closeWatch=()=>{
+  const shouldRestoreDemo=Boolean(playback?.demo)
+  setPlayback(null)
+  window.scrollTo({top:0,behavior:'instant'})
+  if(shouldRestoreDemo)window.requestAnimationFrame(()=>{
+   document.querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')?.focus()
+  })
+ }
+ if(playback)return <Player
+  key={`${playback.anime?.id||'demo'}:${playback.episode}:${playback.stream.url}`}
+  anime={playback.anime}
+  episode={playback.episode}
+  stream={playback.stream}
+  demo={playback.demo}
+  manualSource={playback.manualSource===true}
+  onPrepareNext={prepareNext}
+  onContinueNext={continueNext}
+  onRecoverSource={recoverSource}
+  onClose={closeWatch}
+ />
 
  return <div className="app-shell">
   <aside className={`sidebar ${mobileNav?'is-open':''}`}>
@@ -386,6 +414,10 @@ function App(){
      >
       {top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):top.data.slice(0,6).map(a=><Card key={a.id} anime={a} onOpen={setSelected}/>)}</div>}
      </Section>
+     <Section eyebrow="MUSIM SELANJUTNYA" title="Segera tayang"
+      action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'upcoming',libraryView:'all',searchQuery:''})}>Lihat pratinjau <ArrowRight size={16}/></button>}>
+      {upcoming.error&&!upcoming.data.length?<Empty icon={WifiOff} title="Pratinjau belum tersedia" body="Coba lagi untuk melihat judul yang akan datang." action={<button type="button" className="btn btn-outline" onClick={upcoming.retry}>Coba lagi</button>}/>:<div className="card-grid">{upcoming.loading?SKELETON_KEYS.slice(0,4).map(key=><CardSkeleton key={key}/>):upcoming.data.slice(0,4).map(a=><Card key={a.id} anime={a} onOpen={setSelected}/>)}</div>}
+     </Section>
     </>}
 
     {route.page==='browse'&&<Browse
@@ -446,19 +478,6 @@ function App(){
    onClose={()=>setSelected(null)}
    onToggleSave={()=>void toggleSave(selected)}
    onWatch={value=>{setPlayback(value);setSelected(null)}}
-  />}
-
-  {playback&&<Player
-   key={`${playback.anime?.id||'demo'}:${playback.episode}:${playback.stream.url}`}
-   anime={playback.anime}
-   episode={playback.episode}
-   stream={playback.stream}
-   demo={playback.demo}
-   manualSource={playback.manualSource===true}
-   onPrepareNext={prepareNext}
-   onContinueNext={continueNext}
-   onRecoverSource={recoverSource}
-   onClose={()=>setPlayback(null)}
   />}
 
   {toast&&<div role="status" className="toast"><Check size={16}/>{toast}</div>}
@@ -547,7 +566,7 @@ function Browse({
   <div className="page-intro">
    <div>
     <h1>Jelajahi</h1>
-    <p>Temukan anime berdasarkan musim rilis, popularitas, atau pencarian judul.</p>
+    <p>Cari judul favoritmu, pilih genre, atau urutkan sesuai selera.</p>
    </div>
   </div>
 
@@ -563,19 +582,15 @@ function Browse({
     />
     {query&&<button type="button" aria-label="Bersihkan pencarian" onClick={()=>onQueryChange('')}><X size={17}/></button>}
    </div>
-   <fieldset className="category-switch">
-    <legend className="sr-only">Kategori katalog</legend>
-    {([['season','Musim ini'],['top','Populer'],['upcoming','Akan datang']] as const).map(([id,label])=><button
-     type="button"
-     className={!value&&kind===id?'active':''}
-     key={id}
-     onClick={()=>onTabChange(id)}
-    >
-     {label}
-    </button>)}
-   </fieldset>
+   {kind!=='upcoming'?<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('upcoming')}>Musim berikutnya <ArrowUpRight size={15}/></button>:<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('season')}>Kembali ke katalog <ArrowRight size={15}/></button>}
   </div>
   <fieldset className="browse-filters"><legend className="sr-only">Saring anime</legend>
+   {kind!=='upcoming'&&<div className="browse-filter-group">
+    <span className="browse-filter-title">Jelajahi berdasarkan</span>
+    <fieldset className="category-switch"><legend className="sr-only">Urutan katalog</legend>
+     {([['season','Musim ini'],['top','Populer']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
+    </fieldset>
+   </div>}
    <label>Genre<select aria-label="Genre" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
    <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>setFormat(e.target.value)}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
    <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>setMinimumScore(Number(e.target.value))}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
@@ -583,11 +598,11 @@ function Browse({
    <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>setOrder(e.target.value)}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
    {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>{setGenre('');setFormat('');setMinimumScore(0);setYear('');setOrder('default')}}>Reset filter</button>}
   </fieldset>
-  <p className="browse-filter-note">Filter berlaku untuk seluruh katalog. Pilih “Muat lebih banyak” untuk hasil selanjutnya.</p>
+  <p className="browse-filter-note">Pilih filter untuk menemukan anime di seluruh katalog.</p>
 
   <div className="browse-results-header">
    <div>
-    <h2>{value?`Hasil pencarian: “${value}”`:kind==='season'?'Musim ini':kind==='top'?'Anime terpopuler':'Akan datang'}</h2>
+    <h2>{value?`Hasil pencarian: “${value}”`:kind==='season'?'Musim ini':kind==='top'?'Anime terpopuler':'Pratinjau musim berikutnya'}</h2>
    </div>
    <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${filteredItems.length} judul`}</span>
   </div>
@@ -946,9 +961,12 @@ function SettingsPage({
  const [apiOnline,setApiOnline]=useState(false)
  const [importing,setImporting]=useState(false)
  const [defaultSubtitle,setDefaultSubtitle]=useState<'auto'|'id'|'en'|'off'>('id')
+ const [autoNext,setAutoNext]=useState(true)
+ const [defaultSpeed,setDefaultSpeed]=useState(1)
  const inputRef=useRef<HTMLInputElement>(null)
  useEffect(()=>{
   let active=true
+  void Promise.all([getPreference('auto-next','on'),getPreference('playback-speed','1')]).then(([next,rate])=>{if(!active)return;setAutoNext(next!=='off');const n=Number(rate);if([0.5,0.75,1,1.25,1.5,2].includes(n))setDefaultSpeed(n)}).catch(()=>{})
   void getPreference('subtitle-default-language','id').then(value=>{
    if(active&&['auto','id','en','off'].includes(value))setDefaultSubtitle(value as 'auto'|'id'|'en'|'off')
   }).catch(()=>{})
@@ -1016,7 +1034,7 @@ function SettingsPage({
   <div className="page-intro">
    <div>
     <h1>Pengaturan</h1>
-    <p>Pengaturan pemutar, sumber tontonan, dan data penyimpanan lokal.</p>
+    <p>Atur cara menonton, subtitle, dan koleksi dalam satu tempat.</p>
    </div>
   </div>
 
@@ -1033,38 +1051,29 @@ function SettingsPage({
      <div className="settings-heading-icon"><MonitorPlay size={20}/></div>
      <div>
       <h2>Pemutaran</h2>
-      <p>Atur pengalaman menontonmu.</p>
+      <p>Preferensi untuk seluruh episode.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Pemutar Yoru</strong>
-       <small>Pengalaman menonton yang nyaman di setiap layar</small>
-      </div>
-      <span className="setting-state good"><span/>Didukung</span>
-     </div>
-     <div className="setting-row">
-      <div>
-       <strong>Coba pemutar Yoru</strong>
-       <small>Lihat contoh pemutaran dengan subtitle Indonesia.</small>
+       <strong>Pratinjau pemutar</strong>
+       <small>Coba kontrol, kualitas, dan pengaturan subtitle sebelum menonton.</small>
       </div>
       <button type="button" className="btn btn-primary" onClick={onDemo} aria-label="Coba pemutar">
        <Play size={15} fill="currentColor"/> Coba pemutar
       </button>
      </div>
-     <div className="settings-note">
-      <Info size={16}/>
-      <p>Jika video utama belum tersedia, Yoru akan menawarkan pilihan lain. Bahasa dan pengaturan subtitle dapat berbeda menurut video.</p>
-     </div>
+     <div className="setting-row"><div><strong>Lanjut ke episode berikutnya</strong><small>Hitung mundur 8 detik setelah video selesai.</small></div><select aria-label="Lanjut otomatis ke episode berikutnya" value={autoNext?'on':'off'} onChange={e=>{const next=e.target.value==='on';setAutoNext(next);void setPreference('auto-next',next?'on':'off').catch(()=>onNotify('Pilihan belum tersimpan'))}}><option value="on">Aktif</option><option value="off">Nonaktif</option></select></div>
+     <div className="setting-row"><div><strong>Kecepatan bawaan</strong><small>Berlaku saat memutar episode baru.</small></div><select aria-label="Kecepatan bawaan" value={defaultSpeed} onChange={e=>{const next=Number(e.target.value);setDefaultSpeed(next);void setPreference('playback-speed',String(next)).catch(()=>onNotify('Pilihan belum tersimpan'))}}>{[0.5,0.75,1,1.25,1.5,2].map(n=><option key={n} value={n}>{n}×</option>)}</select></div>
      <div className="setting-row">
-      <div><strong>Bahasa subtitle pilihan</strong><small>Prioritas untuk episode baru; bisa diganti saat menonton.</small></div>
+      <div><strong>Bahasa subtitle</strong><small>Indonesia diutamakan; English jika belum tersedia. Bisa diganti saat menonton.</small></div>
       <select aria-label="Bahasa subtitle utama" value={defaultSubtitle} onChange={event=>{
        const next=event.target.value as 'auto'|'id'|'en'|'off'
        setDefaultSubtitle(next)
        void setPreference('subtitle-default-language',next).catch(()=>onNotify('Gagal menyimpan pilihan subtitle'))
       }}>
-       <option value="id">Bahasa Indonesia</option><option value="en">English</option><option value="auto">Otomatis</option><option value="off">Tidak ada subtitle</option>
+       <option value="id">Bahasa Indonesia</option><option value="en">English</option><option value="auto">Indonesia, lalu English</option><option value="off">Tidak ada subtitle</option>
       </select>
      </div>
     </div>
@@ -1073,14 +1082,14 @@ function SettingsPage({
      <div className="settings-heading-icon"><Layers3 size={20}/></div>
      <div>
       <h2>Sumber tontonan</h2>
-      <p>Periksa sumber video yang tersedia untuk menonton.</p>
+      <p>Pilih video terbaik yang tersedia untuk setiap episode.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Koneksi layanan</strong>
-       <small>Agar katalog dan pencarian bisa berjalan</small>
+       <strong>Status katalog</strong>
+       <small>Mendukung pencarian judul dan informasi episode</small>
       </div>
       <span className={`setting-state ${apiOnline?'good':'bad'}`}>
        <span/>{apiOnline?'Terhubung':'Tidak terhubung'}
@@ -1088,8 +1097,8 @@ function SettingsPage({
      </div>
      <div className="setting-row">
       <div>
-       <strong>Pilihan video</strong>
-       <small>{providerList.length?providerList.map(p=>`${p.id==='public-embed'?'Video alternatif':p.id==='miruro'?'Pilihan langsung':p.id.startsWith('stremio-')?'Sumber tambahan':'Sumber pribadi'}${p.animeCount===null?'':` · ${p.animeCount} judul`}`).join(', '):'Belum ada sumber video tambahan'}</small>
+       <strong>Sumber tersedia</strong>
+       <small>{providerList.length?providerList.map(p=>`${p.id==='public-embed'?'Video alternatif':p.id==='miruro'?'Pilihan langsung':p.id.startsWith('stremio-')?'Add-on video':'Sumber pribadi'}${p.animeCount===null?'':` · ${p.animeCount} judul`}`).join(', '):'Belum ada sumber video tambahan'}</small>
       </div>
       <button type="button" className="icon-button" aria-label="Perbarui daftar sumber video" onClick={refresh}><RefreshCw size={17}/></button>
      </div>
@@ -1100,31 +1109,31 @@ function SettingsPage({
    <div className="settings-section">
     <div id="pengaturan-akun" className="settings-heading">
      <div className="settings-heading-icon"><Bookmark size={20}/></div>
-     <div><h2>Akun & perangkat</h2><p>Identitas dan penyimpanan tontonan.</p></div>
+     <div><h2>Akun & perangkat</h2><p>Akun dapat ditambahkan tanpa mengubah koleksi saat ini.</p></div>
     </div>
     <div className="settings-box">
-     <div className="setting-row"><div><strong>Mode tamu</strong><small>Koleksi, tontonan, dan subtitle tersimpan di perangkat ini.</small></div><span className="setting-state good"><span/>Aktif</span></div>
-     <div className="settings-note"><Info size={16}/><p>Login dan sinkronisasi antarperangkat belum tersedia. Yoru tidak akan berpura-pura akun sudah terhubung. Gunakan cadangan data untuk memindahkan koleksi.</p></div>
+     <div className="setting-row"><div><strong>Tanpa akun</strong><small>Koleksi tetap tersimpan di browser ini.</small></div><span className="setting-state good"><span/>Aktif</span></div>
+     <div className="settings-note"><Info size={16}/><p>Login dan sinkronisasi belum tersedia. Gunakan cadangan untuk memindahkan koleksi.</p></div>
     </div>
     <div id="pengaturan-data" className="settings-heading">
      <div className="settings-heading-icon"><Bookmark size={20}/></div>
      <div>
       <h2>Data & privasi</h2>
-      <p>Koleksi dan riwayat menonton tersimpan di perangkat ini.</p>
+      <p>Pindahkan atau hapus data yang tersimpan di browser.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Ekspor cadangan</strong>
-       <small>Simpan salinan koleksi dan riwayat tontonanmu.</small>
+       <strong>Unduh cadangan</strong>
+       <small>Simpan koleksi, progress, dan preferensi sebagai file.</small>
       </div>
       <button type="button" className="setting-action" onClick={()=>void exportData()}><Download size={16}/> Ekspor</button>
      </div>
      <div className="setting-row">
       <div>
-       <strong>Impor cadangan</strong>
-       <small>Kembalikan koleksi dan riwayat dari cadangan sebelumnya.</small>
+       <strong>Pulihkan cadangan</strong>
+       <small>Pulihkan koleksi dan preferensi dari file Yoru.</small>
       </div>
       <button type="button" className="setting-action" onClick={()=>inputRef.current?.click()} disabled={importing}><Upload size={16}/> {importing?'Memulihkan...':'Impor'}</button>
       <input type="file" accept="application/json,.json" className="visually-hidden" ref={inputRef} onChange={e=>{void importData(e.target.files?.[0]||null);e.target.value=''}}/>
@@ -1132,7 +1141,7 @@ function SettingsPage({
      <div className="setting-row">
       <div>
        <strong>Hapus data lokal</strong>
-       <small>Hapus koleksi dan riwayat tontonan dari perangkat ini.</small>
+       <small>Menghapus koleksi, riwayat, dan semua preferensi tersimpan.</small>
       </div>
       <button type="button" className="setting-action danger" onClick={()=>void reset()}><Trash2 size={16}/> Hapus</button>
      </div>
@@ -1142,12 +1151,12 @@ function SettingsPage({
      <div className="settings-heading-icon"><Heart size={20}/></div>
      <div>
       <h2>Tentang Yoru</h2>
-      <p>Informasi aplikasi dan lisensi.</p>
+      <p>Versi aplikasi dan informasi proyek.</p>
      </div>
     </div>
     <div className="settings-box about-box">
      <div className="about-mark"><AppLogo/></div>
-     <p>Jelajahi anime, atur koleksi, dan lanjutkan menonton di perangkat ini tanpa membuat akun.</p>
+     <p>Yoru menyatukan penjelajahan anime, koleksi pribadi, dan pemutaran video.</p>
      <div className="about-meta"><span>Versi</span><strong>v1.0.0-rc.2 (Web PWA)</strong></div>
      <div className="about-meta"><span>Katalog</span><strong>Anime Jepang</strong></div>
      <div className="about-meta"><span>Lisensi</span><strong>MIT License</strong></div>
