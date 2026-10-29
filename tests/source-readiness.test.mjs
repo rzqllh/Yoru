@@ -14,3 +14,17 @@ test('media candidates require actual browser verification later',()=>{
  assert.equal(isNativeCandidate({...candidate,format:'mp4',url:'https://cdn.example.com/video.mp4'}),true)
  assert.equal(isNativeCandidate({...candidate,url:'/demo/stream.m3u8'}),true)
 })
+
+
+test('native media preflight refuses private and special-purpose IP hosts',()=>{
+ for(const host of ['0.0.0.0','172.20.1.5','169.254.169.254','100.100.100.100','127.0.0.2','192.168.1.15','[::1]','[fe80::1]']){
+  assert.equal(isNativeCandidate({...candidate,url:`https://${host}/watch/master.m3u8`}),false,`must reject ${host}`)
+ }
+})
+
+test('native media preflight refuses internal DNS names and trailing-dot localhost',()=>{
+ for(const host of ['localhost.','media.local','nas.internal','device.lan','media.localhost','intranet']){
+  assert.equal(isNativeCandidate({...candidate,url:`https://${host}/watch/master.m3u8`}),false,`must reject ${host}`)
+ }
+ assert.equal(isNativeCandidate({...candidate,url:'https://video.example.org/ep1.m3u8'}),true)
+})
