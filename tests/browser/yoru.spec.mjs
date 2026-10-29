@@ -440,8 +440,8 @@ test('mobile has one visible navigation dock and resets scroll on page changes',
  await expect(page.locator('.browse-filter-group')).toBeVisible()
  await expect(page.locator('.category-switch').getByRole('button',{name:'Musim ini'})).toBeVisible()
  await expect(page.locator('.category-switch').getByRole('button',{name:'Populer'})).toBeVisible()
- await expect(page.locator('.category-switch').getByRole('button',{name:'Akan datang'})).toHaveCount(0)
- await expect(page.getByRole('button',{name:/Musim berikutnya/})).toBeVisible()
+ await expect(page.locator('.category-switch').getByRole('button',{name:'Akan datang'})).toBeVisible()
+ await expect(page.getByRole('button',{name:/Musim berikutnya/})).toHaveCount(0)
 })
 
 test('watch page replaces catalog rather than opening a modal over its scroll',async({page})=>{
@@ -455,4 +455,35 @@ test('watch page replaces catalog rather than opening a modal over its scroll',a
  await expect(page.locator('.mobile-bottom')).toHaveCount(0)
  await watch.getByRole('button',{name:'Kembali'}).click()
  await expect(page.locator('.app-shell')).toBeVisible()
+})
+
+
+test('mobile detail source picker scrolls inside dialog rather than behind it',async({page})=>{
+ await page.setViewportSize({width:390,height:680})
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[]}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog).toBeVisible()
+ await expect.poll(()=>page.evaluate(()=>document.body.style.position)).toBe('fixed')
+ await expect.poll(()=>dialog.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true)
+ await dialog.evaluate(el=>{el.scrollTop=el.scrollHeight})
+ await expect.poll(()=>dialog.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
+ await dialog.locator('.episode-list .episode-row').first().click()
+ const picker=dialog.locator('.source-picker')
+ await expect(picker).toBeVisible()
+ await expect(picker).toBeInViewport({ratio:0.35})
+ await dialog.getByRole('button',{name:'Tutup detail anime'}).click()
+ await expect.poll(()=>page.evaluate(()=>document.body.style.position)).not.toBe('fixed')
+})
+
+test('mobile discover groups three categories and filters on one shared surface',async({page})=>{
+ await page.setViewportSize({width:390,height:680})
+ await page.goto('/')
+ await page.locator('.mobile-bottom').getByRole('button',{name:'Jelajahi'}).click()
+ await expect(page.locator('.browse-controls')).toHaveCount(1)
+ await expect(page.locator('.browse-controls .category-switch button')).toHaveCount(3)
+ await expect(page.locator('.topbar-discover')).toHaveCount(0)
+ await expect(page.locator('.browse-controls input[aria-label="Cari anime"]')).toBeVisible()
+ await expect(page.locator('.browse-controls select[aria-label="Genre"]')).toBeVisible()
 })
