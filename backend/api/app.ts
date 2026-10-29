@@ -58,7 +58,7 @@ app.get('/api/anime/:id/provider-episodes',async c=>{
   getStremioEpisodes(animeId),
   getMiruroEpisodes(id)
  ])
- const result=combineProviderResults(results,['local','stremio'])
+ const result=combineProviderResults(results,['local','stremio','miruro'])
  return c.json({items:result.items,warnings:result.warnings},200)
 })
 app.get('/api/streams',async c=>{
