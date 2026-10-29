@@ -819,7 +819,7 @@ function DetailDialog({
   try{
    await verifyNativeSource(stream)
    onWatch({anime:info,episode:ep,stream,manualSource:manual})
-  }catch(e){
+  }catch{
    setError('Video belum bisa diputar. Coba pilihan lain atau ulangi.')
   }finally{setPlaying('')}
  }
