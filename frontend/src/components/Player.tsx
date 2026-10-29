@@ -157,7 +157,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     const choices=(data.items||[]).filter(item=>item.episode===episode&&
      (item.language==='id'||item.language==='en')&&
      typeof item.sourceUrl==='string'&&item.sourceUrl.startsWith('/api/subtitles/file?')&&item.score>=70)
-    choices.sort((a,b)=>(a.language==='id'?0:1)-(b.language==='id'?0:1)||b.score-a.score)
+    choices.sort((a,b)=>(a.language==='id'?0:1)-(b.language==='id'?0:1)||(a.provider==='stremio'?0:1)-(b.provider==='stremio'?0:1)||b.score-a.score)
     setSubtitleChoices(choices)
     if(!choices.length)setSubtitleState((data.warnings||[]).length?'Subtitle belum tersedia dari layanan saat ini. Coba file dari perangkat.':'Belum menemukan subtitle untuk episode ini.')
    }).catch(()=>{
@@ -669,7 +669,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    <button type="button" onClick={disableSubtitle} aria-pressed={subtitleOff}>Off</button>
    {stream.tracks.filter(item=>item.lang==='id'||item.lang==='en').map(item=><button type="button" key={item.url} onClick={()=>chooseNativeSubtitle(item.lang as 'id'|'en')} aria-pressed={!subtitleOff&&!selectedSubtitle&&subtitlePreference===item.lang}>{item.lang==='id'?'Bahasa Indonesia':'English'} · Bawaan video</button>)}
    {subtitleChoices.map(item=><button type="button" key={item.id} onClick={()=>{setSubtitleManual(true);void activateSubtitle(item,true)}} aria-pressed={selectedSubtitle?.id===item.id}>
-    {item.label} · Pilihan {subtitleChoices.indexOf(item)+1}
+    {item.label} · {item.provider==='stremio'?'Sumber tambahan':'Sumber subtitle'} · Pilihan {subtitleChoices.indexOf(item)+1}
    </button>)}
    {!subtitleSearch&&!stream.tracks.some(t=>t.lang==='id')&&!subtitleChoices.some(item=>item.language==='id')&&<p className="subtitle-indonesia-state" role="status">Sub Indo belum tersedia untuk episode ini. Tambahkan file SRT atau VTT dari perangkat.</p>}
    <div className="subtitle-upload">

@@ -138,6 +138,14 @@ async function fetchKnown(provider:Exclude<SubtitleProvider,'stremio'>,path:stri
   return JSON.parse(data) as unknown
  }finally{clearTimeout(timer)}
 }
+/** Prefer actual Indonesian tracks, then verified mapped Stremio addons. */
+export function compareSubtitleCandidates(a:SubtitleCandidate,b:SubtitleCandidate):number{
+ const language=(a.language==='id'?0:1)-(b.language==='id'?0:1)
+ if(language)return language
+ const provider=(a.provider==='stremio'?0:1)-(b.provider==='stremio'?0:1)
+ if(provider)return provider
+ return b.score-a.score||a.id.localeCompare(b.id)
+}
 export async function findSubtitles(input:{title:string;episode:number;type:string;malId?:number}){
  const {title,episode,type,malId}=input
  const query=title.trim().slice(0,120)
@@ -175,7 +183,7 @@ export async function findSubtitles(input:{title:string;episode:number;type:stri
   if(s.status==='fulfilled')items.push(...s.value)
   else warnings.push(jobs[i][0]+': '+(s.reason instanceof Error?s.reason.message:'UNAVAILABLE'))
  })
- return {items:items.sort((a,b)=>b.score-a.score||(a.language==='id'?-1:1)).slice(0,45)
+ return {items:items.sort(compareSubtitleCandidates).slice(0,45)
   .map(item=>({...item,sourceUrl:item.sourceUrl?grantSubtitleUrl(item.sourceUrl):undefined})),warnings,configured:subtitleStatus()}
 }
 /** No upstream raw URL is accepted. Only bounded, provider-owned refs are fetched. */

@@ -14,6 +14,7 @@ const testStream={
  tracks:[{lang:'id',label:'Bahasa Indonesia',url:'/demo-id.vtt'}],
 }
 test.beforeEach(async({page})=>{
+ await page.route('**/api/anime/daily-trends',route=>route.fulfill({status:503,json:{error:'DAILY_TRENDS_UNAVAILABLE'}}))
  await page.route('**/api/anime/discover?**',async route=>
   route.fulfill({json:{items:[anime],page:1,hasNext:false}}))
  await page.route('**/api/anime/search?**',async route=>
@@ -510,4 +511,39 @@ test('library uses its own responsive layout without changing navigation',async(
  await page.locator('.mobile-bottom').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.locator('.library-page')).toBeVisible()
  await expect(page.getByRole('heading',{name:'Koleksi',exact:true})).toBeVisible()
+})
+
+
+test('real dated AniList daily trends replace fallback and manually rotate through ten titles',async({page})=>{
+ await page.route('**/api/anime/daily-trends',route=>route.fulfill({json:{
+  items:Array.from({length:10},(_,i)=>({...anime,id:'mal:'+(i+100),malId:i+100,title:'Tren AniList '+(i+1)})),
+  source:'AniList',sourceUrl:'https://anilist.co',date:'2026-10-29',metric:'daily-media-activity'
+ }}))
+ await page.clock.install()
+ await page.goto('/')
+ await expect(page.getByText(/Aktivitas AniList · 29 Okt 2026/)).toBeVisible()
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 1')
+ await page.clock.fastForward(8000)
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 2')
+ await page.getByRole('button',{name:'Jeda pergantian hero'}).click()
+ await page.clock.fastForward(16000)
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 2')
+ await page.getByRole('button',{name:'Anime berikutnya'}).click()
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 3')
+ await expect(page.getByRole('link',{name:'Lihat sumber'})).toHaveAttribute('href','https://anilist.co')
+})
+
+test('reduced motion prevents hero auto rotation while controls remain usable',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'})
+ await page.route('**/api/anime/daily-trends',route=>route.fulfill({json:{
+  items:Array.from({length:10},(_,i)=>({...anime,id:'mal:'+(i+200),malId:i+200,title:'Tren Tenang '+(i+1)})),
+  source:'AniList',sourceUrl:'https://anilist.co',date:'2026-10-29',metric:'daily-media-activity'
+ }}))
+ await page.clock.install()
+ await page.goto('/')
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 1')
+ await page.clock.fastForward(9000)
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 1')
+ await page.getByRole('button',{name:'Anime berikutnya'}).click()
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 2')
 })
