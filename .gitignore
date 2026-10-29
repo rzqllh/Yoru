@@ -15,3 +15,5 @@ configs/providers.local.json
 .env.*.local
 
 configs/stremio.local.json
+playwright-report/
+test-results/

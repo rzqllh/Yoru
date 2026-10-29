@@ -2,9 +2,9 @@
 
 **Anime discovery, player, dan koleksi pribadi — langsung dari browser.**
 
-Yoru adalah proyek open-source (MIT) berbasis **PWA**: jelajahi katalog anime Jepang, cari judul, buka detail, simpan ke koleksi, dan lanjutkan tontonan. Katalog menggunakan Tenrai/MyAnimeList; sumber video **tidak otomatis dijamin**. Yoru juga menyediakan opsi mencoba player embed eksternal berdasarkan MAL ID dan episode; ketersediaan judul, kualitas dan subtitle (termasuk Bahasa Indonesia) **belum diverifikasi**. Untuk pemutaran langsung dan pelacakan progress lokal, hubungkan stream HTTPS melalui konfigurasi lokal atau addon Stremio yang kompatibel.
+Yoru adalah proyek open-source (MIT) berbasis **PWA**: jelajahi katalog anime Jepang, cari judul, buka detail, simpan ke koleksi, dan lanjutkan tontonan. Katalog menggunakan Tenrai/MyAnimeList. Yoru mengintegrasikan pemutar eksternal AnimeEmbed secara dua arah berbasis MAL ID dan episode: progres tontonan tersinkronisasi otomatis ke IndexedDB lokal dan mendukung pemutaran lanjutan (*resume playback* via `?start=...`). Subtitle bawaan AnimeEmbed adalah English Subtitle; untuk subtitle Bahasa Indonesia (WebVTT), gunakan pemutar demo lokal atau konfigurasi provider stream kustom.
 
-> **Status:** Web **preview**, bukan aplikasi native final. Demo video HLS + subtitle bahasa Indonesia tersedia tanpa konfigurasi provider. Streaming anime nyata bergantung pada sumber yang kamu masukkan sendiri; belum diuji end-to-end di Safari iOS. Tidak ada installer Windows, APK, atau IPA yang dirilis.
+> **Status:** Web **preview & release candidate**, bukan installer native final. Demo video HLS + subtitle bahasa Indonesia tersedia langsung. Streaming anime nyata didukung via integrasi AnimeEmbed dan file konfigurasi lokal; belum diuji di Safari iOS fisik. Tidak ada file installer native (Windows EXE, Android APK, atau iOS IPA) yang dirilis pada tahap ini.
 
 ## Mulai dalam beberapa menit
 
@@ -35,7 +35,7 @@ Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan
 | Fitur | Status | Perlu internet / source? |
 | --- | --- | --- |
 | Beranda, seasonal/top/upcoming, cari dan detail anime Jepang | Tersedia | Internet untuk Tenrai |
-| Daftar episode, pemilihan source dan opsi player embed eksternal | Tersedia; external player bergantung layanan pihak ketiga dan belum teruji playback-nya | Ya, internet dan source |
+| Daftar episode, pemilihan source dan pemutar eksternal AnimeEmbed | Tersedia; terintegrasi dua arah dengan pelacakan progress & resume lokal | Ya, internet |
 | Pemutar HLS/MP4 + track subtitle WebVTT | Tersedia; contoh lokal sudah diuji Chromium | Contoh lokal: tidak; media nyata: ya |
 | Watchlist, progress dan resume | Tersedia di IndexedDB browser | Tidak untuk data tersimpan |
 | Backup ekspor/impor data pribadi | Tersedia | Tidak |
@@ -70,7 +70,7 @@ Jangan memasukkan token ke URL atau commit file `*.local.json`. Stream tanpa duk
 
 ## Pengujian player eksternal
 
-Dalam pemeriksaan Chromium menggunakan origin lokal Yoru pada 29 Oktober 2026, AnimeEmbed mengembalikan media dengan metadata durasi untuk MAL ID **21 (One Piece)**, **52991 (Frieren)**, dan **1535 (Death Note)**. Pada sampel **One Piece episode 1**, video berhasil berjalan hingga sekitar **5,29 detik** dengan buffer aktif dan tanpa error media. **Ini bukan jaminan seluruh koleksi dapat diputar**, bukan bukti Sub Indo, dan bukan verifikasi Safari iOS. Player iframe tidak terintegrasi dengan watch progress lokal.
+Dalam pemeriksaan Chromium menggunakan origin lokal Yoru pada 29 Oktober 2026, AnimeEmbed mengembalikan media dengan metadata durasi untuk MAL ID **21 (One Piece)**, **52991 (Frieren)**, dan **1535 (Death Note)**. Pada sampel **One Piece episode 1**, video berhasil berjalan hingga sekitar **5,29 detik** dengan buffer aktif dan tanpa error media. Pemutar AnimeEmbed terintegrasi dua arah melalui pesan `postMessage` (dengan verifikasi origin dan validasi skema) yang menyimpan progres tontonan secara lokal ke IndexedDB serta mendukung query `?start=<seconds>` saat melanjutkan tontonan. Subtitle bawaan AnimeEmbed adalah English Subtitle. Ini bukan jaminan seluruh katalog dapat diputar tanpa kendala eksternal, bukan bukti Sub Indo pada AnimeEmbed, dan bukan verifikasi Safari iOS fisik.
 
 ## Pengembangan
 

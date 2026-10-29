@@ -34,6 +34,10 @@ PWA dapat dipasang dari browser yang mendukung, tetapi **bukan** APK/IPA/EXE. Br
 
 **Anime musim ini** membuka tab Musim ini di Jelajahi. **Lanjut menonton** membuka daftar khusus episode dengan progress HLS/MP4 tersimpan; berbeda dari menu Koleksi yang menampilkan watchlist. Jika belum ada tontonan, halaman Lanjut menonton menjelaskan kenapa masih kosong.
 
-## Coba sumber anime eksternal
+## Coba sumber anime eksternal (AnimeEmbed)
 
-Dari detail anime, klik episode untuk mencoba embed player berbasis MAL ID. Hanya beberapa judul pernah diuji dari runner Chromium dan ketersediaannya dapat berubah sewaktu-waktu. Embed pihak ketiga mungkin menggunakan track subtitle selain Bahasa Indonesia dan Yoru tidak dapat membaca progres pemutaran iframe. Untuk subtitle WebVTT Indonesia dan progress lokal yang dapat diuji, gunakan sumber HLS/MP4 langsung melalui konfigurasi.
+Dari detail anime, klik episode untuk mencoba embed player berbasis MAL ID. Yoru mengintegrasikan pemutar eksternal AnimeEmbed secara dua arah:
+- **Pelacakan progres tontonan**: Event `progress`, `pause`, dan `ended` dari iframe diverifikasi dan disimpan secara otomatis ke IndexedDB lokal (`yoru-local-v1`).
+- **Lanjut menonton (Resume)**: Saat membuka kembali episode yang pernah ditonton, Yoru meneruskan parameter `?start=<seconds>` agar pemutar langsung melompat ke posisi terakhir.
+- **Transparansi subtitle**: Track subtitle bawaan dari AnimeEmbed adalah English Subtitle (tidak ada klaim Sub Indo bawaan). Untuk subtitle Bahasa Indonesia (WebVTT) atau track multibahasa kustom, gunakan sumber stream HLS/MP4 langsung melalui file konfigurasi provider.
+- Ketersediaan judul dan episode bergantung pada ketersediaan pihak ketiga dan dapat berubah sewaktu-waktu.
