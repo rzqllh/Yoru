@@ -2276,3 +2276,13 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .player-next button,.player-error button{background:#293529;border:1px solid #6b875d;color:#f5fff0;
  padding:8px 14px;min-height:40px;border-radius:8px;}
 .player-error{pointer-events:auto;}
+
+/* Progressive native playback controls, compatible with touch and keyboard. */
+.player-quick-actions{display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px;}
+.player-quick-actions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:40px;border-radius:8px;background:#1b2129;color:#edf1f5;
+ border:1px solid #38404b;padding:7px 11px;font-size:12px;}
+.player-quick-actions button:disabled{opacity:.45;cursor:not-allowed;}
+.player-control-notice{padding:9px 22px;border-top:1px solid #353e4a;background:#1b2230;
+ color:#dce2ee;font-size:12px;}
+@media(max-width:600px){.player-quick-actions{width:100%;}.player-quick-actions button{flex:1;min-width:95px;}}
