@@ -348,7 +348,7 @@ function App(){
      </div>
     </div>
     <div className="topbar-actions">
-     <button type="button" className="topbar-discover" aria-label="Jelajahi anime" onClick={()=>navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:route.searchQuery})}><Search size={17}/><span>Jelajahi anime</span><ArrowUpRight size={15}/></button>
+     {route.page!=='browse'&&<button type="button" className="topbar-discover" aria-label="Jelajahi anime" onClick={()=>navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:route.searchQuery})}><Search size={17}/><span>Jelajahi anime</span><ArrowUpRight size={15}/></button>}
      <button type="button" className="avatar-button" title="Pengaturan aplikasi" aria-label="Buka pengaturan" onClick={()=>navigateState({page:'settings',browseKind:'season',libraryView:'all',searchQuery:''})}>Y</button>
     </div>
    </header>
@@ -570,6 +570,7 @@ function Browse({
    </div>
   </div>
 
+  <div className="browse-controls">
   <div className="browse-toolbar">
    <div className="browse-input">
     <Search size={18}/>
@@ -578,19 +579,19 @@ function Browse({
      ref={searchInputRef}
      value={query}
      onChange={e=>onQueryChange(e.target.value)}
-     placeholder="Ketik judul anime, studio, atau genre..."
+     placeholder="Cari judul anime..."
     />
     {query&&<button type="button" aria-label="Bersihkan pencarian" onClick={()=>onQueryChange('')}><X size={17}/></button>}
    </div>
-   {kind!=='upcoming'?<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('upcoming')}>Musim berikutnya <ArrowUpRight size={15}/></button>:<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('season')}>Kembali ke katalog <ArrowRight size={15}/></button>}
+
   </div>
   <fieldset className="browse-filters"><legend className="sr-only">Saring anime</legend>
-   {kind!=='upcoming'&&<div className="browse-filter-group">
-    <span className="browse-filter-title">Jelajahi berdasarkan</span>
-    <fieldset className="category-switch"><legend className="sr-only">Urutan katalog</legend>
-     {([['season','Musim ini'],['top','Populer']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
+   <div className="browse-filter-group">
+    <span className="browse-filter-title">Lihat anime</span>
+    <fieldset className="category-switch"><legend className="sr-only">Kategori anime</legend>
+     {([['season','Musim ini'],['top','Populer'],['upcoming','Akan datang']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
     </fieldset>
-   </div>}
+   </div>
    <label>Genre<select aria-label="Genre" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
    <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>setFormat(e.target.value)}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
    <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>setMinimumScore(Number(e.target.value))}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
@@ -598,7 +599,8 @@ function Browse({
    <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>setOrder(e.target.value)}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
    {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>{setGenre('');setFormat('');setMinimumScore(0);setYear('');setOrder('default')}}>Reset filter</button>}
   </fieldset>
-  <p className="browse-filter-note">Pilih filter untuk menemukan anime di seluruh katalog.</p>
+  </div>
+  {(genre||format||minimumScore||year||order!=='default')&&<p className="browse-filter-note">Filter aktif · Berlaku untuk seluruh katalog.</p>}
 
   <div className="browse-results-header">
    <div>
@@ -662,7 +664,7 @@ function LibraryPage({
   <div className="page-intro">
    <div>
     <h1>Koleksi</h1>
-    <p>Daftar anime yang kamu simpan dan riwayat pemutaran episode.</p>
+    <p>Simpan anime favoritmu dan lanjutkan dari episode terakhir.</p>
    </div>
    <div className="library-view-tabs">
     <button type="button" className={view==='all'?'active':''} onClick={()=>onViewChange('all')}>Semua simpanan ({library.length})</button>
@@ -673,7 +675,7 @@ function LibraryPage({
   {!isCompletelyEmpty&&<div className="library-stats">
    <div><span>TOTAL KOLEKSI</span><strong>{library.length.toString().padStart(2,'0')}</strong><small>Judul tersimpan</small></div>
    <div><span>SEDANG MENONTON</span><strong>{library.filter(l=>l.status==='watching').length.toString().padStart(2,'0')}</strong><small>Anime aktif</small></div>
-   <div><span>RIWAYAT PROGRESS</span><strong>{progress.length.toString().padStart(2,'0')}</strong><small>Episode tercatat</small></div>
+   <div><span>RIWAYAT MENONTON</span><strong>{progress.length.toString().padStart(2,'0')}</strong><small>Episode tercatat</small></div>
   </div>}
 
   {view==='continue'&&<Section title="Lanjut menonton">
@@ -753,6 +755,7 @@ function DetailDialog({
  onWatch:(p:Playback)=>void
 }){
  const dialogRef=useDialogFocus()
+ const pickerRef=useRef<HTMLDivElement>(null)
  const [info,setInfo]=useState<Anime>(anime)
  const [listed,setListed]=useState<Episode[]>([])
  const [available,setAvailable]=useState<Episode[]>([])
@@ -760,6 +763,11 @@ function DetailDialog({
  const [playing,setPlaying]=useState('')
  const [error,setError]=useState('')
  const [choices,setChoices]=useState<{episode:number;items:Stream[]}|null>(null)
+ useEffect(()=>{
+  if(!choices)return
+  const frame=requestAnimationFrame(()=>pickerRef.current?.scrollIntoView({block:'nearest',behavior:'auto'}))
+  return()=>cancelAnimationFrame(frame)
+ },[choices])
  const [more,setMore]=useState(false)
  const [page,setPage]=useState(1)
  const [hasNext,setHasNext]=useState(false)
@@ -910,7 +918,7 @@ function DetailDialog({
     </div>
     {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
 
-    {choices&&<div className="source-picker">
+    {choices&&<div className="source-picker" ref={pickerRef}>
      <div className="source-title">
       <strong>Pilih video · Episode {choices.episode}</strong>
       <button type="button" className="icon-button" onClick={()=>setChoices(null)} aria-label="Tutup pilihan sumber"><X size={15}/></button>
