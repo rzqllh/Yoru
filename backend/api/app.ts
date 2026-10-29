@@ -9,6 +9,7 @@ import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../provider
 import {externalStream} from '../providers/public-embed.js'
 import {getMiruroEpisodes,getMiruroStreams,isMiruroConfigured} from '../providers/miruro.js'
 import {downloadSubtitle,findSubtitles,toWebVtt,subtitleStatus,type SubtitleProvider} from '../providers/subtitles.js'
+import {verifySubtitleGrant} from '../providers/subtitle-grants.js'
 
 const subtitleSearchBudget=createFixedWindowBudget(20,60_000)
 const subtitleDownloadBudget=createFixedWindowBudget(30,60_000)
@@ -90,6 +91,7 @@ app.get('/api/subtitles/file',async c=>{
  const provider=c.req.query('provider')
  const ref=c.req.query('ref')||''
  if(!['subdl','subsource','opensubtitles'].includes(provider||'')||ref.length>260)return c.json({error:'INVALID_REQUEST'},400)
+ if(!verifySubtitleGrant(provider||'',ref,c.req.query('expires')||'',c.req.query('token')||''))return c.json({error:'INVALID_OR_EXPIRED_GRANT'},403)
  try{
   const content=toWebVtt(await downloadSubtitle(provider as SubtitleProvider,ref))
   c.header('Content-Type','text/vtt; charset=utf-8')
