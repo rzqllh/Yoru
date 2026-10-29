@@ -5,7 +5,7 @@ import { createHealthPayload } from '../pipeline/status.js'
 import { getAnime, getAnimeEpisodes, getDiscover, searchAnime } from '../pipeline/jikan.js'
 import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../providers/local.js'
 import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../providers/stremio.js'
-import {externalEpisode,externalStream} from '../providers/public-embed.js'
+import {externalStream} from '../providers/public-embed.js'
 
 export const app = new Hono()
 app.use('*',async(c,next)=>{
@@ -55,7 +55,7 @@ app.get('/api/anime/:id/provider-episodes',async c=>{
   getStremioEpisodes(animeId)
  ])
  const result=combineProviderResults(results,['local','stremio'])
- return c.json({items:[...result.items,externalEpisode(id,1)],warnings:result.warnings},200)
+ return c.json({items:result.items,warnings:result.warnings},200)
 })
 app.get('/api/streams',async c=>{
  const ref=c.req.query('episodeRef')||''
