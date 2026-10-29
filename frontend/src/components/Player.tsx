@@ -6,7 +6,6 @@ import {getPreference,getProgress,saveProgress,setPreference} from '../lib/db'
 import {applySubtitleOffset,type CueBaseline} from '../lib/subtitle-offset'
 import {parseLocalSubtitle} from '../lib/local-subtitles'
 import {connectAnimeEmbed,extractValidPlaybackProgress} from '../lib/animeembed'
-import {useDialogFocus} from '../lib/useDialogFocus'
 
 const clock=(seconds:number)=>{const safe=Math.max(0,Math.floor(Number.isFinite(seconds)?seconds:0));const hrs=Math.floor(safe/3600);return `${hrs>0?`${hrs}:`:''}${String(Math.floor(safe/60)%60).padStart(2,'0')}:${String(safe%60).padStart(2,'0')}`}
 type SubtitleResult={id:string;provider:string;language:'id'|'en';label:string;release:string;episode:number;score:number;sourceUrl?:string}
@@ -54,7 +53,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [ready,setReady]=useState(false)
  const [resumeAt,setResumeAt]=useState(0)
  const lastSave=useRef(0)
- const dialogRef=useDialogFocus()
+ const watchRef=useRef<HTMLElement>(null)
+ useEffect(()=>{watchRef.current?.querySelector<HTMLButtonElement>('[aria-label="Kembali"]')?.focus()},[])
 
  useEffect(()=>{
   let alive=true
@@ -254,7 +254,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   if(!subtitlePreferenceReady||subtitlePreference==='off'||subtitleManual||subtitleOff||selectedSubtitle||subtitleSearch||!subtitleChoices.length)return
   let alive=true
   void (async()=>{
-   const candidates=subtitlePreference==='auto'?subtitleChoices:subtitleChoices.filter(item=>item.language===subtitlePreference)
+   const candidates=subtitlePreference==='en'?subtitleChoices.filter(item=>item.language==='en'):[...subtitleChoices.filter(item=>item.language==='id'),...subtitleChoices.filter(item=>item.language==='en')]
    for(const item of candidates){
     if(!alive)return
     if(!item.sourceUrl)continue
@@ -270,7 +270,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     setSubtitleState(`Subtitle ${item.label} dipilih otomatis`)
     return
    }
-   if(alive)setSubtitleState(subtitlePreference==='auto'?'Tidak ada subtitle eksternal yang berhasil dimuat.':'Subtitle bahasa pilihan sebelumnya belum tersedia di episode ini; pilihan tidak diganti otomatis.')
+   if(alive)setSubtitleState('Sub Indo belum tersedia untuk episode ini. Subtitle English juga belum ditemukan.')
   })()
   return()=>{alive=false}
  },[subtitleChoices,subtitleManual,subtitleOff,selectedSubtitle,subtitleSearch,subtitlePreference,subtitlePreferenceReady])
@@ -286,7 +286,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   if(!subtitlePreferenceReady)return
   const nativeTracks=Array.from(v.textTracks)
   const preferredLanguage=subtitlePreference==='en'?'en':'id'
-  const fallbackLanguage=subtitlePreference==='auto'&&
+  const fallbackLanguage=subtitlePreference!=='en'&&
    !nativeTracks.some(track=>track.language.toLowerCase()==='id')?'en':preferredLanguage
   for(const track of nativeTracks){
    track.mode=selectedSubtitle?track.label===selectedSubtitle.id?'showing':'disabled':
@@ -572,7 +572,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   }
  },[stream.url,stream.format,resumeAt])
 
- return <div ref={dialogRef} tabIndex={-1} className="player-overlay" role="dialog" aria-modal="true" aria-label="Video player">
+ return <main ref={watchRef} tabIndex={-1} className="player-overlay" aria-label="Layar tonton">
   <div className="player-top">
    <button type="button" className="icon-button glass" onClick={onClose} aria-label="Kembali"><ArrowLeft size={20}/></button>
    <div className="player-heading">
@@ -692,5 +692,5 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    <span><Subtitles size={16}/> {stream.format==='embed'?'Pilihan subtitle mengikuti video':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':selectedSubtitle?`Subtitle ${selectedSubtitle.lang==='id'?'Indonesia':'English'} dimuat`:subtitleOff?'Subtitle mati':stream.tracks.length?`${stream.tracks.length} pilihan subtitle tersedia`:'Subtitle belum ditemukan'}</span>
    <span><Info size={16}/> {demo?'Contoh video dengan subtitle Indonesia.':stream.format==='embed'?'Progress tersimpan di browser ini.':'Riwayat menonton tersimpan di perangkat ini.'}</span>
   </div>
- </div>
+ </main>
 }
