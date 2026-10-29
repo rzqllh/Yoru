@@ -33,22 +33,23 @@ import {
  X,
 } from 'lucide-react'
 import type {Anime,Episode,LibraryEntry,LibraryStatus,ProgressEntry,Stream} from './types'
-import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams} from './lib/api'
-import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime} from './lib/db'
+import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered} from './lib/api'
+import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime,getPreference,setPreference} from './lib/db'
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {getBreadcrumbs,parseRoute,routeToPath,type RouteState} from './lib/router'
 import Player from './components/Player'
 import {verifyNativeSource} from './lib/source-readiness'
+import {rankNativeStreams} from './lib/source-ranking'
 import {useDialogFocus} from './lib/useDialogFocus'
 
 type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean}
 
 const TEST_STREAM:Stream={
  id:'demo',
- providerId:'HLS demo lokal',
+ providerId:'Contoh Yoru',
  format:'hls',
  url:'/demo/stream.m3u8',
- tracks:[{lang:'id',label:'Bahasa Indonesia (sampel)',url:'/demo-id.vtt'}],
+ tracks:[{lang:'id',label:'Bahasa Indonesia',url:'/demo-id.vtt'}],
  subtitleMode:'soft',
 }
 
@@ -79,7 +80,7 @@ function Card({anime,onOpen,compact=false}:{anime:Anime;onOpen:(anime:Anime)=>vo
   <div className="card-art">
    <Poster anime={anime}/>
    <div className="card-overlay"><span>LIHAT DETAIL <ArrowUpRight size={14}/></span></div>
-   {anime.score!==null&&<span className="score-tag"><Star size={11} fill="currentColor"/>{scoreDisplay(anime.score)}</span>}
+   {anime.score!==null&&<span className="score-tag" title="Skor komunitas"><Star size={11} fill="currentColor"/>{scoreDisplay(anime.score)}</span>}
   </div>
   <div className="card-copy">
    <strong title={anime.title}>{anime.title}</strong>
@@ -132,8 +133,8 @@ async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:strin
   const providers=await providerEpisodes(malId)
   const matches=providers.items.filter(item=>item.number===episode&&item.providerId!=='public-embed').slice(0,6)
   const resolved=await Promise.allSettled(matches.map(item=>streams(item.id)))
-  const candidates=resolved.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
-   .filter(source=>source.format!=='embed'&&source.url!==exceptUrl)
+  const candidates=rankNativeStreams(resolved.flatMap(result=>result.status==='fulfilled'?result.value.items:[]))
+   .filter(source=>source.url!==exceptUrl)
   const visited=new Set<string>()
   for(const candidate of candidates){
    if(visited.has(candidate.url))continue
@@ -228,7 +229,7 @@ function App(){
   return()=>window.removeEventListener('keydown',key)
  },[route,selected,playback,navigateState])
 
- const hero=season.data[0]||top.data[0]
+ const hero=top.data[0]||season.data[0]
  const continueList=useMemo(()=>progress.filter(row=>row.seconds>0&&(!row.duration||row.seconds<row.duration-10)).slice(0,6),[progress])
 
  async function toggleSave(anime:Anime){
@@ -298,7 +299,7 @@ function App(){
    <div className="sidebar-bottom">
     <div className="sidebar-foot">
      <span>YORU</span>
-     <span>LOCAL FIRST PWA</span>
+     <span>ANIME FAVORITMU</span>
     </div>
    </div>
   </aside>
@@ -319,26 +320,7 @@ function App(){
      </div>
     </div>
     <div className="topbar-actions">
-     <div className="search-control">
-      <Search size={17}/>
-      <input
-       ref={searchInputRef}
-       aria-label="Cari judul anime"
-       value={route.searchQuery}
-       onChange={e=>{
-        const val=e.target.value
-        navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:val},true)
-       }}
-       onFocus={()=>{
-        if(route.page!=='browse'){
-         navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:route.searchQuery})
-        }
-       }}
-       placeholder="Cari judul anime..."
-      />
-      <kbd>⌘ K</kbd>
-      {route.searchQuery&&<button type="button" aria-label="Bersihkan pencarian" onClick={()=>navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:''})}><X size={15}/></button>}
-     </div>
+     <button type="button" className="topbar-discover" aria-label="Jelajahi anime" onClick={()=>navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:route.searchQuery})}><Search size={17}/><span>Jelajahi anime</span><ArrowUpRight size={15}/></button>
      <button type="button" className="avatar-button" title="Pengaturan aplikasi" aria-label="Buka pengaturan" onClick={()=>navigateState({page:'settings',browseKind:'season',libraryView:'all',searchQuery:''})}>Y</button>
     </div>
    </header>
@@ -354,7 +336,7 @@ function App(){
 
      {hero&&<div className="hero-card" style={hero.cover?{backgroundImage:`linear-gradient(90deg,#0e1014 0%,rgba(14,16,20,.94) 36%,rgba(14,16,20,.7) 64%,rgba(14,16,20,.2) 100%),linear-gradient(0deg,#0e1014 0%,transparent 60%),url("${hero.cover.replaceAll('"','%22')}")`}:undefined}>
       <div className="hero-copy">
-       <div className="hero-badge"><span className="pulse"/> PILIHAN MUSIM INI</div>
+       <div className="hero-badge"><span className="pulse"/> ANIME POPULER</div>
        <h2>{hero.title}</h2>
        <div className="hero-meta">
         <span className="hero-rating"><Star size={14} fill="currentColor"/> {scoreDisplay(hero.score)}</span>
@@ -372,7 +354,7 @@ function App(){
         </button>
        </div>
       </div>
-      <div className="hero-corner"><span>REKOMENDASI</span><ArrowDownRight size={20}/></div>
+      <div className="hero-corner"><span>PILIHAN YORU</span><ArrowDownRight size={20}/></div>
      </div>}
 
      {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
@@ -407,6 +389,7 @@ function App(){
     </>}
 
     {route.page==='browse'&&<Browse
+     searchInputRef={searchInputRef}
      kind={route.browseKind}
      query={route.searchQuery}
      onTabChange={kind=>navigateState({page:'browse',browseKind:kind,libraryView:'all',searchQuery:''})}
@@ -435,10 +418,10 @@ function App(){
    <footer className="footer">
     <div className="footer-brand">
      <AppLogo/>
-     <span>Katalog anime dan pemutar local-first</span>
+     <span>Jelajahi anime dan lanjutkan tontonanmu</span>
     </div>
     <div className="footer-meta">
-     <span>Metadata ditenagai Tenrai</span>
+     <span>Temukan cerita berikutnya</span>
      <span>Lisensi MIT</span>
      <span>© {new Date().getFullYear()} YORU</span>
     </div>
@@ -483,12 +466,14 @@ function App(){
 }
 
 function Browse({
+ searchInputRef,
  kind,
  query,
  onTabChange,
  onQueryChange,
  onOpen,
 }:{
+ searchInputRef:React.Ref<HTMLInputElement>
  kind:'season'|'top'|'upcoming'
  query:string
  onTabChange:(k:'season'|'top'|'upcoming')=>void
@@ -501,7 +486,13 @@ function Browse({
  const [next,setNext]=useState(false)
  const [page,setPage]=useState(1)
  const [retry,setRetry]=useState(0)
+ const [genre,setGenre]=useState('')
+ const [format,setFormat]=useState('')
+ const [minimumScore,setMinimumScore]=useState(0)
+ const [year,setYear]=useState('')
+ const [order,setOrder]=useState('default')
  const value=query.trim()
+ const usesServerFilters=Boolean(genre||format||minimumScore||year||order!=='default')
 
  // biome-ignore lint/correctness/useExhaustiveDependencies: normalized query and kind changes reset page.
  useEffect(()=>{
@@ -509,7 +500,7 @@ function Browse({
   setNext(false)
   setError('')
   setPage(1)
- },[value,kind])
+ },[value,kind,genre,format,minimumScore,year,order])
 
  // biome-ignore lint/correctness/useExhaustiveDependencies: retry value intentionally forces new browse request.
  useEffect(()=>{
@@ -517,7 +508,7 @@ function Browse({
   setLoading(true)
   setError('')
   const timer=window.setTimeout(()=>{
-   const req=value?search(value,page,controller.signal):catalog(kind,page,controller.signal)
+   const req=usesServerFilters?browseFiltered({kind,query:value,genre,format,minimumScore,year,order},page,controller.signal):value?search(value,page,controller.signal):catalog(kind,page,controller.signal)
    req.then(response=>{
     if(controller.signal.aborted)return
     setNext(response.hasNext)
@@ -538,7 +529,7 @@ function Browse({
    controller.abort()
    window.clearTimeout(timer)
   }
- },[kind,value,page,retry])
+ },[kind,value,page,retry,usesServerFilters,genre,format,minimumScore,year,order])
 
  const uniqueItems=useMemo(()=>{
   const seen=new Set<number>()
@@ -548,6 +539,9 @@ function Browse({
    return true
   })
  },[items])
+
+ const filteredItems=uniqueItems
+ const years=Array.from({length:new Date().getFullYear()-1989},(_,index)=>new Date().getFullYear()-index)
 
  return <div className="page-body">
   <div className="page-intro">
@@ -562,6 +556,7 @@ function Browse({
     <Search size={18}/>
     <input
      aria-label="Cari anime"
+     ref={searchInputRef}
      value={query}
      onChange={e=>onQueryChange(e.target.value)}
      placeholder="Ketik judul anime, studio, atau genre..."
@@ -580,29 +575,38 @@ function Browse({
     </button>)}
    </fieldset>
   </div>
+  <fieldset className="browse-filters"><legend className="sr-only">Saring anime</legend>
+   <label>Genre<select aria-label="Genre" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
+   <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>setFormat(e.target.value)}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
+   <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>setMinimumScore(Number(e.target.value))}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
+   <label>Tahun<select aria-label="Tahun rilis" value={year} onChange={e=>setYear(e.target.value)}><option value="">Semua tahun</option>{years.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
+   <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>setOrder(e.target.value)}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
+   {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>{setGenre('');setFormat('');setMinimumScore(0);setYear('');setOrder('default')}}>Reset filter</button>}
+  </fieldset>
+  <p className="browse-filter-note">Filter berlaku untuk seluruh katalog. Pilih “Muat lebih banyak” untuk hasil selanjutnya.</p>
 
   <div className="browse-results-header">
    <div>
     <h2>{value?`Hasil pencarian: “${value}”`:kind==='season'?'Musim ini':kind==='top'?'Anime terpopuler':'Akan datang'}</h2>
    </div>
-   <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${uniqueItems.length} judul`}</span>
+   <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${filteredItems.length} judul`}</span>
   </div>
   {error&&uniqueItems.length>0&&<div className="config-error" role="alert">
-   Gagal memuat halaman berikutnya: {error}
+   Belum bisa memuat lebih banyak anime.
    <button type="button" className="btn btn-outline" onClick={()=>setRetry(n=>n+1)}>Coba lagi</button>
   </div>}
 
   {error&&uniqueItems.length===0?<Empty
    icon={WifiOff}
    title="Tidak dapat memuat katalog"
-   body={error}
+   body="Belum bisa menampilkan anime. Periksa koneksi lalu coba lagi."
    action={<button type="button" className="btn btn-outline" onClick={()=>setRetry(n=>n+1)}><RefreshCw size={15}/> Coba lagi</button>}
-  />:uniqueItems.length===0&&!loading?<Empty
+  />:filteredItems.length===0&&!loading?<Empty
    icon={Search}
    title="Tidak ada judul yang cocok"
    body="Periksa ejaan kata kunci atau pilih kategori penjelajahan yang berbeda."
   />:<div className="card-grid browse-grid">
-   {uniqueItems.map(a=><Card key={a.id} anime={a} onOpen={onOpen}/>)}
+   {filteredItems.map(a=><Card key={a.id} anime={a} onOpen={onOpen}/>)}
    {loading&&SKELETON_KEYS.slice(0,page===1?12:6).map(key=><CardSkeleton key={key}/>)}
   </div>}
 
@@ -803,7 +807,7 @@ function DetailDialog({
  }
 
  const embedCandidate=(ep:number):Stream=>({
-  providerId:'AnimeEmbed (belum diverifikasi)',
+  providerId:'Video alternatif',
   format:'embed',
   url:`https://www.animeembed.com/embed/mal/${info.malId}/${ep}`,
   subtitleMode:'unknown',tracks:[],
@@ -819,8 +823,8 @@ function DetailDialog({
   try{
    await verifyNativeSource(stream)
    onWatch({anime:info,episode:ep,stream,manualSource:manual})
-  }catch(e){
-   setError(`Sumber belum bisa diputar di browser ini: ${(e as Error).message} Pilih sumber lain atau coba lagi.`)
+  }catch{
+   setError('Video belum bisa diputar. Coba pilihan lain atau ulangi.')
   }finally{setPlaying('')}
  }
  async function play(ep:Episode){
@@ -834,7 +838,7 @@ function DetailDialog({
    }
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
    const items=results.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
-   const native=items.filter(stream=>stream.format!=='embed')
+   const native=rankNativeStreams(items)
    if(!native.length){
     setChoices({episode:ep.number,items:[embedCandidate(ep.number)]})
     return
@@ -844,8 +848,8 @@ function DetailDialog({
    }else{
     setChoices({episode:ep.number,items:native})
    }
-  }catch(e){
-   setError((e as Error).message)
+  }catch{
+   setError('Belum bisa menyiapkan video. Coba lagi.')
   }finally{setPlaying('')}
  }
 
@@ -856,14 +860,15 @@ function DetailDialog({
    <div className="detail-main">
     <div className="detail-poster"><Poster anime={info}/></div>
     <div className="detail-info">
-     <MiniLabel>MAL #{info.malId}</MiniLabel>
+     <MiniLabel>DETAIL ANIME</MiniLabel>
      <h2>{info.title}</h2>
      {info.japaneseTitle&&<p className="detail-japanese">{info.japaneseTitle}</p>}
      <div className="detail-facts">
-      <span className="hero-rating"><Star size={14} fill="currentColor"/> {scoreDisplay(info.score)}</span>
+      <span className="hero-rating" title="Skor komunitas"><Star size={14} fill="currentColor"/> {scoreDisplay(info.score)} / 10</span>
       <span>{yearLabel(info.year)}</span>
       <span>{info.type}</span>
       <span>{info.status}</span>
+       {info.rating&&<span>{info.rating}</span>}
      </div>
      <div className="genre-tags">{info.genres.map(g=><span key={g}>{g}</span>)}</div>
      <p className={`detail-synopsis ${more?'expanded':''}`}>{info.synopsis||'Sinopsis belum tersedia dari metadata.'}</p>
@@ -885,22 +890,22 @@ function DetailDialog({
       <h2>Daftar episode</h2>
      </div>
      <span className="episode-count">
-      {available.filter(e=>e.providerId!=='public-embed').length>0?'Provider lokal terkonfigurasi':'Belum ada sumber native terverifikasi'}
+      {available.filter(e=>e.providerId!=='public-embed').length>0?'Video tersedia':'Belum menemukan video yang bisa diputar'}
      </span>
     </div>
     {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
 
     {choices&&<div className="source-picker">
      <div className="source-title">
-      <strong>Pilih sumber · Episode {choices.episode}</strong>
+      <strong>Pilih video · Episode {choices.episode}</strong>
       <button type="button" className="icon-button" onClick={()=>setChoices(null)} aria-label="Tutup pilihan sumber"><X size={15}/></button>
      </div>
      <div className="source-options">
       {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
        <MonitorPlay size={17}/>
        <span>
-        <strong>{stream.format==='embed'?'Buka pemutar eksternal (belum diverifikasi)':stream.quality||stream.format.toUpperCase()} · {stream.subtitleMode==='hard'?'Hardsub':stream.tracks.some(t=>t.lang==='id')?'Track Indonesia terdaftar':'Subtitle belum diverifikasi'}</strong>
-        <small>{stream.format==='embed'?'Konfirmasi: ketersediaan, kontrol, dan subtitle tidak dijamin':`${stream.providerId||'Custom provider'} · Periksa di browser sebelum putar`}</small>
+        <strong>{stream.format==='embed'?'Coba video alternatif':stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Subtitle menyatu':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia':'Bahasa subtitle belum diketahui'}</strong>
+        <small>{stream.format==='embed'?'Pengaturan dan pilihan subtitle mungkin berbeda':'Video akan diperiksa sebelum diputar'}</small>
        </span>
        <Play size={16}/>
       </button>)}
@@ -914,7 +919,7 @@ function DetailDialog({
        <span className="episode-number">{String(ep.number).padStart(2,'0')}</span>
        <div>
         <strong>{ep.title}</strong>
-        <small>{streamReady?'Kandidat sumber · perlu diperiksa':'Belum ada sumber terverifikasi · periksa alternatif'}</small>
+        <small>{streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}</small>
        </div>
        <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<MonitorPlay size={15}/>}</span>
       </button>
@@ -940,15 +945,23 @@ function SettingsPage({
  const [providerError,setProviderError]=useState('')
  const [apiOnline,setApiOnline]=useState(false)
  const [importing,setImporting]=useState(false)
+ const [defaultSubtitle,setDefaultSubtitle]=useState<'auto'|'id'|'en'|'off'>('id')
  const inputRef=useRef<HTMLInputElement>(null)
+ useEffect(()=>{
+  let active=true
+  void getPreference('subtitle-default-language','id').then(value=>{
+   if(active&&['auto','id','en','off'].includes(value))setDefaultSubtitle(value as 'auto'|'id'|'en'|'off')
+  }).catch(()=>{})
+  return()=>{active=false}
+ },[])
 
  const refresh=useCallback(()=>{
   void Promise.allSettled([providers(),api<{status:string}>('/api/health')]).then(results=>{
    if(results[0].status==='fulfilled'){
     setProviderList(results[0].value.providers)
-    setProviderError(results[0].value.warnings?.length?`Peringatan: ${results[0].value.warnings.join(', ')} tidak merespons.`:'')
+    setProviderError(results[0].value.warnings?.length?'Beberapa sumber sedang tidak tersedia. Coba lagi nanti.':'')
    }else{
-    setProviderError('Tidak dapat membaca status provider.')
+    setProviderError('Belum bisa memeriksa sumber video.')
    }
    setApiOnline(results[1].status==='fulfilled')
   })
@@ -1007,50 +1020,67 @@ function SettingsPage({
    </div>
   </div>
 
+  <nav className="settings-nav" aria-label="Bagian pengaturan">
+   <a href="#pengaturan-pemutaran">Pemutaran</a>
+   <a href="#pengaturan-sumber">Sumber video</a>
+   <a href="#pengaturan-akun">Akun & perangkat</a>
+   <a href="#pengaturan-data">Data & privasi</a>
+   <a href="#pengaturan-tentang">Tentang</a>
+  </nav>
   <div className="settings-layout">
    <div className="settings-section">
-    <div className="settings-heading">
+    <div id="pengaturan-pemutaran" className="settings-heading">
      <div className="settings-heading-icon"><MonitorPlay size={20}/></div>
      <div>
       <h2>Pemutaran</h2>
-      <p>Pengaturan dan pengujian pemutar media.</p>
+      <p>Atur pengalaman menontonmu.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Format pemutar aktif</strong>
-       <small>HTML5 Video Player (HLS/MP4) dan Iframe Player (AnimeEmbed)</small>
+       <strong>Pemutar Yoru</strong>
+       <small>Pengalaman menonton yang nyaman di setiap layar</small>
       </div>
       <span className="setting-state good"><span/>Didukung</span>
      </div>
      <div className="setting-row">
       <div>
-       <strong>Uji pemutar HLS</strong>
-       <small>Putar sampel video HLS lokal dengan track subtitle Bahasa Indonesia.</small>
+       <strong>Coba pemutar Yoru</strong>
+       <small>Lihat contoh pemutaran dengan subtitle Indonesia.</small>
       </div>
-      <button type="button" className="btn btn-primary" onClick={onDemo} aria-label="Test player">
-       <Play size={15} fill="currentColor"/> Test player
+      <button type="button" className="btn btn-primary" onClick={onDemo} aria-label="Coba pemutar">
+       <Play size={15} fill="currentColor"/> Coba pemutar
       </button>
      </div>
      <div className="settings-note">
       <Info size={16}/>
-      <p>Pemutar eksternal hanya dapat dicoba atas pilihan pengguna; ketersediaan dan bahasa subtitlenya belum diverifikasi. Progress disimpan jika pemutar mengirimkan event yang valid. Untuk track subtitle native, gunakan sumber yang kompatibel.</p>
+      <p>Jika video utama belum tersedia, Yoru akan menawarkan pilihan lain. Bahasa dan pengaturan subtitle dapat berbeda menurut video.</p>
+     </div>
+     <div className="setting-row">
+      <div><strong>Bahasa subtitle pilihan</strong><small>Prioritas untuk episode baru; bisa diganti saat menonton.</small></div>
+      <select aria-label="Bahasa subtitle utama" value={defaultSubtitle} onChange={event=>{
+       const next=event.target.value as 'auto'|'id'|'en'|'off'
+       setDefaultSubtitle(next)
+       void setPreference('subtitle-default-language',next).catch(()=>onNotify('Gagal menyimpan pilihan subtitle'))
+      }}>
+       <option value="id">Bahasa Indonesia</option><option value="en">English</option><option value="auto">Otomatis</option><option value="off">Tidak ada subtitle</option>
+      </select>
      </div>
     </div>
 
-    <div className="settings-heading">
+    <div id="pengaturan-sumber" className="settings-heading">
      <div className="settings-heading-icon"><Layers3 size={20}/></div>
      <div>
       <h2>Sumber tontonan</h2>
-      <p>Status integrasi penyedia streaming.</p>
+      <p>Periksa sumber video yang tersedia untuk menonton.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Koneksi API backend</strong>
-       <small>Server API Hono lokal</small>
+       <strong>Koneksi layanan</strong>
+       <small>Agar katalog dan pencarian bisa berjalan</small>
       </div>
       <span className={`setting-state ${apiOnline?'good':'bad'}`}>
        <span/>{apiOnline?'Terhubung':'Tidak terhubung'}
@@ -1058,35 +1088,43 @@ function SettingsPage({
      </div>
      <div className="setting-row">
       <div>
-       <strong>Penyedia terkonfigurasi</strong>
-       <small>{providerList.length?providerList.map(p=>`${p.name} (${p.animeCount===null?'eksternal':`${p.animeCount} anime`})`).join(', '):'Hanya pemutar default'}</small>
+       <strong>Pilihan video</strong>
+       <small>{providerList.length?providerList.map(p=>`${p.id==='public-embed'?'Video alternatif':p.id==='miruro'?'Pilihan langsung':p.id.startsWith('stremio-')?'Sumber tambahan':'Sumber pribadi'}${p.animeCount===null?'':` · ${p.animeCount} judul`}`).join(', '):'Belum ada sumber video tambahan'}</small>
       </div>
-      <button type="button" className="icon-button" aria-label="Perbarui daftar provider" onClick={refresh}><RefreshCw size={17}/></button>
+      <button type="button" className="icon-button" aria-label="Perbarui daftar sumber video" onClick={refresh}><RefreshCw size={17}/></button>
      </div>
      {providerError&&<p className="config-error">{providerError}</p>}
     </div>
    </div>
 
    <div className="settings-section">
-    <div className="settings-heading">
+    <div id="pengaturan-akun" className="settings-heading">
+     <div className="settings-heading-icon"><Bookmark size={20}/></div>
+     <div><h2>Akun & perangkat</h2><p>Identitas dan penyimpanan tontonan.</p></div>
+    </div>
+    <div className="settings-box">
+     <div className="setting-row"><div><strong>Mode tamu</strong><small>Koleksi, tontonan, dan subtitle tersimpan di perangkat ini.</small></div><span className="setting-state good"><span/>Aktif</span></div>
+     <div className="settings-note"><Info size={16}/><p>Login dan sinkronisasi antarperangkat belum tersedia. Yoru tidak akan berpura-pura akun sudah terhubung. Gunakan cadangan data untuk memindahkan koleksi.</p></div>
+    </div>
+    <div id="pengaturan-data" className="settings-heading">
      <div className="settings-heading-icon"><Bookmark size={20}/></div>
      <div>
       <h2>Data & privasi</h2>
-      <p>Pengelolaan data lokal yang tersimpan di browser ini.</p>
+      <p>Koleksi dan riwayat menonton tersimpan di perangkat ini.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
        <strong>Ekspor cadangan</strong>
-       <small>Unduh seluruh daftar koleksi dan riwayat tontonan sebagai file JSON.</small>
+       <small>Simpan salinan koleksi dan riwayat tontonanmu.</small>
       </div>
       <button type="button" className="setting-action" onClick={()=>void exportData()}><Download size={16}/> Ekspor</button>
      </div>
      <div className="setting-row">
       <div>
        <strong>Impor cadangan</strong>
-       <small>Pulihkan data dari file cadangan JSON yang telah diekspor sebelumnya.</small>
+       <small>Kembalikan koleksi dan riwayat dari cadangan sebelumnya.</small>
       </div>
       <button type="button" className="setting-action" onClick={()=>inputRef.current?.click()} disabled={importing}><Upload size={16}/> {importing?'Memulihkan...':'Impor'}</button>
       <input type="file" accept="application/json,.json" className="visually-hidden" ref={inputRef} onChange={e=>{void importData(e.target.files?.[0]||null);e.target.value=''}}/>
@@ -1094,13 +1132,13 @@ function SettingsPage({
      <div className="setting-row">
       <div>
        <strong>Hapus data lokal</strong>
-       <small>Menghapus seluruh anime yang disimpan dan progress episode dari IndexedDB.</small>
+       <small>Hapus koleksi dan riwayat tontonan dari perangkat ini.</small>
       </div>
       <button type="button" className="setting-action danger" onClick={()=>void reset()}><Trash2 size={16}/> Hapus</button>
      </div>
     </div>
 
-    <div className="settings-heading">
+    <div id="pengaturan-tentang" className="settings-heading">
      <div className="settings-heading-icon"><Heart size={20}/></div>
      <div>
       <h2>Tentang Yoru</h2>
@@ -1109,9 +1147,9 @@ function SettingsPage({
     </div>
     <div className="settings-box about-box">
      <div className="about-mark"><AppLogo/></div>
-     <p>Yoru adalah aplikasi Progressive Web App (PWA) untuk menjelajahi katalog anime dan menyimpan tontonan secara lokal tanpa memerlukan akun pengguna.</p>
+     <p>Jelajahi anime, atur koleksi, dan lanjutkan menonton di perangkat ini tanpa membuat akun.</p>
      <div className="about-meta"><span>Versi</span><strong>v1.0.0-rc.2 (Web PWA)</strong></div>
-     <div className="about-meta"><span>Metadata</span><strong>Tenrai API (kompatibel MAL ID)</strong></div>
+     <div className="about-meta"><span>Katalog</span><strong>Anime Jepang</strong></div>
      <div className="about-meta"><span>Lisensi</span><strong>MIT License</strong></div>
     </div>
    </div>

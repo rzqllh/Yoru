@@ -17,7 +17,9 @@ Provider integrations are opt-in: `SUBDL_API_KEY`, `SUBSOURCE_API_KEY`, `OPENSUB
 
 Set a persistent, high-entropy `YORU_SUBTITLE_SIGNING_SECRET` **before enabling subtitle downloads**. Never rely on per-instance fallback signing secrets in production. Missing provider credentials mean those providers remain unavailable, not that they have been tested.
 
-Local `configs/providers.local.json` and `configs/stremio.local.json` are not deployment configuration. In Vercel, the gitignored local JSON files are not present; do not assume local Stremio mappings work in hosted previews. Any future hosted mapping mechanism requires a separate change with threat-model review.
+Local `configs/providers.local.json` and `configs/stremio.local.json` are gitignored and **not** included in Vercel deployments. For explicitly approved Stremio-compatible HTTPS addons, set the optional server-side `STREMIO_ADDONS_JSON` environment variable containing the same validated shape as `configs/stremio.local.json.example`: an `addons` array with `id`, `name`, HTTPS `manifestUrl`, and explicit `anime` entries mapping MAL ID, addon media ID, season and available episodes. Keep provider credentials out of this variable unless the addon explicitly requires them and a separate credentials review has been completed.
+
+Yoru supports the standard Stremio `/stream/series/...` and `/subtitles/series/...` resource paths **for explicitly mapped anime episodes**. Remote subtitle files must be on public HTTPS hosts, use SRT/VTT/ASS/SSA extensions, pass DNS pinning and bounded download validation, and be converted to WebVTT before browser playback. This is not automatic subtitle-addon discovery, Nuvio QuickJS plugin support, or proof that a particular subtitle file exists. Subtitles are never dubbed or automatically translated. The separate configured providers SubDL/OpenSubtitles/SubSource remain opt-in.
 
 ## Release gates
 
