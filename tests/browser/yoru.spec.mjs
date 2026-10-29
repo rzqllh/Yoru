@@ -76,6 +76,31 @@ test('native player speed and per-anime subtitle offset survive playback reopeni
  await expect(page.getByRole('dialog',{name:'Video player'}).getByText('Sync sub: +0.5s')).toBeVisible()
 })
 
+test('native subtitle picker loads a validated Indonesian external track and respects Off override',async({page})=>{
+ await page.route('**/api/anime/1/subtitles?**',async route=>route.fulfill({json:{
+  items:[
+   {id:'subdl:test-id',provider:'subdl',language:'id',label:'Indonesia',release:'Episode 1',
+    episode:1,score:70,sourceUrl:'/api/subtitles/file?provider=subdl&ref=%2Fsubtitle%2F1%2F2'}
+  ],warnings:[]
+ }}))
+ await page.route('**/api/subtitles/file?**',async route=>route.fulfill({
+  status:200,contentType:'text/vtt',
+  body:'WEBVTT\\n\\n00:00:00.100 --> 00:00:02.000\\nHalo Indonesia\\n'
+ }))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const player=page.getByRole('dialog',{name:'Video player'})
+ await expect(player).toBeVisible()
+ const cc=page.getByRole('button',{name:/CC/})
+ await expect(cc).toContainText(/Indonesia/)
+ await cc.click()
+ await expect(page.getByText(/Indonesia · subdl · file berhasil dimuat|Indonesia · subdl · dipilih otomatis/i)).toBeVisible()
+ await page.getByRole('button',{name:'Off',exact:true}).click()
+ await expect(cc).toContainText('Off')
+ await expect(page.getByText(/dimatikan atas pilihan pengguna/i)).toBeVisible()
+})
+
 test('mobile: navigation and sample player remain usable at iPhone-sized viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844})
  await page.goto('/')

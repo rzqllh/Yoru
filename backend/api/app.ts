@@ -6,6 +6,7 @@ import { getAnime, getAnimeEpisodes, getDiscover, searchAnime } from '../pipelin
 import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../providers/local.js'
 import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../providers/stremio.js'
 import {externalStream} from '../providers/public-embed.js'
+import {downloadSubtitle,findSubtitles,toWebVtt,subtitleStatus,type SubtitleProvider} from '../providers/subtitles.js'
 
 export const app = new Hono()
 app.use('*',async(c,next)=>{
@@ -63,4 +64,28 @@ app.get('/api/streams',async c=>{
  if(ref.length>160||!(/^[a-z0-9-]+:[1-9]\d*:[1-9]\d*$/.test(ref)))return c.json({error:'INVALID_EPISODE_REF'},400)
  try{return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('stremio-')?await getStremioStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
 })
+
+app.get('/api/subtitles/status',c=>c.json({configured:subtitleStatus()}))
+app.get('/api/anime/:id/subtitles',async c=>{
+ const id=validId(c.req.param('id'))
+ const episode=Number(c.req.query('episode')||'0')
+ if(!id||!Number.isInteger(episode)||episode<1||episode>2000)return c.json({error:'INVALID_REQUEST'},400)
+ try{
+  const anime=await getAnime(id)
+  return c.json(await findSubtitles({title:anime.title,episode,type:anime.type}))
+ }catch{return c.json({error:'SUBTITLE_LOOKUP_UNAVAILABLE'},503)}
+})
+app.get('/api/subtitles/file',async c=>{
+ const provider=c.req.query('provider')
+ const ref=c.req.query('ref')||''
+ if(!['subdl','subsource','opensubtitles'].includes(provider||'')||ref.length>260)return c.json({error:'INVALID_REQUEST'},400)
+ try{
+  const content=toWebVtt(await downloadSubtitle(provider as SubtitleProvider,ref))
+  c.header('Content-Type','text/vtt; charset=utf-8')
+  c.header('X-Content-Type-Options','nosniff')
+  c.header('Cache-Control','private, max-age=180')
+  return c.body(content)
+ }catch{return c.json({error:'SUBTITLE_FILE_UNAVAILABLE'},502)}
+})
+
 app.notFound(c=>c.json({error:'NOT_FOUND'},404))
