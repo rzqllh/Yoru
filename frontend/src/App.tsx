@@ -588,14 +588,14 @@ function Browse({
    <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${uniqueItems.length} judul`}</span>
   </div>
   {error&&uniqueItems.length>0&&<div className="config-error" role="alert">
-   Gagal memuat halaman berikutnya: {error}
+   Belum bisa memuat lebih banyak anime.
    <button type="button" className="btn btn-outline" onClick={()=>setRetry(n=>n+1)}>Coba lagi</button>
   </div>}
 
   {error&&uniqueItems.length===0?<Empty
    icon={WifiOff}
    title="Tidak dapat memuat katalog"
-   body={error}
+   body="Belum bisa menampilkan anime. Periksa koneksi lalu coba lagi."
    action={<button type="button" className="btn btn-outline" onClick={()=>setRetry(n=>n+1)}><RefreshCw size={15}/> Coba lagi</button>}
   />:uniqueItems.length===0&&!loading?<Empty
    icon={Search}
@@ -892,15 +892,15 @@ function DetailDialog({
 
     {choices&&<div className="source-picker">
      <div className="source-title">
-      <strong>Pilih sumber · Episode {choices.episode}</strong>
+      <strong>Pilih video · Episode {choices.episode}</strong>
       <button type="button" className="icon-button" onClick={()=>setChoices(null)} aria-label="Tutup pilihan sumber"><X size={15}/></button>
      </div>
      <div className="source-options">
       {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
        <MonitorPlay size={17}/>
        <span>
-        <strong>{stream.format==='embed'?'Coba video alternatif':stream.quality||stream.format.toUpperCase()} · {stream.subtitleMode==='hard'?'Hardsub':stream.tracks.some(t=>t.lang==='id')?'Track Indonesia terdaftar':'Subtitle belum diverifikasi'}</strong>
-        <small>{stream.format==='embed'?'Pengaturan dan pilihan subtitle mungkin berbeda':`${stream.providerId||'Sumber video'} · Mengecek video sebelum diputar`}</small>
+        <strong>{stream.format==='embed'?'Coba video alternatif':stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Subtitle menyatu':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia':'Bahasa subtitle belum diketahui'}</strong>
+        <small>{stream.format==='embed'?'Pengaturan dan pilihan subtitle mungkin berbeda':'Video akan diperiksa sebelum diputar'}</small>
        </span>
        <Play size={16}/>
       </button>)}
@@ -1013,13 +1013,13 @@ function SettingsPage({
      <div className="settings-heading-icon"><MonitorPlay size={20}/></div>
      <div>
       <h2>Pemutaran</h2>
-      <p>Pengaturan dan pengujian pemutar media.</p>
+      <p>Atur pengalaman menontonmu.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Format pemutar aktif</strong>
+       <strong>Pemutar Yoru</strong>
        <small>Pengalaman menonton yang nyaman di setiap layar</small>
       </div>
       <span className="setting-state good"><span/>Didukung</span>
@@ -1058,8 +1058,8 @@ function SettingsPage({
      </div>
      <div className="setting-row">
       <div>
-       <strong>Penyedia terkonfigurasi</strong>
-       <small>{providerList.length?providerList.map(p=>`${p.name} (${p.animeCount===null?'eksternal':`${p.animeCount} anime`})`).join(', '):'Belum ada sumber video tambahan'}</small>
+       <strong>Pilihan video</strong>
+       <small>{providerList.length?providerList.map(p=>`${p.id==='public-embed'?'Video alternatif':p.id==='miruro'?'Pilihan langsung':p.id.startsWith('stremio-')?'Sumber tambahan':'Sumber pribadi'}${p.animeCount===null?'':` · ${p.animeCount} judul`}`).join(', '):'Belum ada sumber video tambahan'}</small>
       </div>
       <button type="button" className="icon-button" aria-label="Perbarui daftar sumber video" onClick={refresh}><RefreshCw size={17}/></button>
      </div>
