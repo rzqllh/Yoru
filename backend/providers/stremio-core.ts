@@ -88,3 +88,33 @@ export function parseStremioStreams(payload:unknown,providerId:string):AddonStre
  }
  return result
 }
+
+
+/** Stremio /subtitles resource: only original language tracks; no translation/dubbing. */
+export type AddonSubtitle={id:string;lang:'id'|'en';label:string;url:string;providerId:string}
+export function stremioSubtitlePath(addon:StremioAddon,stremioId:string,season:number,episode:number):URL{
+ return new URL('subtitles/series/'+encodeURIComponent(stremioId+':'+season+':'+episode)+'.json',addon.manifestUrl)
+}
+export function normalizeStremioSubtitles(payload:unknown,providerId:string):AddonSubtitle[]{
+ const root=object(payload)
+ if(!Array.isArray(root.subtitles)||root.subtitles.length>50)throw new Error('Invalid subtitle response')
+ const results:AddonSubtitle[]=[]
+ const known=new Set<string>()
+ for(const row of root.subtitles){
+  try{
+   const sub=object(row)
+   const id=nonempty(sub.id,120),rawLang=nonempty(sub.lang,24).toLowerCase()
+   const lang:AddonSubtitle['lang']|null=['id','ind','indonesian'].includes(rawLang)?'id':['en','eng','english'].includes(rawLang)?'en':null
+   if(!lang)continue
+   const url=new URL(nonempty(sub.url,2048))
+   if(url.protocol!=='https:'||url.port||url.username||url.password||url.hash||!mediaHostAllowed(url.hostname)||
+    !(/\.(srt|vtt|ass|ssa)$/).test(url.pathname.toLowerCase()))continue
+   if(known.has(id))continue
+   known.add(id)
+   const label=typeof sub.label==='string'?sub.label.replace(/<[^>]*>/g,'').trim().slice(0,90):''
+   results.push({id,lang,label:label||(lang==='id'?'Bahasa Indonesia':'English'),url:url.toString(),providerId})
+  }catch{/* reject unsafe subtitle candidate without dropping others */}
+  if(results.length>=25)break
+ }
+ return results
+}
