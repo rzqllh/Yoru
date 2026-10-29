@@ -122,8 +122,9 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    setSubtitlePreferenceReady(true)
    return()=>{alive=false}
   }
-  void getPreference(`subtitle-language:${anime.id}`,'auto').then(value=>{
+  void Promise.all([getPreference(`subtitle-language:${anime.id}`,''),getPreference('subtitle-default-language','id')]).then(([specific,global])=>{
    if(!alive)return
+   const value=specific||global
    const saved=value==='off'||value==='id'||value==='en'?value:'auto'
    setSubtitlePreference(saved)
    setSubtitleOff(saved==='off')
