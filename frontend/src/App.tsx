@@ -45,10 +45,10 @@ type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manua
 
 const TEST_STREAM:Stream={
  id:'demo',
- providerId:'HLS demo lokal',
+ providerId:'Contoh Yoru',
  format:'hls',
  url:'/demo/stream.m3u8',
- tracks:[{lang:'id',label:'Bahasa Indonesia (sampel)',url:'/demo-id.vtt'}],
+ tracks:[{lang:'id',label:'Bahasa Indonesia',url:'/demo-id.vtt'}],
  subtitleMode:'soft',
 }
 
@@ -298,7 +298,7 @@ function App(){
    <div className="sidebar-bottom">
     <div className="sidebar-foot">
      <span>YORU</span>
-     <span>LOCAL FIRST PWA</span>
+     <span>ANIME FAVORITMU</span>
     </div>
    </div>
   </aside>
@@ -435,10 +435,10 @@ function App(){
    <footer className="footer">
     <div className="footer-brand">
      <AppLogo/>
-     <span>Katalog anime dan pemutar local-first</span>
+     <span>Jelajahi anime dan lanjutkan tontonanmu</span>
     </div>
     <div className="footer-meta">
-     <span>Metadata ditenagai Tenrai</span>
+     <span>Temukan cerita berikutnya</span>
      <span>Lisensi MIT</span>
      <span>© {new Date().getFullYear()} YORU</span>
     </div>
@@ -803,7 +803,7 @@ function DetailDialog({
  }
 
  const embedCandidate=(ep:number):Stream=>({
-  providerId:'AnimeEmbed (belum diverifikasi)',
+  providerId:'Video alternatif',
   format:'embed',
   url:`https://www.animeembed.com/embed/mal/${info.malId}/${ep}`,
   subtitleMode:'unknown',tracks:[],
@@ -820,7 +820,7 @@ function DetailDialog({
    await verifyNativeSource(stream)
    onWatch({anime:info,episode:ep,stream,manualSource:manual})
   }catch(e){
-   setError(`Sumber belum bisa diputar di browser ini: ${(e as Error).message} Pilih sumber lain atau coba lagi.`)
+   setError('Video belum bisa diputar. Coba pilihan lain atau ulangi.')
   }finally{setPlaying('')}
  }
  async function play(ep:Episode){
@@ -856,7 +856,7 @@ function DetailDialog({
    <div className="detail-main">
     <div className="detail-poster"><Poster anime={info}/></div>
     <div className="detail-info">
-     <MiniLabel>MAL #{info.malId}</MiniLabel>
+     <MiniLabel>DETAIL ANIME</MiniLabel>
      <h2>{info.title}</h2>
      {info.japaneseTitle&&<p className="detail-japanese">{info.japaneseTitle}</p>}
      <div className="detail-facts">
@@ -885,7 +885,7 @@ function DetailDialog({
       <h2>Daftar episode</h2>
      </div>
      <span className="episode-count">
-      {available.filter(e=>e.providerId!=='public-embed').length>0?'Provider lokal terkonfigurasi':'Belum ada sumber native terverifikasi'}
+      {available.filter(e=>e.providerId!=='public-embed').length>0?'Video tersedia':'Belum menemukan video yang bisa diputar'}
      </span>
     </div>
     {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
@@ -899,8 +899,8 @@ function DetailDialog({
       {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
        <MonitorPlay size={17}/>
        <span>
-        <strong>{stream.format==='embed'?'Buka pemutar eksternal (belum diverifikasi)':stream.quality||stream.format.toUpperCase()} · {stream.subtitleMode==='hard'?'Hardsub':stream.tracks.some(t=>t.lang==='id')?'Track Indonesia terdaftar':'Subtitle belum diverifikasi'}</strong>
-        <small>{stream.format==='embed'?'Konfirmasi: ketersediaan, kontrol, dan subtitle tidak dijamin':`${stream.providerId||'Custom provider'} · Periksa di browser sebelum putar`}</small>
+        <strong>{stream.format==='embed'?'Coba video alternatif':stream.quality||stream.format.toUpperCase()} · {stream.subtitleMode==='hard'?'Hardsub':stream.tracks.some(t=>t.lang==='id')?'Track Indonesia terdaftar':'Subtitle belum diverifikasi'}</strong>
+        <small>{stream.format==='embed'?'Pengaturan dan pilihan subtitle mungkin berbeda':`${stream.providerId||'Sumber video'} · Mengecek video sebelum diputar`}</small>
        </span>
        <Play size={16}/>
       </button>)}
@@ -914,7 +914,7 @@ function DetailDialog({
        <span className="episode-number">{String(ep.number).padStart(2,'0')}</span>
        <div>
         <strong>{ep.title}</strong>
-        <small>{streamReady?'Kandidat sumber · perlu diperiksa':'Belum ada sumber terverifikasi · periksa alternatif'}</small>
+        <small>{streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}</small>
        </div>
        <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<MonitorPlay size={15}/>}</span>
       </button>
@@ -946,9 +946,9 @@ function SettingsPage({
   void Promise.allSettled([providers(),api<{status:string}>('/api/health')]).then(results=>{
    if(results[0].status==='fulfilled'){
     setProviderList(results[0].value.providers)
-    setProviderError(results[0].value.warnings?.length?`Peringatan: ${results[0].value.warnings.join(', ')} tidak merespons.`:'')
+    setProviderError(results[0].value.warnings?.length?'Beberapa sumber sedang tidak tersedia. Coba lagi nanti.':'')
    }else{
-    setProviderError('Tidak dapat membaca status provider.')
+    setProviderError('Belum bisa memeriksa sumber video.')
    }
    setApiOnline(results[1].status==='fulfilled')
   })
@@ -1020,22 +1020,22 @@ function SettingsPage({
      <div className="setting-row">
       <div>
        <strong>Format pemutar aktif</strong>
-       <small>HTML5 Video Player (HLS/MP4) dan Iframe Player (AnimeEmbed)</small>
+       <small>Pengalaman menonton yang nyaman di setiap layar</small>
       </div>
       <span className="setting-state good"><span/>Didukung</span>
      </div>
      <div className="setting-row">
       <div>
-       <strong>Uji pemutar HLS</strong>
-       <small>Putar sampel video HLS lokal dengan track subtitle Bahasa Indonesia.</small>
+       <strong>Coba pemutar Yoru</strong>
+       <small>Lihat contoh pemutaran dengan subtitle Indonesia.</small>
       </div>
-      <button type="button" className="btn btn-primary" onClick={onDemo} aria-label="Test player">
-       <Play size={15} fill="currentColor"/> Test player
+      <button type="button" className="btn btn-primary" onClick={onDemo} aria-label="Coba pemutar">
+       <Play size={15} fill="currentColor"/> Coba pemutar
       </button>
      </div>
      <div className="settings-note">
       <Info size={16}/>
-      <p>Pemutar eksternal hanya dapat dicoba atas pilihan pengguna; ketersediaan dan bahasa subtitlenya belum diverifikasi. Progress disimpan jika pemutar mengirimkan event yang valid. Untuk track subtitle native, gunakan sumber yang kompatibel.</p>
+      <p>Jika video utama belum tersedia, Yoru akan menawarkan pilihan lain. Bahasa dan pengaturan subtitle dapat berbeda menurut video.</p>
      </div>
     </div>
 
@@ -1043,14 +1043,14 @@ function SettingsPage({
      <div className="settings-heading-icon"><Layers3 size={20}/></div>
      <div>
       <h2>Sumber tontonan</h2>
-      <p>Status integrasi penyedia streaming.</p>
+      <p>Periksa sumber video yang tersedia untuk menonton.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
-       <strong>Koneksi API backend</strong>
-       <small>Server API Hono lokal</small>
+       <strong>Koneksi layanan</strong>
+       <small>Agar katalog dan pencarian bisa berjalan</small>
       </div>
       <span className={`setting-state ${apiOnline?'good':'bad'}`}>
        <span/>{apiOnline?'Terhubung':'Tidak terhubung'}
@@ -1059,9 +1059,9 @@ function SettingsPage({
      <div className="setting-row">
       <div>
        <strong>Penyedia terkonfigurasi</strong>
-       <small>{providerList.length?providerList.map(p=>`${p.name} (${p.animeCount===null?'eksternal':`${p.animeCount} anime`})`).join(', '):'Hanya pemutar default'}</small>
+       <small>{providerList.length?providerList.map(p=>`${p.name} (${p.animeCount===null?'eksternal':`${p.animeCount} anime`})`).join(', '):'Belum ada sumber video tambahan'}</small>
       </div>
-      <button type="button" className="icon-button" aria-label="Perbarui daftar provider" onClick={refresh}><RefreshCw size={17}/></button>
+      <button type="button" className="icon-button" aria-label="Perbarui daftar sumber video" onClick={refresh}><RefreshCw size={17}/></button>
      </div>
      {providerError&&<p className="config-error">{providerError}</p>}
     </div>
@@ -1072,21 +1072,21 @@ function SettingsPage({
      <div className="settings-heading-icon"><Bookmark size={20}/></div>
      <div>
       <h2>Data & privasi</h2>
-      <p>Pengelolaan data lokal yang tersimpan di browser ini.</p>
+      <p>Koleksi dan riwayat menonton tersimpan di perangkat ini.</p>
      </div>
     </div>
     <div className="settings-box">
      <div className="setting-row">
       <div>
        <strong>Ekspor cadangan</strong>
-       <small>Unduh seluruh daftar koleksi dan riwayat tontonan sebagai file JSON.</small>
+       <small>Simpan salinan koleksi dan riwayat tontonanmu.</small>
       </div>
       <button type="button" className="setting-action" onClick={()=>void exportData()}><Download size={16}/> Ekspor</button>
      </div>
      <div className="setting-row">
       <div>
        <strong>Impor cadangan</strong>
-       <small>Pulihkan data dari file cadangan JSON yang telah diekspor sebelumnya.</small>
+       <small>Kembalikan koleksi dan riwayat dari cadangan sebelumnya.</small>
       </div>
       <button type="button" className="setting-action" onClick={()=>inputRef.current?.click()} disabled={importing}><Upload size={16}/> {importing?'Memulihkan...':'Impor'}</button>
       <input type="file" accept="application/json,.json" className="visually-hidden" ref={inputRef} onChange={e=>{void importData(e.target.files?.[0]||null);e.target.value=''}}/>
@@ -1094,7 +1094,7 @@ function SettingsPage({
      <div className="setting-row">
       <div>
        <strong>Hapus data lokal</strong>
-       <small>Menghapus seluruh anime yang disimpan dan progress episode dari IndexedDB.</small>
+       <small>Hapus koleksi dan riwayat tontonan dari perangkat ini.</small>
       </div>
       <button type="button" className="setting-action danger" onClick={()=>void reset()}><Trash2 size={16}/> Hapus</button>
      </div>
@@ -1109,9 +1109,9 @@ function SettingsPage({
     </div>
     <div className="settings-box about-box">
      <div className="about-mark"><AppLogo/></div>
-     <p>Yoru adalah aplikasi Progressive Web App (PWA) untuk menjelajahi katalog anime dan menyimpan tontonan secara lokal tanpa memerlukan akun pengguna.</p>
+     <p>Jelajahi anime, atur koleksi, dan lanjutkan menonton di perangkat ini tanpa membuat akun.</p>
      <div className="about-meta"><span>Versi</span><strong>v1.0.0-rc.2 (Web PWA)</strong></div>
-     <div className="about-meta"><span>Metadata</span><strong>Tenrai API (kompatibel MAL ID)</strong></div>
+     <div className="about-meta"><span>Katalog</span><strong>Anime Jepang</strong></div>
      <div className="about-meta"><span>Lisensi</span><strong>MIT License</strong></div>
     </div>
    </div>
