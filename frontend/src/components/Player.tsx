@@ -1,12 +1,14 @@
-import {useEffect,useMemo,useRef,useState} from 'react'
+import {useEffect,useMemo,useRef,useState,type ChangeEvent,type CSSProperties} from 'react'
 import type Hls from 'hls.js'
-import {AlertTriangle,ArrowLeft,Info,Maximize2,MonitorPlay,PictureInPicture2,SkipBack,SkipForward,Subtitles} from 'lucide-react'
+import {AlertTriangle,ArrowLeft,Info,Maximize2,MonitorPlay,PictureInPicture2,SkipBack,SkipForward,Subtitles,Play,Pause,Volume2,VolumeX,Upload,SlidersHorizontal} from 'lucide-react'
 import type {Anime,Stream} from '../types'
 import {getPreference,getProgress,saveProgress,setPreference} from '../lib/db'
 import {applySubtitleOffset,type CueBaseline} from '../lib/subtitle-offset'
+import {parseLocalSubtitle} from '../lib/local-subtitles'
 import {connectAnimeEmbed,extractValidPlaybackProgress} from '../lib/animeembed'
 import {useDialogFocus} from '../lib/useDialogFocus'
 
+const clock=(seconds:number)=>{const safe=Math.max(0,Math.floor(Number.isFinite(seconds)?seconds:0));const hrs=Math.floor(safe/3600);return `${hrs>0?`${hrs}:`:''}${String(Math.floor(safe/60)%60).padStart(2,'0')}:${String(safe%60).padStart(2,'0')}`}
 type SubtitleResult={id:string;provider:string;language:'id'|'en';label:string;release:string;episode:number;score:number;sourceUrl?:string}
 type Props={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean;onPrepareNext?:()=>Promise<Stream|null>;onContinueNext?:(stream:Stream)=>void;onRecoverSource?:()=>Promise<boolean>;onClose:()=>void}
 export default function Player({anime,episode,stream,demo=false,manualSource=false,onPrepareNext,onContinueNext,onRecoverSource,onClose}:Props){
@@ -15,6 +17,12 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const hlsRef=useRef<Hls|null>(null)
  const cueBaselines=useRef(new WeakMap<object,CueBaseline>())
  const [speed,setSpeed]=useState(1)
+ const [isPaused,setIsPaused]=useState(true)
+ const [position,setPosition]=useState(0)
+ const [duration,setDuration]=useState(0)
+ const [volume,setVolume]=useState(1)
+ const [isMuted,setIsMuted]=useState(false)
+ const [uploadedName,setUploadedName]=useState('')
  const [qualityLevels,setQualityLevels]=useState<{index:number;height:number}[]>([])
  const [qualityIndex,setQualityIndex]=useState<number|null>(null)
  const [qualityNote,setQualityNote]=useState('')
@@ -182,6 +190,54 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    setSubtitleState('Subtitle '+item.label+' belum bisa dimuat. Pilih yang lain.')
    return false
   }
+ }
+ function chooseNativeSubtitle(language:'id'|'en'){
+  setSubtitleManual(true)
+  setSubtitleOff(false)
+  setSelectedSubtitle(null)
+  setSubtitlePreference(language)
+  setSubtitleState(`Subtitle ${language==='id'?'Indonesia':'English'} dipilih`)
+  if(anime&&!demo)void setPreference(`subtitle-language:${anime.id}`,language).catch(()=>{})
+ }
+ async function importSubtitle(event:ChangeEvent<HTMLInputElement>){
+  const file=event.target.files?.[0]
+  event.target.value=''
+  if(!file)return
+  try{
+   if(file.size>500000)throw new Error('SUBTITLE_TOO_LARGE')
+   const body=parseLocalSubtitle(await file.text(),file.name,file.size)
+   const url=URL.createObjectURL(new Blob([body],{type:'text/vtt'}))
+   if(subtitleUrlRef.current)URL.revokeObjectURL(subtitleUrlRef.current)
+   subtitleUrlRef.current=url
+   setSelectedSubtitle({id:`local:${file.name}`,lang:'id',url})
+   setUploadedName(file.name)
+   setSubtitleOff(false)
+   setSubtitleManual(true)
+   setSubtitleState('Subtitle pribadi siap digunakan')
+  }catch{
+   setSubtitleState('File subtitle belum bisa dibaca. Gunakan SRT atau VTT maksimal 500 KB.')
+  }
+ }
+ function togglePlayback(){
+  const v=video.current
+  if(!v)return
+  if(v.paused)void v.play().catch(()=>setDisplayNotice('Video belum bisa dimulai. Coba lagi.'))
+  else v.pause()
+ }
+ function seekTo(seconds:number){
+  const v=video.current
+  if(!v||!Number.isFinite(seconds))return
+  v.currentTime=Math.max(0,Math.min(Number.isFinite(v.duration)?v.duration:seconds,seconds))
+  setPosition(v.currentTime)
+ }
+ function setSound(value:number){
+  const v=video.current
+  if(!v)return
+  const next=Math.max(0,Math.min(1,value))
+  v.volume=next
+  v.muted=next===0
+  setVolume(next)
+  setIsMuted(v.muted)
  }
  function disableSubtitle(){
   setSubtitlePreference('off')
