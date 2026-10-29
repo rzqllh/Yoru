@@ -262,7 +262,7 @@ function App(){
    if(!document.hidden&&!motion.matches)setFeaturedIndex(index=>(index+1)%featured.length)
   },8000)
   return()=>window.clearInterval(timer)
- },[route.page,selected,playback,rotateHero,featured.length,featuredIndex])
+ },[route.page,selected,playback,rotateHero,featured.length])
  const continueList=useMemo(()=>progress.filter(row=>row.seconds>0&&(!row.duration||row.seconds<row.duration-10)).slice(0,6),[progress])
 
  async function toggleSave(anime:Anime){
