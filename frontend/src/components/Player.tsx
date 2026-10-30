@@ -766,7 +766,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
      <option value="global">Seluruh Yoru</option><option value="anime">Anime ini</option>
     </select></label>
    </div>
-   <div className={`caption-preview caption-preview-${captionPosition}`} aria-label="Pratinjau gaya subtitle">
+   <figure className={`caption-preview caption-preview-${captionPosition}`}><figcaption className="sr-only">Pratinjau gaya subtitle</figcaption>
     <span style={{
      fontFamily:captionFont==='serif'?'Georgia,serif':'Arial,sans-serif',
      fontSize:`${Math.max(12,Math.round(captionSize*0.16))}px`,
@@ -774,7 +774,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
      backgroundColor:`rgba(0,0,0,${captionBackgroundOpacity/100})`,
      textShadow:captionOutline===0?'none':captionOutline===1?'0 1px 2px #000,0 0 3px #000':'1px 1px 4px #000,-1px -1px 4px #000,0 0 5px #000'
     }}>Contoh subtitle Bahasa Indonesia</span>
-   </div>
+   </figure>
    <small role="status">{subtitleSearch?'Mencari subtitle…':subtitleState||'Pilih subtitle yang tersedia untuk video ini.'}</small>
    </>}
   </div>}
