@@ -3,6 +3,8 @@
  * Each published path is a bounded RECOMMENDATION, not a canon assertion.
  * This registry is extensible by PR with verifiable sources and review dates.
  */
+import {EDITION_WATCH_PATHS} from './curated-watch-path-editions'
+
 export type PathStep={
  title:string;aniListId:number|null;kind:'TV'|'MOVIE'|'OVA'|'ONA'|'SPECIAL'|'GROUP';
  optional:boolean;note:string;episodeRange?:{start:number;end:number;edition:string}
@@ -88,7 +90,8 @@ export const CURATED_WATCH_PATHS:readonly CuratedPath[]=[
    entry('Owarimonogatari (bagian kedua)',null,'TV','Berlanjut setelah bagian pertama dan instalmen relevan.'),
    entry('Zoku Owarimonogatari',null,'OVA','Rute ini berhenti di sini, tidak mengklaim keseluruhan franchise selesai.')
   ]
- }
+ },
+ ...EDITION_WATCH_PATHS
 ] as const
 
 const okId=(id:unknown)=>typeof id==='number'&&Number.isSafeInteger(id)&&id>0
@@ -104,14 +107,22 @@ export function validateCuratedPaths(paths:readonly CuratedPath[]):string[]{
   if(!path.anchorAniListIds.length||path.anchorAniListIds.some(id=>!okId(id)))errors.push('invalid anchors: '+path.id)
   if(!path.sources.length||path.sources.some(s=>!s.title.trim()||!httpsUrl(s.url)||!/^\d{4}-\d{2}-\d{2}$/.test(s.checkedAt)))errors.push('missing source evidence: '+path.id)
   if(!path.steps.length||path.steps.length>80)errors.push('invalid steps: '+path.id)
-  const used=new Set<number>()
+  // A media may repeat ONLY for distinct, non-overlapping episodes of one edition.
+  // Never interpret two separate provider editions as sharing episode numbers.
+  const used=new Map<number,Array<{start:number;end:number;edition:string}|null>>()
   for(const step of path.steps){
    if(!step.title.trim()||!step.note.trim()||step.title.length>180||step.note.length>420)errors.push('invalid step text: '+path.id)
-   if(step.aniListId!==null&&(!okId(step.aniListId)||used.has(step.aniListId)))errors.push('ambiguous or duplicate media: '+path.id)
-   if(step.aniListId!==null)used.add(step.aniListId)
-   if(step.episodeRange){
-    const r=step.episodeRange
-    if(!okId(r.start)||!okId(r.end)||r.end<r.start||!r.edition.trim())errors.push('invalid episode range: '+path.id)
+   const r=step.episodeRange
+   if(r&&(!okId(r.start)||!okId(r.end)||r.end<r.start||!r.edition.trim()||r.edition.length>120))errors.push('invalid episode range: '+path.id)
+   if(step.aniListId!==null){
+    if(!okId(step.aniListId)){errors.push('invalid media id: '+path.id);continue}
+    const seen=used.get(step.aniListId)??[]
+    if(seen.some(previous=>!previous||!r||previous.edition!==r.edition||
+      (r.start<=previous.end&&r.end>=previous.start))){
+     errors.push('ambiguous or duplicate media: '+path.id)
+    }
+    seen.push(r??null)
+    used.set(step.aniListId,seen)
    }
   }
  }
