@@ -56,7 +56,7 @@ Jangan menggunakan radius besar dan backdrop blur untuk setiap elemen. Kontrol, 
 | `/koleksi`, `/koleksi/lanjut-menonton` | Watchlist dan resume |
 | `/pengaturan` | Playback, sumber, subtitle, backup dan informasi aplikasi |
 
-Panduan urutan hanya menampilkan **relasi langsung AniList** dan urutan tanggal rilis. Mode rekomendasi dan kronologi bercabang harus disabled sampai franchise yang relevan memiliki urutan terkurasi dan dapat diperiksa. Hubungan prekuel/sekuel, side story, spin-off, dan alternate route tidak boleh secara otomatis diklaim membentuk satu canon linear.
+Panduan urutan hanya menampilkan **relasi langsung AniList** dan urutan tanggal rilis. Mode pengurutan metadata rekomendasi dan kronologi bercabang harus disabled jika belum ada data terkurasi. Rute editorial yang bersumber ditampilkan terpisah dari hasil pengurutan metadata; sumber, opsi jalur, dan peringatan spoiler harus terlihat. Hubungan prekuel/sekuel, side story, spin-off, dan alternate route tidak boleh secara otomatis diklaim membentuk satu canon linear.
 
 ## Komponen dan interaction contract
 
