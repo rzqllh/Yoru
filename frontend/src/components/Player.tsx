@@ -5,6 +5,7 @@ import type {Anime,Stream} from '../types'
 import {getPreference,getProgress,saveProgress,setPreference} from '../lib/db'
 import {applySubtitleOffset,type CueBaseline} from '../lib/subtitle-offset'
 import {parseLocalSubtitle} from '../lib/local-subtitles'
+import {getAvailableQualityLevels} from '../lib/quality-options'
 import {connectAnimeEmbed,extractValidPlaybackProgress} from '../lib/animeembed'
 
 const clock=(seconds:number)=>{const safe=Math.max(0,Math.floor(Number.isFinite(seconds)?seconds:0));const hrs=Math.floor(safe/3600);return `${hrs>0?`${hrs}:`:''}${String(Math.floor(safe/60)%60).padStart(2,'0')}:${String(safe%60).padStart(2,'0')}`}
@@ -328,21 +329,18 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   setQualityNote('')
   cueBaselines.current=new WeakMap()
 
+  // Keep HLS adaptive by default. If a manual representation stalls repeatedly,
+  // return control to ABR instead of forcing another fixed level.
   let stallTimes:number[]=[]
-  let activeLevels:{index:number;height:number}[]=[]
   const onWaiting=()=>{
+   if(!hls||hls.autoLevelEnabled)return
    const now=Date.now()
    stallTimes=[...stallTimes.filter(t=>now-t<60000),now]
-   if(stallTimes.length<3||!hls||activeLevels.length<2)return
-   const current=hls.currentLevel>=0?hls.currentLevel:activeLevels[0].index
-   const position=activeLevels.findIndex(level=>level.index===current)
-   if(position>=0&&position<activeLevels.length-1){
-    const lower=activeLevels[position+1]
-    hls.nextLevel=lower.index
-    setQualityIndex(lower.index)
-    setQualityNote('Kualitas diturunkan sementara setelah buffering berulang.')
-    stallTimes=[]
-   }
+   if(stallTimes.length<3)return
+   hls.currentLevel=-1
+   setQualityIndex(null)
+   setQualityNote('Kualitas otomatis diaktifkan kembali setelah buffering berulang.')
+   stallTimes=[]
   }
   element.addEventListener('waiting',onWaiting)
 
@@ -357,13 +355,12 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
       return
      }
      hls=new HlsModule({enableWorker:true})
+     hls.startLevel=-1
      hlsRef.current=hls
      hls.on(HlsModule.Events.MANIFEST_PARSED,()=>{
       if(!hls||!alive)return
-      activeLevels=hls.levels.map((level,index)=>({index,height:level.height||0})).filter(level=>level.height>0).sort((a,b)=>b.height-a.height)
-      setQualityLevels(activeLevels)
-      const highest=activeLevels[0]
-      if(highest){hls.startLevel=highest.index;setQualityIndex(highest.index)}
+      setQualityLevels(getAvailableQualityLevels(hls.levels))
+      setQualityIndex(null)
      })
      hls.loadSource(stream.url)
      hls.attachMedia(element)
@@ -635,17 +632,27 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
      {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
     </select>
    </label>
-   {qualityLevels.length>1&&<label>Kualitas
-    <select aria-label="Kualitas video" value={qualityIndex??''} onChange={e=>{
+   {stream.format==='hls'&&<label>Kualitas
+    <select aria-label="Kualitas video" disabled={qualityLevels.length<2} value={qualityIndex===null?'auto':String(qualityIndex)} onChange={e=>{
+     const engine=hlsRef.current
+     if(!engine)return
+     if(e.target.value==='auto'){
+      engine.currentLevel=-1
+      setQualityIndex(null)
+      setQualityNote('')
+      return
+     }
      const level=Number(e.target.value)
-     if(hlsRef.current&&qualityLevels.some(item=>item.index===level)){
-      hlsRef.current.currentLevel=level
+     if(qualityLevels.some(item=>item.index===level)){
+      engine.currentLevel=level
       setQualityIndex(level)
       setQualityNote('')
      }
     }}>
+     <option value="auto">Auto</option>
      {qualityLevels.map(level=><option key={level.index} value={level.index}>{level.height}p</option>)}
     </select>
+    {qualityLevels.length<2&&<small>Perangkat atau video ini tidak menawarkan pilihan kualitas manual.</small>}
    </label>}
    {stream.subtitleMode!=='hard'&&(stream.tracks.length>0||selectedSubtitle!==null)&&<div className="player-offset">
     <span>Waktu subtitle: {subtitleOffset>0?'+':''}{subtitleOffset.toFixed(1)}s</span>
