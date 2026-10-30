@@ -49,6 +49,16 @@
 - `tests/*.test.mjs`, `tests/browser/*`, `.github/workflows/ci.yml`, `browser-e2e.yml`: test contracts and current CI evidence.
 - Public docs: `README.md`, `DESIGN.md`, `docs/public/*`. Keep visitor language direct and state limitations accurately.
 
+## Active checkpoint — universal watch order (2026-10-30, owner clarification)
+
+Owner expands scope beyond Fate/Slime/SAO: use community/forum complaint patterns for **all anime** while keeping reliable release/continuity distinctions. The long tail cannot be certified as curated simply through one data provider. Research matrix and source links: [WATCH_ORDER_RESEARCH_2026-10-30.md](WATCH_ORDER_RESEARCH_2026-10-30.md).
+
+- Working branch: `feat/yoru-universal-watch-graph-20261030` from preview `22de50a4d9df9f6b9c937fba1f4611a351ea5fbd`.
+- Changes CODED, **not yet tested or merged**: shared AniList relation parser with additional categories; `backend/pipeline/watch-graph.ts` two-hop on-demand with cap 10 expanded direct neighbors / 75 total nodes, bounded request budget, cached results, explicit truncated or provider-unavailable status. Endpoint `/api/anime/:id/watch-guide?depth=2`, browser secondary page includes expandable network, category filters and source/uncertainty. No franchise-specific hard-coded watch order.
+- Added pure logic, node, and browser tests; CI and Browser E2E **PENDING**. Until exact-head success, do not assert this works in production.
+- Remaining: factual episode-level broadcast vs chronological positions, optional OVA/movie inserts, multiple source/novel orders, real curated alternative routes, confidence/provenance and correction process; the automatic 2-hop graph is **not** a complete series list.
+- Next exact action: verify PR and CI on current branch; if green integrate preview, update public docs at the end, and synchronize this file and #44. Main/prod and release #20 stay blocked.
+
 ## Hard blockers
 
 - **G1–G3 (#20):** real authorized source-provider endpoints with live video, strict season/episode mapping and actual subtitle credentials/download proof. Mocked provider fixtures are not live tests.
