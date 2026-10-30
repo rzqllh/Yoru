@@ -32,6 +32,9 @@ Last updated: 2026-10-30, Asia/Jakarta. Source of truth: **GitHub**, not remembe
 - CSS tokens in `DESIGN.md` and late `styles.css` overrides drift; fix carefully.
 - The tracker documents tasks, not completed promises. Expect changes since this timestamp; VERIFY repo HEAD first.
 
+## Current in-flight code slices
+- `feat/yoru-watch-guide-foundation-20261030`: AniList first-degree relations, release-date sorting from metadata, secondary guide/search, detail link; Recommended/Chronology intentionally disabled pending verified curation. No invented Fate pathways. CI not yet verified.
+
 ## Architecture boundaries
 - `frontend/src/App.tsx`: UI state, home, browse, library, detail. `frontend/src/components/Player.tsx`: direct media player and subtitle controls.
 - `backend/pipeline/jikan.ts`: Jikan/Tenrai catalog API; separate AniList relations may need new fixed-host API with strict timeouts.
