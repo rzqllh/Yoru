@@ -25,6 +25,8 @@ Addon Stremio opt-in dapat mengembalikan sumber HTTPS langsung atau metadata tor
 
 **Progres rute editorial:** pilihan langkah selesai/undo dan judul berikutnya tersimpan secara lokal, berbeda untuk setiap rute dan ikut backup. Ini checklist manual, bukan status episode yang diputar otomatis.
 
+**Peningkatan source-picker #66**: Yoru membedakan metadata kandidat video, hasil provider yang gagal sebagian/seluruhnya, pemeriksaan video native, dan sumber yang gagal lolos verifikasi. Kegagalan satu layanan tidak otomatis menghapus kandidat sehat. Fallback embed eksternal tetap pilihan sadar pengguna, bukan tanda video siap ditonton.
+
 **Belum selesai**: panduan terkurasi menyeluruh termasuk kronologi/urutan episode khusus untuk Fate/SAO/Slime dan franchise lain, progres per-jalur franchise, resolver torrent nyata, dukungan akun/cloud, verifikasi video/subtitle provider secara live, pengujian Safari iPhone fisik, dan pemeriksaan deployment publik end-to-end.
 
 Lihat [cara menggunakan Yoru](using-yoru.md), [konfigurasi provider](providers.md), [roadmap UX](https://github.com/rzqllh/Yoru/issues/44), dan [release gate](https://github.com/rzqllh/Yoru/issues/20). Tes CI Chromium/WebKit tidak menggantikan bukti pemutaran anime nyata atau pengujian perangkat fisik.
