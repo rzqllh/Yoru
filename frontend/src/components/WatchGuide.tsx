@@ -3,6 +3,7 @@ import {ArrowLeft,ArrowRight,BookOpen,GitBranch,Info,Search,Network} from 'lucid
 import {search,watchGuide,type WatchGuideEntry,type WatchGuideResponse} from '../lib/api'
 import {WATCH_GROUPS,filterWatchEntries,isExtendedNode,sortWatchEntries,type WatchGroup} from '../lib/watch-guide-view'
 import type {Anime} from '../types'
+import {discoverCuratedPaths} from '../lib/curated-watch-paths'
 
 const suggestions=['Fate','Monogatari','Gundam','Toaru','Haruhi','Re:Zero','Steins;Gate','K-On!']
 const labels:Record<WatchGuideEntry['relation'],string>={
@@ -22,6 +23,7 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
  const [searchLoading,setSearchLoading]=useState(false)
  const [depth,setDepth]=useState<1|2>(1)
  const [filter,setFilter]=useState<WatchGroup>('all')
+ const [curatedId,setCuratedId]=useState<string|null>(null)
  useEffect(()=>{
   const q=query.trim()
   if(q.length<2){setMatches([]);setSearchLoading(false);return}
@@ -47,7 +49,10 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
  const entries=useMemo(()=>sortWatchEntries(data?.graph?.nodes??data?.items??[]),[data])
  const filtered=useMemo(()=>filterWatchEntries(entries,filter),[entries,filter])
  const names=useMemo(()=>new Map(entries.map(e=>[e.aniListId,e.title])),[entries])
- const pick=(id:number)=>{setDepth(1);setFilter('all');setData(null);setMatches([]);onPick(id)}
+ const entryById=useMemo(()=>new Map(entries.map(e=>[e.aniListId,e])),[entries])
+ const curated=useMemo(()=>discoverCuratedPaths(entries.map(e=>e.aniListId)),[entries])
+ const selectedCurated=curated.find(path=>path.id===curatedId)??curated[0]
+ const pick=(id:number)=>{setDepth(1);setFilter('all');setCuratedId(null);setData(null);setMatches([]);onPick(id)}
  return <div className="page-body yoru-watch-guide">
   <div className="page-intro"><div>
    <span className="mini-label">PANDUAN CERITA</span>
@@ -83,6 +88,43 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
     <button type="button" aria-pressed="true" className="active">Urutan rilis</button>
    </fieldset>
    <div className="guide-information"><Info size={18}/><p>Prekuel/sekuel adalah relasi judul, bukan bukti kapan OVA disisipkan di antara episode. Jalur alternatif, semesta sama, dan film rangkuman tidak otomatis menjadi bagian cerita utama. Judul tanpa tanggal berada di akhir daftar.</p></div>
+   {selectedCurated&&<section className="guide-curated" aria-label="Panduan menonton dengan sumber">
+    <div className="guide-curated-header">
+     <div><span className="mini-label">RUTE EDITORIAL · BUKAN URUTAN CANON TUNGGAL</span>
+      <h3>Panduan menonton {selectedCurated.franchise}</h3>
+      <p>{selectedCurated.note}</p>
+     </div>
+     <small>Ditinjau {selectedCurated.reviewedAt}</small>
+    </div>
+    <fieldset className="guide-curated-choices">
+     <legend>Pilih rute</legend>
+     {curated.map(path=><button type="button" key={path.id}
+      aria-pressed={selectedCurated.id===path.id} className={selectedCurated.id===path.id?'active':''}
+      onClick={()=>setCuratedId(path.id)}>{path.title}</button>)}
+    </fieldset>
+    {selectedCurated.spoilerRisk==='contextual'&&<div className="guide-information"><Info size={17}/>
+     <p>Rute ini dapat memperlihatkan hubungan cerita lebih awal daripada urutan rilis. Sinopsis episode dan twist sengaja tidak dicantumkan.</p></div>}
+    <ol className="guide-curated-steps">
+     {selectedCurated.steps.map((step,index)=>{
+      const matched=step.aniListId?entryById.get(step.aniListId):undefined
+      return <li key={`${selectedCurated.id}:${step.aniListId??step.title}`}>
+       <span className="guide-path-number" aria-hidden="true">{String(index+1).padStart(2,'0')}</span>
+       <div><strong>{step.title}</strong>
+        <small>{step.kind} · {step.optional?'Opsional dalam rute ini':'Bagian dari rute ini'}</small>
+        <p>{step.note}</p>
+        {step.episodeRange&&<small>Episode {step.episodeRange.start}–{step.episodeRange.end} · edisi {step.episodeRange.edition}</small>}
+       </div>
+       {matched?.malId?<button type="button" className="btn btn-outline" onClick={()=>{if(matched?.malId)onOpenAnime(matched.malId)}}>Buka detail</button>:
+        step.aniListId?<a href={`https://anilist.co/anime/${step.aniListId}`} target="_blank" rel="noopener noreferrer">Lihat di AniList</a>:
+        <span className="guide-unmapped">Belum terhubung ke katalog</span>}
+      </li>
+     })}
+    </ol>
+    <div className="guide-curated-sources"><strong>Sumber panduan editorial</strong>
+     {selectedCurated.sources.map(source=><a key={source.url} href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a>)}
+     <small>Sumber dan rute dapat berbeda pendapat. Yoru tidak menjamin ketersediaan video pada judul-judul ini.</small>
+    </div>
+   </section>}
    <div className="guide-expand">
     <div><strong>{entries.length} judul terpetakan</strong><small>{data.graph?'Jaringan maksimal dua tingkat dari judul pilihan':'Baru hubungan langsung dari judul pilihan'}</small></div>
     {!data.graph&&<button type="button" className="btn btn-outline" disabled={loading||entries.length<2} onClick={()=>setDepth(2)}><Network size={16}/> Perluas hubungan (2 tingkat)</button>}

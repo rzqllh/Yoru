@@ -670,3 +670,39 @@ test('generic franchise guide expands on demand, filters alternatives and never 
  await expect(page.getByText(/Ditemukan melalui Generic Sequel/)).toBeVisible()
  await expect(page.getByText(/bukan daftar franchise lengkap/)).toBeVisible()
 })
+
+test('curated Fate routes are sourced, switchable and never presented as one canon chronology',async({page})=>{
+ const anime={source:'AniList',sourceUrl:'https://anilist.co/anime/19603',
+  scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:19603,malId:1,title:'Fate/stay night: Unlimited Blade Works',format:'TV',year:2014,month:10,relation:'CURRENT',image:null},
+   {aniListId:20791,malId:null,title:'Heaven\'s Feel I',format:'MOVIE',year:2017,month:10,relation:'ALTERNATIVE',image:null}
+  ]
+ }
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:anime}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const curated=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ await expect(curated).toBeVisible()
+ await expect(curated.getByRole('button',{name:'Mulai Fate lewat anime modern'})).toHaveAttribute('aria-pressed','true')
+ await expect(curated.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'})).toBeVisible()
+ await expect(curated.getByRole('link',{name:/Anime Meridian/})).toBeVisible()
+ await expect(curated.getByText('Fate/stay night: Unlimited Blade Works (2014)')).toBeVisible()
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+ await curated.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'}).click()
+ await expect(curated.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'})).toHaveAttribute('aria-pressed','true')
+ await expect(curated.getByRole('listitem').first()).toContainText('Fate/Zero')
+ await expect(curated.getByText(/bukan satu timeline canon linear/i)).toBeVisible()
+ await expect(curated.getByRole('link',{name:/Popverse/})).toBeVisible()
+})
+test('curated editorial notes only appear when AniList IDs match, not from vague title text',async({page})=>{
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:{
+  source:'AniList',sourceUrl:'https://anilist.co/anime/1',scope:'direct-relations',animeMalId:1,
+  items:[{aniListId:5081,malId:1,title:'Bakemonogatari',format:'TV',year:2009,month:7,relation:'CURRENT',image:null}]
+ }}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const curated=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ await expect(curated.getByText('Panduan menonton Monogatari')).toBeVisible()
+ await expect(curated.getByRole('link',{name:/Crunchyroll/})).toBeVisible()
+ await expect(curated.getByText('Kizumonogatari II: Nekketsu-hen')).toBeVisible()
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+})

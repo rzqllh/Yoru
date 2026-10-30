@@ -22,7 +22,7 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | YX-06 | P0 | Source memory, recovery and smart next | **PLANNED** | Prior auto-next/recovery exists; new persisted source preference/enhancement not implemented |
 | YX-07 | P0 | Franchise links from anime detail | **TESTED expanded metadata** | PR [#50](https://github.com/rzqllh/Yoru/pull/50) first-degree + [#58](https://github.com/rzqllh/Yoru/pull/58) two-hop, exact head `c5d94c7` CI/E2E PASS; not canon chronology |
 | YX-08 | P1 | Secondary Watch Guide in Jelajahi | **TESTED expanded metadata** | PR #58, search plus opt-in two-hop graph and type filters, source and incomplete-result notices |
-| YX-09 | P1 | Universal watch-order research, graph + curated pathways | **TESTED generic graph; curated paths PLANNED** | Forum complaint taxonomy and two-hop AniList explorer in PR #58; episode insertion, novel/broadcast orders, branch-specific human-reviewed recommendations remain open |
+| YX-09 | P1 | Universal watch-order research, graph + curated pathways | **TESTED 2-hop graph; CODED source-backed paths (CI pending)** | #58 merge `dad6ed4`; editorial examples Fate/Monogatari require exact-head tests and review expansion; no universal canon |
 | YX-10 | P1 | Franchise-path progress & next entry | **PLANNED** | IndexedDB schema and backup migration not yet implemented |
 | YX-11 | P1 | Search suggestions/aliases | **PLANNED** | Need verified alias data and keyboard UX |
 | YX-12 | P1 | Browse filter state in URL, chips and range | **PLANNED** | Existing filters work; refinement pending |
@@ -57,6 +57,13 @@ These are code acceptance results. **None** are evidence that real torrent strea
 - Implemented: opt-in `?depth=2` AniList graph, fan-out 10 direct neighbors and 75-node cap, deduplicated relation edges including cycles, 12 expansions/min per-process budget, 20-min success cache, strict IDs, honest partial/upstream-failure notes; UI filter TV, movie, OVA/special, continuity branches, recap, other.
 - **NOT LIVE VERIFIED / STILL OPEN**: real upstream AniList coverage per franchise, editorial broadcast-vs-source/chronological episode insertions, curated recommended paths, integrated forum correction process, iPhone physical tests. Do not infer canon or total franchise completeness from 2 hops.
 - Public user guide `docs/public/watch-order.md` and alignment PR [#59](https://github.com/rzqllh/Yoru/pull/59) **MERGED** to preview `c5e7c66118b830efe16b072521406921da4a9e4d`; exact head `3f430e6521ec378d1118215116a9cd68d58124e2` CI+Browser E2E PASS. Issue #20 release gate remains BLOCKED; `main` unchanged.
+
+## 2026-10-30 — editorial routes checkpoint (unmerged)
+- Branch: `feat/yoru-curated-watch-paths-rebased-20261030` from the latest preview after #59/#60. Original PR #61 was developed against older preview and is superseded when new rebase PR passes.
+- CODED: sourced editorial **options** (Fate stay-night newcomer and prequel-first alternative, Monogatari starter), reliable AniList anchors, dates and HTTPS citations, validated path registry; local frontend-only, no new backend or data-store schema.
+- UI shows routes only for verified ID intersections in AniList metadata; if a step cannot map to a MAL detail it links to AniList or displays unavailable instead of pretending playback is ready. General two-hop graph still works for other anime.
+- Open: comprehensive franchise coverage, source corrections and edition-specific episode insertion; real streaming, Safari and production release all remain unverified. Exact CI+Browser E2E pending.
+- Public docs deferred until code integration.
 
 ## Next independently resumable lanes
 
