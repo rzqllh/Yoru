@@ -43,6 +43,7 @@ import Player from './components/Player'
 import WatchGuide from './components/WatchGuide'
 import {verifyNativeSource} from './lib/source-readiness'
 import {rankNativeStreams} from './lib/source-ranking'
+import {isResumableProgress} from './lib/resume'
 import {useDialogFocus} from './lib/useDialogFocus'
 
 type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean}
@@ -166,6 +167,8 @@ function App(){
  const [mobileNav,setMobileNav]=useState(false)
  const [library,setLibrary]=useState<LibraryEntry[]>([])
  const [progress,setProgress]=useState<ProgressEntry[]>([])
+ const [resumingAnimeId,setResumingAnimeId]=useState<string|null>(null)
+ const resumeAttempt=useRef(0)
  const [featuredIndex,setFeaturedIndex]=useState(0)
  const [rotateHero,setRotateHero]=useState(true)
  const daily=useDailyTrends()
@@ -189,6 +192,8 @@ function App(){
  },[playback])
 
  const navigateState=useCallback((next:RouteState,replace=false)=>{
+  resumeAttempt.current++
+  setResumingAnimeId(null)
   setRoute(next)
   const path=routeToPath(next)
   if(replace){
@@ -264,7 +269,27 @@ function App(){
   },8000)
   return()=>window.clearInterval(timer)
  },[route.page,selected,playback,rotateHero,featured.length])
- const continueList=useMemo(()=>progress.filter(row=>row.seconds>0&&(!row.duration||row.seconds<row.duration-10)).slice(0,6),[progress])
+ const continueList=useMemo(()=>progress.filter(isResumableProgress).slice(0,6),[progress])
+
+ async function resumeRow(row:ProgressEntry){
+  const attempt=++resumeAttempt.current
+  setResumingAnimeId(row.anime.id)
+  try{
+   const stream=await resolveHealthyNative(row.anime.malId,row.episode)
+   if(attempt!==resumeAttempt.current)return
+   if(stream){
+    setSelected(null)
+    setPlayback({anime:row.anime,episode:row.episode,stream,manualSource:false})
+   }else{
+    setSelected(row.anime)
+    setToast('Belum ada video yang siap. Pilih sumber lain untuk episode ini.')
+   }
+  }catch{
+   if(attempt===resumeAttempt.current){setSelected(row.anime);setToast('Sumber belum bisa diperiksa. Coba lagi dari detail anime.')}
+  }finally{
+   if(attempt===resumeAttempt.current)setResumingAnimeId(null)
+  }
+ }
 
  async function toggleSave(anime:Anime){
   try{
@@ -422,14 +447,14 @@ function App(){
 
      {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
       <div className="continue-grid">
-       {continueList.map(row=><button type="button" key={row.anime.id} className="continue-card" onClick={()=>setSelected(row.anime)}>
+       {continueList.map(row=><button type="button" key={row.anime.id} className="continue-card" disabled={Boolean(resumingAnimeId)} onClick={()=>void resumeRow(row)}>
         <div className="continue-image">
          <Poster anime={row.anime} aspect="wide"/>
          <span className="continue-play"><Play size={18} fill="currentColor"/></span>
          <div className="progress-track"><div style={{width:`${Math.min(100,row.duration?row.seconds/row.duration*100:10)}%`}}/></div>
         </div>
         <strong>{row.anime.title}</strong>
-        <small>Episode {row.episode} · {durationDisplay(row.seconds)} ditonton</small>
+        <small>{resumingAnimeId===row.anime.id?'Memeriksa sumber video…':`Episode ${row.episode} · ${durationDisplay(row.seconds)} ditonton`}</small>
        </button>)}
       </div>
      </Section>}
@@ -478,6 +503,8 @@ function App(){
      library={library}
      progress={progress}
      onOpen={setSelected}
+     onResume={row=>{void resumeRow(row)}}
+     resumingAnimeId={resumingAnimeId}
      onBrowse={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''})}
      onRemove={removeAnime}
      onStatusChange={saveAnime}
@@ -688,6 +715,8 @@ function LibraryPage({
  library,
  progress,
  onOpen,
+ onResume,
+ resumingAnimeId,
  onBrowse,
  onRemove,
  onStatusChange,
@@ -697,13 +726,15 @@ function LibraryPage({
  library:LibraryEntry[]
  progress:ProgressEntry[]
  onOpen:(a:Anime)=>void
+ onResume:(row:ProgressEntry)=>void
+ resumingAnimeId:string|null
  onBrowse:()=>void
  onRemove:(id:string)=>Promise<void>
  onStatusChange:(anime:Anime,status:LibraryStatus)=>Promise<void>
 }){
  const [filter,setFilter]=useState<'all'|LibraryStatus>('all')
  const saved=useMemo(()=>library.filter(row=>filter==='all'||row.status===filter),[library,filter])
- const continueItems=useMemo(()=>progress.filter(row=>row.seconds>0&&(!row.duration||row.seconds<row.duration-10)),[progress])
+ const continueItems=useMemo(()=>progress.filter(isResumableProgress),[progress])
 
  const isCompletelyEmpty=library.length===0&&progress.length===0
 
@@ -719,11 +750,11 @@ function LibraryPage({
    </div>
   </div>
 
-  {continueItems.length>0&&<div className="library-highlight"><div className="library-highlight-copy"><span>LANJUTKAN TONTONAN</span><strong>{continueItems[0].anime.title}</strong><small>Episode {continueItems[0].episode} · {durationDisplay(continueItems[0].seconds)} ditonton</small><button type="button" className="btn btn-primary" onClick={()=>onOpen(continueItems[0].anime)}><Play size={16} fill="currentColor"/> Lanjutkan</button></div><div className="library-highlight-cover"><Poster anime={continueItems[0].anime}/></div></div>}
+  {continueItems.length>0&&<div className="library-highlight"><div className="library-highlight-copy"><span>LANJUTKAN TONTONAN</span><strong>{continueItems[0].anime.title}</strong><small>Episode {continueItems[0].episode} · {durationDisplay(continueItems[0].seconds)} ditonton</small><button type="button" className="btn btn-primary" disabled={Boolean(resumingAnimeId)} onClick={()=>onResume(continueItems[0])}><Play size={16} fill="currentColor"/> {resumingAnimeId===continueItems[0].anime.id?"Memeriksa…":"Lanjutkan"}</button></div><div className="library-highlight-cover"><Poster anime={continueItems[0].anime}/></div></div>}
   {!isCompletelyEmpty&&<div className="library-stats">
    <div><span>TOTAL KOLEKSI</span><strong>{library.length.toString().padStart(2,'0')}</strong><small>Judul tersimpan</small></div>
    <div><span>SEDANG MENONTON</span><strong>{library.filter(l=>l.status==='watching').length.toString().padStart(2,'0')}</strong><small>Anime aktif</small></div>
-   <div><span>RIWAYAT MENONTON</span><strong>{progress.length.toString().padStart(2,'0')}</strong><small>Episode tercatat</small></div>
+   <div><span>RIWAYAT MENONTON</span><strong>{progress.length.toString().padStart(2,'0')}</strong><small>Judul dengan progres</small></div>
   </div>}
 
   {view==='continue'&&<Section title="Lanjut menonton">
@@ -733,11 +764,11 @@ function LibraryPage({
     body="Episode yang kamu putar akan otomatis tercatat di sini agar kamu bisa langsung melanjutkan kapan saja."
     action={<button type="button" className="btn btn-primary" onClick={onBrowse}><Play size={15} fill="currentColor"/> Mulai menonton</button>}
    />:<div className="library-list">
-    {continueItems.map(row=><button type="button" key={row.anime.id} className="library-item library-item-main" onClick={()=>onOpen(row.anime)}>
+    {continueItems.map(row=><button type="button" key={row.anime.id} className="library-item library-item-main" disabled={Boolean(resumingAnimeId)} onClick={()=>onResume(row)}>
      <Poster anime={row.anime}/>
      <div>
       <strong>{row.anime.title}</strong>
-      <span>Episode {row.episode} · {durationDisplay(row.seconds)} ditonton</span>
+      <span>{resumingAnimeId===row.anime.id?"Memeriksa sumber video…":`Episode ${row.episode} · ${durationDisplay(row.seconds)} ditonton`}</span>
      </div>
      <ArrowRight size={18}/>
     </button>)}
@@ -964,7 +995,7 @@ function DetailDialog({
       <h2>Daftar episode</h2>
      </div>
      <span className="episode-count">
-      {available.filter(e=>e.providerId!=='public-embed').length>0?'Video tersedia':'Belum menemukan video yang bisa diputar'}
+      {available.filter(e=>e.providerId!=='public-embed').length>0?'Ada kandidat sumber · belum diperiksa':'Belum menemukan kandidat video'}
      </span>
     </div>
     {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
