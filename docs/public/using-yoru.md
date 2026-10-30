@@ -32,6 +32,16 @@ Di player native, menu **Subtitle** memprioritaskan kandidat Indonesia dari addo
 
 Pilihan tampilannya mencakup jenis dan ukuran huruf, opasitas teks, opasitas latar, tebal outline, serta posisi atas/bawah/bawaan jika browser menyediakan `VTTCue` yang dapat diatur. Ada pratinjau tampilan. Preferensi dapat disimpan untuk seluruh Yoru atau anime tertentu. Dukungan `::cue` dan posisi antar-browser bisa berbeda; hardcoded subtitle dan iframe tidak dapat diubah dari Yoru.
 
+## Membaca status sumber video
+
+- **Mencari sumber**: Yoru sedang memeriksa metadata penyedia, belum mencoba memainkan video.
+- **Kandidat ditemukan**: sebuah penyedia mengklaim menawarkan URL media; itu belum menjamin browser dapat mendekodenya.
+- **Sebagian penyedia gagal**: respons dari penyedia yang masih sehat tetap ditampilkan, tetapi hasil pencarian mungkin tidak lengkap.
+- **Semua penyedia gagal**: masalah koneksi/provider, berbeda dari respons berhasil yang memang tidak menyediakan video langsung.
+- **Sedang diperiksa**: Yoru mencoba memvalidasi video native sebelum membuka player. Bila gagal, alasan muncul dan kamu dapat memilih opsi lain atau mencoba fallback embed eksternal secara sadar.
+
+Video embed pihak ketiga tidak diverifikasi seperti player native; Yoru tidak dapat menjamin bahasa subtitle, kualitas, atau keberhasilan playback iframe.
+
 ## Torrentio dan sumber lain
 
 Yoru mengenali deskriptor `infoHash` dari respons stream addon Stremio dan menampilkan kandidat torrent sebagai **belum bisa diputar** dengan alasan yang jelas. Itu bukan fitur streaming torrent aktif: browser tidak otomatis memutar magnet, dan Yoru saat ini tidak memiliki engine, debrid, atau resolver torrent bawaan. Sumber HLS/MP4 HTTPS tetap bisa diperiksa secara terpisah. Lihat [Panduan provider](providers.md) untuk konfigurasi.
