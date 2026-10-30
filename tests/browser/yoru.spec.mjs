@@ -563,7 +563,7 @@ test('watch guide is a secondary discover route with truthful unsupported chrono
  await expect(page).toHaveURL(/\/jelajahi\/panduan-urutan$/)
  await expect(page.getByRole('heading',{name:'Panduan urutan anime'})).toBeVisible()
  await page.goto('/jelajahi/panduan-urutan?anime=1')
- await expect(page.getByRole('heading',{name:'Judul yang saling berhubungan'})).toBeVisible()
+ await expect(page.getByRole('heading',{name:'Jaringan judul yang berhubungan'})).toBeVisible()
  await expect(page.getByRole('button',{name:'Disarankan'})).toBeDisabled()
  await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
  await expect(page.getByText('Related OVA')).toBeVisible()
