@@ -678,6 +678,7 @@ function Browse({
    {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>onFiltersChange(EMPTY_BROWSE_FILTERS)}>Reset filter</button>}
   </fieldset>
   </div>
+  {activeFilters&&<p className="browse-filter-note">Filter aktif · Berlaku untuk seluruh katalog.</p>}
   {activeFilters&&<fieldset className="browse-active-chips"><legend className="sr-only">Filter aktif</legend>
    <span>Filter aktif:</span>
    {([
