@@ -2637,3 +2637,17 @@ body {
 .guide-entry-body{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}.guide-entry-body strong{overflow-wrap:anywhere}
 .guide-alt{display:inline-flex;align-items:center;gap:4px;color:var(--soft);font-size:12px}
 @media(max-width:600px){.guide-entry{flex-wrap:wrap}.guide-entry>.btn{margin-left:36px}.guide-search,.guide-information,.guide-entry{padding:12px}}
+
+/* Caption appearance: these selectors affect WebVTT cues only, never embedded/hardsub. */
+.player-stage video.subtitle-text-100::cue{color:rgba(255,255,255,1)}
+.player-stage video.subtitle-text-75::cue{color:rgba(255,255,255,.75)}
+.player-stage video.subtitle-text-50::cue{color:rgba(255,255,255,.5)}
+.player-stage video.subtitle-bg-0::cue{background-color:rgba(0,0,0,0)}
+.player-stage video.subtitle-bg-25::cue{background-color:rgba(0,0,0,.25)}
+.player-stage video.subtitle-bg-50::cue{background-color:rgba(0,0,0,.5)}
+.player-stage video.subtitle-bg-75::cue{background-color:rgba(0,0,0,.75)}
+.player-stage video.subtitle-bg-100::cue{background-color:rgba(0,0,0,1)}
+.player-stage video.subtitle-outline-0::cue{text-shadow:none}
+.player-stage video.subtitle-outline-1::cue{text-shadow:0 1px 2px #000,0 0 3px #000}
+.player-stage video.subtitle-outline-2::cue{text-shadow:0 1px 2px #000,1px 1px 4px #000,-1px -1px 4px #000,0 0 5px #000}
+.subtitle-style-controls select:disabled{opacity:.5;cursor:not-allowed}
