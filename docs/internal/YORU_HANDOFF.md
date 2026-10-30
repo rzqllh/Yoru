@@ -59,6 +59,16 @@ Owner expands scope beyond Fate/Slime/SAO: use community/forum complaint pattern
 - Remaining: factual episode-level broadcast vs chronological positions, optional OVA/movie inserts, multiple source/novel orders, real curated alternative routes, confidence/provenance and correction process; the automatic 2-hop graph is **not** a complete series list.
 - Next exact action: verify PR and CI on current branch; if green integrate preview, update public docs at the end, and synchronize this file and #44. Main/prod and release #20 stay blocked.
 
+## Current checkpoint — source-backed editorial watch routes (30 October 2026)
+
+- Verified preview HEAD at start: `dad6ed4e51ca1fa0070b54229e7180e7043b6c74`; PR #58 is **merged** after exact feature head `c5d94c741967fee3638024920452d76cbed1fad8` Linux/Windows CI and Chromium/WebKit Browser E2E PASS.
+- Active branch: `feat/yoru-curated-watch-paths-20261030`. Do not merge before exact-head CI/E2E.
+- Product correction: automatic AniList graph is NOT a single canonical order. This slice introduces extensible editorial-source registry, source URLs/dates and validation, plus reviewer-checked examples: Fate stay-night anime-first and prequel-first alternatives; Monogatari editorial introductory path. No assumptions of stream/playback availability, no arbitrary source links or guessed AniList IDs.
+- Curated path list appears ONLY when selected anime/graph contains verified AniList anchor IDs. Unsupported recommendation/chronology for all other franchise remain disabled. The larger long-tail research and community-complaint tracker still applies to every anime, not just initial editorial examples.
+- Editorial paths are **reviewed options**, never universal canon. Haruhi broadcast episode reorders, Monogatari novel-versus-broadcast splits, Gundam alternate timelines and per-episode OVA insertion still need sourced data and edition-specific verification.
+- Files: `frontend/src/lib/curated-watch-paths.ts`, `frontend/src/components/WatchGuide.tsx`, `frontend/src/styles.css`, unit and browser tests, tracker/handoff.
+- Next: open PR and verify exact HEAD in Linux/Windows CI and Chromium/WebKit E2E; only then merge preview and update public docs. Production and `main` remain blocked by #20.
+
 ## Hard blockers
 
 - **G1–G3 (#20):** real authorized source-provider endpoints with live video, strict season/episode mapping and actual subtitle credentials/download proof. Mocked provider fixtures are not live tests.
