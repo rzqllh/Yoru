@@ -31,3 +31,12 @@ export const browseFiltered=(filters:BrowseRequest,page=1,signal?:AbortSignal)=>
 
 export type DailyTrendResponse={items:Anime[];source:'AniList';sourceUrl:'https://anilist.co';date:string;metric:'daily-media-activity'}
 export const dailyTrends=(signal?:AbortSignal)=>api<DailyTrendResponse>('/api/anime/daily-trends',signal)
+
+export type WatchGuideEntry={
+ aniListId:number;malId:number|null;title:string;format:string;year:number|null;month:number|null;
+ relation:'CURRENT'|'PREQUEL'|'SEQUEL'|'SIDE_STORY'|'ALTERNATIVE'|'SPIN_OFF'|'PARENT'|'SUMMARY'|'OTHER';image:string|null
+}
+export type WatchGuideResponse={
+ source:'AniList';sourceUrl:string;scope:'direct-relations';animeMalId:number;items:WatchGuideEntry[]
+}
+export const watchGuide=(malId:number,signal?:AbortSignal)=>api<WatchGuideResponse>(`/api/anime/${malId}/watch-guide`,signal)
