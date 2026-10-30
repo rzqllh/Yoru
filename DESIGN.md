@@ -84,6 +84,10 @@ Berikan alasan dan satu aksi yang relevan: `Coba lagi`, `Pilih sumber lain`, ata
 
 Gunakan bahasa Indonesia alami: `Beranda`, `Jelajahi`, `Koleksi`, `Lanjut menonton`, `Periksa sumber episode`, `Belum bisa diputar`. Hindari slogan generik, klaim `semua anime lengkap`, atau daftar kemampuan yang belum diujikan. Label sumber eksternal, trailer, subtitle, dan kualitas harus menggambarkan kemampuan aktual serta keterbatasannya.
 
+## Progres manual pada rute editorial
+
+Panel rute bersumber menampilkan jumlah langkah selesai, tombol **Tandai langkah berikutnya selesai** dan **Batalkan langkah terakhir**, serta judul berikutnya. Status tidak otomatis ditentukan oleh layanan streaming. Simpan progres secara terpisah per `pathId` di preferensi IndexedDB yang telah mendukung backup v1; validasi nilai dan batasi sesuai jumlah langkah rute. Di layar kecil, tindakan minimal 44px dan harus tetap bisa digunakan dengan keyboard.
+
 ## Pengujian yang masih wajib
 
 CI Linux/Windows dan Chromium/WebKit browser test tidak menggantikan audit visual aksesibilitas lengkap, Core Web Vitals pada koneksi nyata, uji iPhone Safari fisik, serta playback live berbagai sumber. Catat bukti pengujian di [roadmap UX](https://github.com/rzqllh/Yoru/issues/44) dan [release gate](https://github.com/rzqllh/Yoru/issues/20). Tidak ada promotion ke `main` atau production tanpa persetujuan release eksplisit.
