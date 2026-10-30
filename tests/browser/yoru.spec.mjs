@@ -777,3 +777,48 @@ test('mixed provider failures retain candidates and report partial metadata unce
  await expect(dialog.locator('.source-options button')).toHaveCount(2)
  await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
 })
+
+
+test('edition-aware Haruhi route switches 2006 broadcast and 2009 re-airing without mixing episode numbers',async({page})=>{
+ const payload={
+  source:'AniList',sourceUrl:'https://anilist.co/anime/849',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:849,malId:1,title:'Haruhi Suzumiya 2006',format:'TV',year:2006,month:4,relation:'CURRENT',image:null},
+   {aniListId:4382,malId:2,title:'Haruhi Suzumiya 2009',format:'TV',year:2009,month:4,relation:'ALTERNATIVE',image:null},
+   {aniListId:7311,malId:3,title:'Haruhi Disappearance',format:'MOVIE',year:2010,month:2,relation:'SEQUEL',image:null}
+  ]
+ }
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:payload}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const guide=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ await expect(guide.getByRole('button',{name:'2006: urutan siaran asli (14 episode)'})).toHaveAttribute('aria-pressed','true')
+ await expect(guide.locator('.guide-curated-steps li')).toHaveCount(14)
+ await expect(guide.getByText('Episode 01 — The Adventures of Mikuru Asahina Episode 00',{exact:true})).toBeVisible()
+ await expect(guide.getByText('Episode 1 · edisi siaran asli 2006 (14 episode)')).toBeVisible()
+ await guide.getByRole('button',{name:'2009: susunan 28 episode + film'}).click()
+ await expect(guide.locator('.guide-curated-steps li')).toHaveCount(29)
+ await expect(guide.getByText('Episode 25 — The Adventures of Mikuru Asahina Episode 00')).toBeVisible()
+ await expect(guide.getByText('Episode 25 · edisi siaran 2009 (28 episode)')).toBeVisible()
+ await expect(guide.getByText('The Disappearance of Haruhi Suzumiya (film 2010)')).toBeVisible()
+ await expect(guide.getByRole('button',{name:'Detail serial'}).first()).toBeEnabled()
+ await expect(guide.getByText(/tidak membuka episode tertentu secara otomatis/)).toBeVisible()
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+})
+test('Re:ZERO OVA duo is mapped as episode 1 and episode 2 within one AniList release',async({page})=>{
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:{
+  source:'AniList',sourceUrl:'https://anilist.co/anime/21355',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:21355,malId:1,title:'Re:ZERO Season 1',format:'TV',year:2016,month:4,relation:'CURRENT',image:null},
+   {aniListId:100049,malId:2,title:'Re:ZERO OVAs',format:'OVA',year:2018,month:10,relation:'SIDE_STORY',image:null}
+  ]
+ }}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const guide=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ await expect(guide.getByRole('button',{name:'Season + OVA: jalur penonton baru'})).toBeVisible()
+ await expect(guide.locator('.guide-curated-steps li')).toHaveCount(6)
+ await expect(guide.getByText('OVA 1 — Memory Snow')).toBeVisible()
+ await expect(guide.getByText('OVA 2 — The Frozen Bond')).toBeVisible()
+ await expect(guide.getByText('Episode 1 · edisi Re:ZERO OVAs (2 episode dalam 1 entri AniList)')).toBeVisible()
+ await expect(guide.getByText('Episode 2 · edisi Re:ZERO OVAs (2 episode dalam 1 entri AniList)')).toBeVisible()
+ await expect(guide.getByText(/Director’s Cut merupakan versi sunting ulang/)).toBeVisible()
+})

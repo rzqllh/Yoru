@@ -83,6 +83,13 @@
 - Node and deterministic browser tests for provider outage, healthy-but-empty and partial source failure PASS on exact head. No live media/provider availability, no physical iPhone sign-off.
 - Next action: continue independent YX-06 persisted source-memory/recovery (after architecture review) or YX-09 wider source-backed editorial editions, then YX-12 browse URL state. Do not touch `main`/production or relax #20.
 
+## Active YX-09 edition-aware watch-order lane (30 October 2026)
+- Preview base verified `2836f651411c5298e5d39700217b9f764814d94d`, branch `feat/yoru-edition-aware-watch-paths-20261030`.
+- Sources researched: official Haruhi anniversary 2006 14 / 2009 28 order (distinct AniList 849/4382); Crunchyroll Re:ZERO OVA watch guidance and AniList OVA 100049 episodes 1/2. Full links in `docs/internal/WATCH_ORDER_EDITION_EVIDENCE_2026-10-30.md`.
+- New `frontend/src/lib/curated-watch-path-editions.ts` contains 3 sourced routes, exact explicit edition labels and per-episode positions. `curated-watch-paths.ts` validation allows repeated series IDs only with disjoint episode ranges of same edition; no drift in Fate and Monogatari paths. Watch Guide keys use edition-specific episode identity and buttons say `Detail serial`, never pretending to launch that episode.
+- Node+Browser regression tests coded, **CI/E2E pending exact HEAD**; no prod/main release.
+- NEXT: verify PR build/E2E exact head, repair errors, merge preview if green, update public docs and issue #44. Do not invent episode mapping for provider/playback. More forum issues require more sourced editions/franchises; this is not exhaustive.
+
 ## Hard blockers
 
 - **G1–G3 (#20):** real authorized source-provider endpoints with live video, strict season/episode mapping and actual subtitle credentials/download proof. Mocked provider fixtures are not live tests.
