@@ -83,12 +83,12 @@
 - Node and deterministic browser tests for provider outage, healthy-but-empty and partial source failure PASS on exact head. No live media/provider availability, no physical iPhone sign-off.
 - Next action: continue independent YX-06 persisted source-memory/recovery (after architecture review) or YX-09 wider source-backed editorial editions, then YX-12 browse URL state. Do not touch `main`/production or relax #20.
 
-## Active YX-09 edition-aware watch-order lane (30 October 2026)
-- Preview base verified `2836f651411c5298e5d39700217b9f764814d94d`, branch `feat/yoru-edition-aware-watch-paths-20261030`.
+## Verified YX-09 episode-edition route checkpoint (30 October 2026, merged #68)
+- PR #68 merged preview `88e80a126aba9b044754a9bc1fbfcf6cde4168eb`. Exact feature HEAD `80fa57a4859c31bfa0c38beede79daa1b42bfb16` CI Linux/Windows and Chromium/WebKit Browser E2E **PASS**. Current preview ref must be fetched fresh.
 - Sources researched: official Haruhi anniversary 2006 14 / 2009 28 order (distinct AniList 849/4382); Crunchyroll Re:ZERO OVA watch guidance and AniList OVA 100049 episodes 1/2. Full links in `docs/internal/WATCH_ORDER_EDITION_EVIDENCE_2026-10-30.md`.
 - New `frontend/src/lib/curated-watch-path-editions.ts` contains 3 sourced routes, exact explicit edition labels and per-episode positions. `curated-watch-paths.ts` validation allows repeated series IDs only with disjoint episode ranges of same edition; no drift in Fate and Monogatari paths. Watch Guide keys use edition-specific episode identity and buttons say `Detail serial`, never pretending to launch that episode.
-- Node+Browser regression tests coded, **CI/E2E pending exact HEAD**; no prod/main release.
-- NEXT: verify PR build/E2E exact head, repair errors, merge preview if green, update public docs and issue #44. Do not invent episode mapping for provider/playback. More forum issues require more sourced editions/franchises; this is not exhaustive.
+- Node and Chromium browser regressions plus WebKit smoke passed exact feature head; no prod/main release or real live playback claim. Public docs updated in follow-up documentation-only PR.
+- NEXT: source-reviewed editorial coverage for additional anime/continuity classes (Gundam UC/non-UC, Monogatari novel versus anime, Re:ZERO director's cut, Haruhi 2009 episode-level timeline where verified), and independent YX-12 browse URL persistence. Do not invent episode mapping for provider/playback. #20 remains BLOCKED.
 
 ## Hard blockers
 
@@ -118,4 +118,4 @@ NEXT ACTION (one exact next step):
 DO NOT: merge main, promote production, invent provider/Subtitle Indonesia/release proof.
 ```
 
-**Resume suggestion:** extend curated path evidence by verified franchise/edition, episode ranges, optionality, prerequisite relationships and public correction process; pilot Haruhi broadcast order, Re:Zero OVA placement, Gundam continuities. Local manual path-progress storage is already implemented (#64), but playback-linked automatic progress is NOT. Fate/Monogatari options already live in preview code but not production. In parallel, YX-12 browse URL-state task remains open, whereas YX-02 deterministic code acceptance is now tested. In parallel, YX-06 enhanced source memory and YX-12 browse URL persistence can be scoped into independent PRs.
+**Resume suggestion:** extend curated path evidence by verified franchise/edition, episode ranges, optionality, prerequisite relationships and public correction process; Haruhi 2006/2009 and Re:Zero OVAs now implemented (#68), next Gundam continuities and Monogatari source order. Local manual path-progress storage is already implemented (#64), but playback-linked automatic progress is NOT. Fate/Monogatari options already live in preview code but not production. In parallel, YX-12 browse URL-state task remains open, whereas YX-02 deterministic code acceptance is now tested. In parallel, YX-06 enhanced source memory and YX-12 browse URL persistence can be scoped into independent PRs.

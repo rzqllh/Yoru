@@ -21,7 +21,7 @@ Untuk HLS yang terpapar ke hls.js, kualitas **Auto** menjadi default dan hanya r
 
 Addon Stremio opt-in dapat mengembalikan sumber HTTPS langsung atau metadata torrent bergaya Torrentio. Kandidat `infoHash` dikenali dan ditampilkan **disabled**, bukan diputar. Mesin/resolver torrent bawaan belum tersedia; tidak ada klaim kompatibilitas live atas seluruh addon.
 
-**Sudah di preview**: beberapa rute editorial berreferensi untuk Fate dan Monogatari, dengan pilihan alternatif, sumber dan penanda risiko spoiler. Ini rekomendasi terbatas, bukan kurasi lengkap setiap anime atau urutan canon otomatis.
+**Sudah di preview**: rute editorial berreferensi untuk Fate, Monogatari, **Haruhi (2006 dan 2009)** serta **Re:ZERO (TV/OVA)**. Panduan membedakan edisi dan episode, menggunakan sumber resmi/editorial serta memberikan catatan urutan alternatif/spoiler. Ini rekomendasi terbatas, bukan kurasi lengkap seluruh anime atau bukti ketersediaan video.
 
 **Progres rute editorial:** pilihan langkah selesai/undo dan judul berikutnya tersimpan secara lokal, berbeda untuk setiap rute dan ikut backup. Ini checklist manual, bukan status episode yang diputar otomatis.
 

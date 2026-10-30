@@ -22,7 +22,7 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | YX-06 | P0 | Source memory, recovery and smart next | **PLANNED** | Prior auto-next/recovery exists; new persisted source preference/enhancement not implemented |
 | YX-07 | P0 | Franchise links from anime detail | **TESTED expanded metadata** | PR [#50](https://github.com/rzqllh/Yoru/pull/50) first-degree + [#58](https://github.com/rzqllh/Yoru/pull/58) two-hop, exact head `c5d94c7` CI/E2E PASS; not canon chronology |
 | YX-08 | P1 | Secondary Watch Guide in Jelajahi | **TESTED expanded metadata** | PR #58, search plus opt-in two-hop graph and type filters, source and incomplete-result notices |
-| YX-09 | P1 | Universal watch-order research, graph + curated pathways | **TESTED baseline; CODED edition paths (CI pending)** | #58/#62 accepted; #68 branch adds official Haruhi 2006/2009 and Re:ZERO edition-specific OVA routes; exhaustive franchise coverage and live editorial corrections still OPEN |
+| YX-09 | P1 | Universal watch-order research, graph + curated pathways | **TESTED partial (#58/#62/#68)** | Generic graph; source-backed Fate/Monogatari; Haruhi 2006/2009 and Re:ZERO OVA episode-edition routes added #68; extensive franchise/source-episode coverage remains OPEN |
 | YX-10 | P1 | Franchise-path progress & next entry | **TESTED partial (#64)** | Manual per-route completion, undo, next-step, backed up via existing preferences; exact feature head `5f7c373` CI+Browser E2E PASS. Automated playback-linked / episode-level tracking remains OPEN |
 | YX-11 | P1 | Search suggestions/aliases | **PLANNED** | Need verified alias data and keyboard UX |
 | YX-12 | P1 | Browse filter state in URL, chips and range | **PLANNED** | Existing filters work; refinement pending |
@@ -52,6 +52,8 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | #64 manual path progress | `27e87bdb` | `5f7c373e` | Linux/Windows CI + Chromium/WebKit; manual data and backup-compatible preferences |
 
 | #66 source lifecycle | `5460bec4` | `30184179` | Linux/Windows CI + Chromium/WebKit; partial outage recovery and honest source labels |
+
+| #68 episode-edition watch guide | `88e80a12` | `80fa57a4` | Linux/Windows CI + Chromium/WebKit; official Haruhi 2006/2009 and Re:ZERO OVA numbering |
 
 These are code acceptance results. **None** are evidence that real torrent streaming works, an AniList franchise guide is complete, or Safari physical/prod is signed off.
 
@@ -83,12 +85,12 @@ These are code acceptance results. **None** are evidence that real torrent strea
 - Unit and browser tests for total outage vs successful empty response and partial-provider failures PASS on exact head. No provider live coverage or Safari physical evidence.
 - Public docs updated in separate documentation-only PR after feature merge. Main/prod remain blocked by #20.
 
-## 2026-10-30 — edition-aware watch-order data (in-flight)
-- Branch `feat/yoru-edition-aware-watch-paths-20261030` based on preview `2836f651411c5298e5d39700217b9f764814d94d`.
+## 2026-10-30 — edition-aware watch-order data (merged #68)
+- [PR #68](https://github.com/rzqllh/Yoru/pull/68) MERGED preview `88e80a126aba9b044754a9bc1fbfcf6cde4168eb` after Linux/Windows CI and Chromium/WebKit Browser E2E PASS on exact feature HEAD `80fa57a4859c31bfa0c38beede79daa1b42bfb16`.
 - Sourced editorial routes: Haruhi **2006** 14 episodes, Haruhi **2009** 28 episodes + 2010 movie, and Re:ZERO TV Season 1/OVA 1+2/Season 2 split/Season 3. Evidence at [WATCH_ORDER_EDITION_EVIDENCE_2026-10-30.md](WATCH_ORDER_EDITION_EVIDENCE_2026-10-30.md).
 - Validator now permits repeated AniList IDs only for nonoverlapping episode ranges within the identical edition. Watch Guide displays edition number and avoids false direct-episode playback links. Local manual progress remains per route, with existing v1 backup.
-- **CODED, CI/E2E pending** for exact SHA. No claims of universal full franchise coverage, chronological canon, provider playback or iPhone Safari acceptance.
-- Next: open PR, fix exact-head CI and browser regressions, merge tested preview, then update public watch-order docs and handoff last.
+- **TESTED CODE (#68)**. No claims of universal full franchise coverage, chronological canon, provider playback or iPhone Safari acceptance.
+- Next: expand sourced edition/episode paths for other franchise types (Gundam alternative universes, Monogatari source-order, Haruhi chronology if episode-specific mapping can be reviewed), plus future alias and browsing UX. Public watch-order docs updated in final documentation PR.
 
 ## Next independently resumable lanes
 
