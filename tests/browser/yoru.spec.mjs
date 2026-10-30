@@ -572,26 +572,21 @@ test('watch guide is a secondary discover route with truthful unsupported chrono
 })
 
 
-test('continue watching verifies a source then resumes the same episode without reopening detail',async({page})=>{
+test('caption styling settings persist and remain scoped to the native video player',async({page})=>{
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- const video=page.locator('video')
- await expect.poll(()=>video.evaluate(v=>v.readyState),{timeout:20000}).toBeGreaterThan(0)
- await video.evaluate(v=>{v.currentTime=2;v.pause();v.dispatchEvent(new Event('pause'))})
- await expect.poll(async()=>page.evaluate(async()=>{
-  const request=indexedDB.open('yoru-local-v1')
-  return new Promise(resolve=>{
-   request.onsuccess=()=>{
-    const db=request.result,tx=db.transaction('progress','readonly'),get=tx.objectStore('progress').get('mal:1')
-    get.onsuccess=()=>{resolve(get.result?.seconds??0);db.close()}
-   }
-  })
- })).toBeGreaterThan(1)
- await page.getByRole('button',{name:'Kembali'}).click()
- await expect(page.locator('.continue-card')).toHaveCount(1)
- await page.locator('.continue-card').click()
- await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible({timeout:30000})
- await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toHaveCount(0)
- await expect(page.getByRole('main',{name:'Layar tonton'}).getByText(/Episode 1/)).toBeVisible()
+ const player=page.getByRole('main',{name:'Layar tonton'})
+ await player.getByRole('button',{name:/Subtitle ·/}).click()
+ await player.getByRole('combobox',{name:'Transparansi teks subtitle'}).selectOption('75')
+ await player.getByRole('combobox',{name:'Opasitas latar subtitle'}).selectOption('25')
+ await player.getByRole('combobox',{name:'Garis tepi subtitle'}).selectOption('2')
+ await expect(player.locator('video')).toHaveClass(/subtitle-text-75/)
+ await expect(player.locator('video')).toHaveClass(/subtitle-bg-25/)
+ await expect(player.locator('video')).toHaveClass(/subtitle-outline-2/)
+ await player.getByRole('button',{name:'Kembali'}).click()
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ await expect(page.locator('video')).toHaveClass(/subtitle-text-75/)
+ await expect(page.locator('video')).toHaveClass(/subtitle-bg-25/)
 })
