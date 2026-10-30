@@ -547,3 +547,26 @@ test('reduced motion prevents hero auto rotation while controls remain usable',a
  await page.getByRole('button',{name:'Anime berikutnya'}).click()
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 2')
 })
+
+
+test('watch guide is a secondary discover route with truthful unsupported chronology',async({page})=>{
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:{
+  source:'AniList',sourceUrl:'https://anilist.co/anime/10',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:10,malId:1,title:'Yoru Test Anime',format:'TV',year:2024,month:1,relation:'CURRENT',image:null},
+   {aniListId:9,malId:null,title:'Related OVA',format:'OVA',year:2023,month:6,relation:'SIDE_STORY',image:null}
+  ]
+ }}))
+ await page.goto('/jelajahi')
+ await expect(page.getByRole('button',{name:'Panduan urutan anime'})).toBeVisible()
+ await page.getByRole('button',{name:'Panduan urutan anime'}).click()
+ await expect(page).toHaveURL(/\/jelajahi\/panduan-urutan$/)
+ await expect(page.getByRole('heading',{name:'Panduan urutan anime'})).toBeVisible()
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ await expect(page.getByRole('heading',{name:'Judul yang saling berhubungan'})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Disarankan'})).toBeDisabled()
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+ await expect(page.getByText('Related OVA')).toBeVisible()
+ await expect(page.getByRole('button',{name:'Belum terpetakan'})).toBeDisabled()
+ await expect(page.getByRole('link',{name:'Sumber: AniList'})).toHaveAttribute('href','https://anilist.co/anime/10')
+})

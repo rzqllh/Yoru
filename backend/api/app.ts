@@ -4,6 +4,7 @@ import {createFixedWindowBudget} from './request-budget.js'
 import {combineProviderResults} from '../pipeline/provider-aggregation.js'
 import { createHealthPayload } from '../pipeline/status.js'
 import {getDailyAnimeTrends} from '../pipeline/daily-trends.js'
+import {getWatchGuide} from '../pipeline/watch-guide.js'
 import { getAnime, getAnimeEpisodes, getDiscover, searchAnime, browseAnime, type BrowseFilters } from '../pipeline/jikan.js'
 import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../providers/local.js'
 import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../providers/stremio.js'
@@ -59,6 +60,11 @@ app.get('/api/anime/browse',async c=>{
    genre:genre||undefined,type:type||undefined,minScore:score||undefined,year:year||undefined,
    order:order as BrowseFilters['order']}))
  }catch{return c.json({error:'CATALOG_UNAVAILABLE'},503)}
+})
+app.get('/api/anime/:id/watch-guide',async c=>{
+ const id=validId(c.req.param('id'));if(!id)return c.json({error:'INVALID_ID'},400)
+ try{return c.json(await getWatchGuide(id))}
+ catch{return c.json({error:'WATCH_GUIDE_UNAVAILABLE'},503)}
 })
 app.get('/api/anime/:id',async c=>{
  const id=validId(c.req.param('id'));if(!id)return c.json({error:'INVALID_ID'},400)

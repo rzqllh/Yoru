@@ -35,6 +35,12 @@ Last updated: 2026-10-30, Asia/Jakarta. Source of truth: **GitHub**, not remembe
 ## In-progress changes
 - Adaptive quality branch rebased onto actual preview after tracker #45 squash. Prior #46 had clean source CI (64263345b) but could not merge due base history conflict; replacement PR is tracked separately. Do not claim rebased head verified until its own exact-SHA checks pass.
 
+## Latest verified integration checkpoint
+- PR #48 quality: CI+E2E passed at b7219869 and merged preview 8b82c1fd (not live playback proof).
+- Original watch-guide PR #47 was CI+E2E green at 58303a16 but required clean rebase after #45 squash. Replacement branch: feat/yoru-watch-guide-rebased-20261030; exact new head must pass tests before merge.
+- Watch Guide currently surfaces ONLY direct AniList links and release dates; curated Recommended/Chronology modes disabled. Fate/Slime/SAO full routes unimplemented.
+- Torrentio classification PR #49 is separate and does NOT provide a live torrent resolver.
+
 ## Architecture boundaries
 - `frontend/src/App.tsx`: UI state, home, browse, library, detail. `frontend/src/components/Player.tsx`: direct media player and subtitle controls.
 - `backend/pipeline/jikan.ts`: Jikan/Tenrai catalog API; separate AniList relations may need new fixed-host API with strict timeouts.
