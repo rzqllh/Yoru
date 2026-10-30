@@ -853,5 +853,5 @@ test('unsupported URL filters are discarded and long-tail historical year is sel
  await expect(page.getByRole('combobox',{name:'Tahun rilis'})).toHaveValue('1965')
  await expect(page.getByRole('combobox',{name:'Skor minimum'})).toHaveValue('0')
  await expect(page.getByRole('combobox',{name:'Urutkan anime'})).toHaveValue('default')
- await expect(page.getByRole('button',{name:'Musim ini'})).toHaveAttribute('aria-pressed','true')
+ await expect(page.getByRole('button',{name:'Musim ini',exact:true})).toHaveAttribute('aria-pressed','true')
 })
