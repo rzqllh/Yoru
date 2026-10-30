@@ -34,11 +34,11 @@ Tunggu dua layanan menyala, lalu buka **http://127.0.0.1:5173**. Jangan tutup te
 
 Coba alurnya:
 1. Buka **Beranda** dan **Jelajahi** saat online; katalog datang dari Tenrai.
-2. Cari satu judul anime lalu buka detailnya.
-3. Buka **Pengaturan → Test player** untuk video HLS pendek dengan track WebVTT **Bahasa Indonesia**.
+2. Cari satu judul anime lalu buka detailnya. Pilih **Urutan cerita** atau **Jelajahi → Panduan urutan anime** jika ingin melihat hubungan prekuel/sekuel; saat ini urutan yang aktif baru berdasarkan tanggal rilis AniList.
+3. Buka **Pengaturan → Coba pemutar** untuk video HLS pendek dengan track WebVTT **Bahasa Indonesia**.
 4. Buka **Koleksi** untuk menyimpan anime. Data ini tersimpan di browser yang digunakan.
 
-Video contoh bukan episode anime. Setelah metadata termuat, detail anime menyediakan player embed eksternal dengan sinkronisasi progres tontonan ke IndexedDB lokal. Subtitle bawaan pemutar embed umumnya berbahasa Inggris. Untuk sumber video HLS/MP4 mandiri dan takarir Bahasa Indonesia, lihat [Panduan provider](providers.md).
+Video contoh bukan episode anime. Setelah metadata termuat, detail anime menyediakan player embed eksternal dengan sinkronisasi progres tontonan ke IndexedDB lokal. Subtitle pemutar embed bergantung pada layanan eksternal dan tidak dapat dijamin bahasanya. Untuk sumber video HLS/MP4 mandiri dan takarir Bahasa Indonesia, lihat [Panduan provider](providers.md).
 
 ## 4. Coba versi PWA
 
@@ -61,3 +61,5 @@ Buka **http://127.0.0.1:8787** dari komputer yang menjalankan server. Pada Chrom
 - **Data koleksi:** gunakan fitur ekspor backup di Pengaturan sebelum membersihkan data situs.
 
 Butuh bantuan? [Troubleshooting](troubleshooting.md). Untuk kontribusi: [Development](development.md).
+
+**Catatan preview:** Ketika ada kandidat source torrent berbasis hash, Yoru menampilkannya sebagai **belum bisa diputar**. Tidak ada engine torrent/debrid bawaan dan pengujian iPhone Safari fisik belum dituntaskan. Lihat [status rilis](releases.md).
