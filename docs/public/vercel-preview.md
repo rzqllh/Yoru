@@ -26,3 +26,11 @@ Yoru supports the standard Stremio `/stream/series/...` and `/subtitles/series/.
 This preview does **not** close issue #20. Validate: `/api/health`, catalog routes, deep links, service worker and demo media; separately verify real video streams, provider credentials/subtitle download, device Safari, traffic limits, and deployment observability before production release.
 
 Do not deploy the `main` branch to production without an explicit owner release decision.
+
+## Current UX and source behavior
+
+The preview branch contains a secondary `/jelajahi/panduan-urutan` route, local one-tap resume, adaptive HLS quality, and native WebVTT appearance controls. Source responses from mapped Stremio addons distinguish playable HTTPS HLS/MP4 candidates from disabled Torrentio-style `infoHash` descriptors. **No torrent engine, debrid, or automatic hash-to-video resolver** is bundled.
+
+A Vercel build marked `READY` does not establish that the `/api/health` route, AniList metadata, or any live media/subtitle provider works from a real user's device. Preview deployments may be protected by Vercel SSO; do not disable protection just to make smoke tests pass. All media tests and credentials must be verified separately before release.
+
+Implementation tracking: [UX roadmap](https://github.com/rzqllh/Yoru/issues/44). Public release remains blocked by [issue #20](https://github.com/rzqllh/Yoru/issues/20).
