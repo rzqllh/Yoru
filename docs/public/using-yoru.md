@@ -8,6 +8,8 @@ Yoru adalah PWA untuk mencari anime, melihat hubungan cerita, menyimpan koleksi,
 
 Di **Jelajahi**, pilih Musim ini, Populer atau Akan datang. Gunakan pencarian, genre, jenis anime, skor, tahun, dan urutan hasil. Hasil membutuhkan koneksi ke layanan katalog.
 
+Pilihan filter sekarang tersimpan di **alamat URL** (genre, jenis, skor minimum, tahun dan urutan). Tautan bisa dibagikan; tombol Back/Forward dan reload mempertahankan pilihan. Chip filter dapat dihapus satu per satu atau gunakan Reset filter. Nama kategori Populer/Akan datang tetap ada dalam URL saat filter aktif. Tahun lama tersedia sejak 1950; filter hanya membatasi katalog, bukan memastikan videonya tersedia.
+
 ## Urutan season, OVA dan movie
 
 Buka **Jelajahi → Panduan urutan anime** atau **Urutan cerita** di detail anime.
