@@ -2702,3 +2702,9 @@ body {
 .guide-curated-steps li.guide-step-done{opacity:.72}
 .guide-curated-steps li.guide-step-done .guide-path-number{color:var(--soft)}
 @media(max-width:600px){.guide-path-progress-actions{width:100%}.guide-path-progress-actions button{width:100%;justify-content:center}}
+
+/* Distinguish candidate metadata, provider errors and actual browser verification. */
+.source-feedback{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-2);color:var(--soft);font-size:13px;line-height:1.5}
+.source-feedback svg{flex-shrink:0;margin-top:2px}
+.source-feedback-failed,.source-feedback-degraded{border-color:var(--line-strong);color:var(--text)}
+.source-feedback-checking,.source-feedback-searching{font-style:normal}

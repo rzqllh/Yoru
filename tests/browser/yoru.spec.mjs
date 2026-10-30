@@ -744,3 +744,36 @@ test('manual franchise path completion persists separately for alternate routes 
  await expect(guide.getByText('0 dari 7 langkah ditandai selesai')).toBeVisible()
  await expect.poll(async()=>JSON.parse(await key()).completed).toBe(0)
 })
+
+
+test('provider outage displays failure rather than falsely claiming no video exists',async({page})=>{
+ await page.route('**/api/streams?**',route=>route.fulfill({status:503,json:{error:'PROVIDER_UNAVAILABLE'}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog.getByRole('status').filter({hasText:'Semua penyedia video gagal dihubungi.'})).toBeVisible()
+ await expect(dialog.getByRole('button',{name:/Coba video alternatif/})).toBeEnabled()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
+})
+test('mixed provider failures retain candidates and report partial metadata uncertainty',async({page})=>{
+ await page.route('**/api/anime/1/provider-episodes',route=>route.fulfill({json:{items:[
+  {id:'healthy:1',animeId:'mal:1',number:1,title:'Episode 1',providerId:'healthy'},
+  {id:'unreachable:1',animeId:'mal:1',number:1,title:'Episode 1',providerId:'unreachable'}
+ ]}}))
+ await page.route('**/api/streams?**',route=>{
+  const ep=new URL(route.request().url()).searchParams.get('episodeRef')
+  if(ep==='unreachable:1')return route.fulfill({status:503,json:{error:'Provider down'}})
+  return route.fulfill({json:{items:[
+   {id:'a',format:'hls',url:'https://media.example.test/a.m3u8',tracks:[],subtitleMode:'unknown'},
+   {id:'b',format:'mp4',url:'https://media.example.test/b.mp4',tracks:[],subtitleMode:'unknown'}
+  ]}})
+ })
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog.getByRole('status').filter({hasText:/Sebagian penyedia gagal dihubungi/})).toBeVisible()
+ await expect(dialog.locator('.source-options button')).toHaveCount(2)
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
+})

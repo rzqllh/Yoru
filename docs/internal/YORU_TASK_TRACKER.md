@@ -15,7 +15,7 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | ID | Priority | Scope | Current state | Evidence / remaining acceptance |
 |---|---|---|---|---|
 | YX-01 | P0 | One-tap resume | **TESTED code** | PR [#52](https://github.com/rzqllh/Yoru/pull/52), exact head `330b7abc` CI/E2E PASS; native source rechecked, saved episode position |
-| YX-02 | P0 | Honest episode/source lifecycle | **CODED partial** | Candidate vs playable label and disabled torrent metadata; full loaded/verified/failed lifecycle UX pending |
+| YX-02 | P0 | Honest episode/source lifecycle | **CODED expanded (exact CI/E2E pending)** | Native candidate, checking, verified, degraded provider response, failed and no-direct states with UX; remains subject to live provider test |
 | YX-03 | P0 | Verified HLS quality choices | **TESTED code** | PR [#48](https://github.com/rzqllh/Yoru/pull/48), head `b7219869` CI/E2E PASS; Auto default, manifest-backed options |
 | YX-04 | P0 | Native subtitle styling | **TESTED code, live device pending** | PR [#55](https://github.com/rzqllh/Yoru/pull/55), head `40a2bb88` CI/E2E PASS; font, size, opacities, outline, conditional VTTCue position, preview |
 | YX-05 | P0 | iPhone Safari physical acceptance | **BLOCKED** | Real iPhone OS/model and playback/fullscreen/PiP/subtitle/PWA validation |
@@ -73,6 +73,13 @@ These are code acceptance results. **None** are evidence that real torrent strea
 - Does NOT assert any video has been played. No automatic mark-watched based on provider state. Existing library and episode progress remain untouched.
 - New unit + browser persistence/undo/alternative-route tests PASS on the exact feature head; source/provider live testing and physical Safari not done.
 - Next: complete editorial long-tail dataset, implement verified provider/episode integration if approved; manual path progress already backed up with v1. Public documentation updated in separate final docs PR.
+
+## 2026-10-30 — YX-02 source truthfulness enhancement (unmerged)
+- Active branch `feat/yoru-source-lifecycle-20261030` based on preview `c09d333042b5bc0981c14d86e145aa67a6991dd5`.
+- Source search consolidates successful and failed provider responses independently, distinguishes **no candidate** from **failed service**, and shows candidate status as unverified. Native verification starts only after user choice/auto-single candidate. Single-candidate failure keeps source picker with opt-in external fallback; no false Play or quality claims.
+- Monotonic request ID prevents stale responses from changing the selected episode after a newer request; closing picker cancels current status updates.
+- Node unit tests and Chromium browser E2E for outage/partial failures added. **CI/E2E not yet verified**; do not merge before exact head PASS. No provider live coverage or Safari physical evidence.
+- Public docs update only after implementation merge. Main/prod remain blocked by #20.
 
 ## Next independently resumable lanes
 
