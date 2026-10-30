@@ -54,12 +54,12 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
    <input id="watch-guide-search" type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Cari judul untuk melihat hubungan ceritanya…"/>
    <div className="guide-chips">{suggestions.map(term=><button type="button" key={term} onClick={()=>setQuery(term)}>{term}</button>)}</div>
    {searchLoading&&<p role="status">Mencari judul…</p>}
-   {matches.length>0&&<div className="guide-results" aria-label="Hasil pencarian panduan">
+   {matches.length>0&&<section className="guide-results" aria-label="Hasil pencarian panduan">
     {matches.map(anime=><button type="button" key={anime.malId} onClick={()=>{onPick(anime.malId);setMatches([])}}>
      <span><strong>{anime.title}</strong><small>{anime.type} · {anime.year??'Tahun tidak diketahui'}</small></span>
      <ArrowRight size={17}/>
     </button>)}
-   </div>}
+   </section>}
   </div>
   {!malId&&<div className="guide-information">
    <BookOpen size={20}/><p>Pilih salah satu judul. Hubungan prekuel, sekuel, dan spin-off diambil dari metadata AniList. Panduan terkurasi untuk franchise bercabang belum tersedia.</p>
@@ -71,11 +71,11 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
     <h2>Judul yang saling berhubungan</h2>
     <p>Urutan rilis menurut tanggal metadata, bukan rekomendasi urutan menonton.</p>
    </div><a href={data.sourceUrl} target="_blank" rel="noopener noreferrer">Sumber: AniList</a></div>
-   <div className="guide-mode" role="group" aria-label="Jenis urutan anime">
+   <fieldset className="guide-mode"><legend className="sr-only">Jenis urutan anime</legend>
     <button type="button" disabled title="Belum terkurasi">Disarankan</button>
     <button type="button" disabled title="Belum ada kronologi cerita terverifikasi">Kronologi</button>
     <button type="button" aria-pressed="true" className="active">Urutan rilis</button>
-   </div>
+   </fieldset>
    <div className="guide-information"><Info size={18}/><p>Daftar ini hanya mencakup hubungan langsung dari judul terpilih, bukan seluruh franchise. Jalur alternatif tidak otomatis mengikuti cerita utama. Urutan lengkap membutuhkan kurasi tambahan.</p></div>
    <div className="guide-entries">{ordered.map((item,index)=><div className="guide-entry" key={item.aniListId}>
     <div className="guide-order">{String(index+1).padStart(2,'0')}</div>
