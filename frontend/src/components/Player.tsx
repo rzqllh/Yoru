@@ -749,9 +749,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <label>Ukuran <select aria-label="Ukuran subtitle" value={captionSize} onChange={event=>saveCaptionStyle(captionFont,Number(event.target.value),captionBackdrop,captionScope)}>
      {[75,100,125,150].map(size=><option value={size} key={size}>{size}%</option>)}
     </select></label>
-    <label>Latar subtitle <select aria-label="Background subtitle" value={captionBackdrop} onChange={event=>saveCaptionStyle(captionFont,captionSize,event.target.value as 'dark'|'clear',captionScope)}>
-     <option value="dark">Gelap</option><option value="clear">Transparan</option>
-    </select></label>
+
     <label>Transparansi teks <select aria-label="Transparansi teks subtitle" value={captionTextOpacity} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,captionScope,{textOpacity:Number(event.target.value) as 50|75|100})}>
      <option value={100}>100%</option><option value={75}>75%</option><option value={50}>50%</option>
     </select></label>
@@ -767,6 +765,15 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <label>Simpan untuk <select aria-label="Lingkup preferensi subtitle" value={captionScope} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,event.target.value as 'global'|'anime')}>
      <option value="global">Seluruh Yoru</option><option value="anime">Anime ini</option>
     </select></label>
+   </div>
+   <div className={`caption-preview caption-preview-${captionPosition}`} aria-label="Pratinjau gaya subtitle">
+    <span style={{
+     fontFamily:captionFont==='serif'?'Georgia,serif':'Arial,sans-serif',
+     fontSize:`${Math.max(12,Math.round(captionSize*0.16))}px`,
+     color:`rgba(255,255,255,${captionTextOpacity/100})`,
+     backgroundColor:`rgba(0,0,0,${captionBackgroundOpacity/100})`,
+     textShadow:captionOutline===0?'none':captionOutline===1?'0 1px 2px #000,0 0 3px #000':'1px 1px 4px #000,-1px -1px 4px #000,0 0 5px #000'
+    }}>Contoh subtitle Bahasa Indonesia</span>
    </div>
    <small role="status">{subtitleSearch?'Mencari subtitle…':subtitleState||'Pilih subtitle yang tersedia untuk video ini.'}</small>
    </>}
