@@ -629,3 +629,44 @@ test('Torrentio hash-only video is clearly disabled while verified-source fallba
  await expect(dialog.getByRole('button',{name:/Coba video alternatif/})).toBeEnabled()
  await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
 })
+
+
+test('generic franchise guide expands on demand, filters alternatives and never calls them canon',async({page})=>{
+ const base={
+  source:'AniList',sourceUrl:'https://anilist.co/anime/10',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:10,malId:1,title:'Generic Anime',format:'TV',year:2024,month:1,relation:'CURRENT',image:null},
+   {aniListId:11,malId:11,title:'Generic Sequel',format:'TV',year:2025,month:1,relation:'SEQUEL',image:null}
+  ]
+ }
+ let graphCalls=0
+ await page.route('**/api/anime/1/watch-guide?depth=2',route=>{
+  graphCalls++
+  return route.fulfill({json:{...base,graph:{
+   status:'expanded',scannedDirect:1,directTotal:1,truncated:false,
+   note:'Maksimal dua tingkat hubungan dari judul ini. Ini bukan kronologi canon atau panduan menonton terkurasi.',
+   edges:[{from:10,to:11,relation:'SEQUEL'},{from:11,to:12,relation:'ALTERNATIVE'}],
+   nodes:[
+    {...base.items[0],distance:0,viaAniListId:null},
+    {...base.items[1],distance:1,viaAniListId:10},
+    {aniListId:12,malId:null,title:'Generic Alternate Movie',format:'MOVIE',
+     year:2022,month:2,relation:'ALTERNATIVE',image:null,distance:2,viaAniListId:11}
+   ]
+  }}})
+ })
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:base}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ await expect(page.getByRole('heading',{name:'Jaringan judul yang berhubungan'})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+ await expect(page.getByText('Generic Alternate Movie')).toHaveCount(0)
+ await expect.poll(()=>graphCalls).toBe(0)
+ await page.getByRole('button',{name:/Perluas hubungan/}).click()
+ await expect(page.getByText('Generic Alternate Movie')).toBeVisible()
+ await expect.poll(()=>graphCalls).toBe(1)
+ await page.getByRole('button',{name:/Cabang cerita/}).click()
+ await expect(page.getByText('Generic Alternate Movie')).toBeVisible()
+ await expect(page.getByText('Generic Sequel',{exact:true})).toHaveCount(0)
+ await expect(page.getByRole('button',{name:'Belum terpetakan'})).toBeDisabled()
+ await expect(page.getByText(/Ditemukan melalui Generic Sequel/)).toBeVisible()
+ await expect(page.getByText(/bukan daftar franchise lengkap/)).toBeVisible()
+})
