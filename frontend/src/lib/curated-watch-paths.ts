@@ -10,7 +10,7 @@ export type PathStep={
  optional:boolean;note:string;episodeRange?:{start:number;end:number;edition:string}
 }
 export type CuratedPath={
- id:string;franchise:string;title:string;pathType:'newcomer'|'alternative'|'source-order'|'broadcast';
+ id:string;franchise:string;title:string;pathType:'newcomer'|'alternative'|'source-order'|'broadcast'|'chronology';
  scope:'selected-route';reviewedAt:string;spoilerRisk:'low'|'contextual';
  note:string;anchorAniListIds:number[];
  sources:{title:string;url:string;checkedAt:string}[];
@@ -131,4 +131,12 @@ export function validateCuratedPaths(paths:readonly CuratedPath[]):string[]{
 export function discoverCuratedPaths(anilistIds:readonly number[]):CuratedPath[]{
  const available=new Set(anilistIds)
  return CURATED_WATCH_PATHS.filter(path=>path.anchorAniListIds.some(id=>available.has(id)))
+}
+
+/** A story chronology must be a separately reviewed, sourced editorial path.
+ * Recommendations, episode broadcast order, and AniList relations do not qualify.
+ * No current bundled route is classified as in-story chronology.
+ */
+export function getStoryChronologyPath(paths:readonly CuratedPath[]):CuratedPath|null{
+ return paths.find(path=>path.pathType==='chronology'&&validateCuratedPaths([path]).length===0)??null
 }
