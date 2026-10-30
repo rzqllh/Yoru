@@ -16,7 +16,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 |---|---|---|---|---|
 | YX-01 | P0 | One-tap continue playback | PLANNED | Correct episode + resume; verified native source; graceful source-choice fallback |
 | YX-02 | P0 | Episode availability and source truth | PLANNED | Metadata candidate/verified/failed states never conflated |
-| YX-03 | P0 | Honest adaptive quality controls | CODED (rebased; exact CI pending) | Auto as initial choice; no phantom 1080p; unsupported disabled |
+| YX-03 | P0 | Honest adaptive quality controls | TESTED (PR #48; exact head b7219869; CI+E2E PASS) | Auto as initial choice; no phantom 1080p; unsupported disabled |
 | YX-04 | P0 | Subtitle appearance and placement | PLANNED | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
 | YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
 | YX-06 | P0 | Source memory/recovery and smart next | PLANNED | Verified source remembering; bounded recovery; manual consent |
@@ -31,7 +31,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 | YX-15 | P1 | UI design system + microcopy | PLANNED | Canonical CSS tokens, coherent radius/space/color, WCAG/HIG, no marketing fluff |
 | YX-16 | P1 | Visual load and performance | PLANNED | Lazy poster loading, correct sizing, measured CWV |
 | YX-17 | P1 | First-run and recovery UX | PLANNED | Actionable error states; transparent setup; backup reassurance |
-| YX-18 | P0 | Stremio/Torrentio response parity | PLANNED | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
+| YX-18 | P0 | Stremio/Torrentio response parity | CODED (parser capability only; CI pending) | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
 | YX-19 | P0 | Opt-in torrent-capable playback path | BLOCKED | Explicit verified playback engine/resolver; browser/platform limitations and secure config |
 | YX-20 | P0 | Real video/subtitle compatibility matrix | BLOCKED | Independent real examples, codecs, source access, safe URL checks, user approval and device proof |
 | YX-21 | P0 | QA and release gates | BLOCKED | Exact-SHA CI+E2E, physical iPhone, no unresolved P0/P1, release issue #20 |
@@ -45,6 +45,8 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- Quality PR #48 merged preview as `8b82c1fd` (CI+Browser E2E green on `b7219869`; not live streaming proof).
+- Lane D `feat/yoru-torrentio-capabilities-20261030`: explicit IMDb stream IDs, truthful torrent/hash classification; does not itself add playable torrent resolver or public-stream endpoint. QA pending.
 - Rebased Lane B: previous feature SHA `64263345b` passed CI+Browser E2E, but #46 conflicted after #45 squash. New clean branch `feat/yoru-honest-quality-rebased-20261030` needs new exact-SHA checks before merge.
 | Date | PR / exact commit | Done | Evidence | Next |
 |---|---|---|---|---|
