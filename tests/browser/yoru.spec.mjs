@@ -793,7 +793,7 @@ test('edition-aware Haruhi route switches 2006 broadcast and 2009 re-airing with
  const guide=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
  await expect(guide.getByRole('button',{name:'2006: urutan siaran asli (14 episode)'})).toHaveAttribute('aria-pressed','true')
  await expect(guide.locator('.guide-curated-steps li')).toHaveCount(14)
- await expect(guide.getByText('Episode 01 — The Adventures of Mikuru Asahina Episode 00')).toBeVisible()
+ await expect(guide.getByText('Episode 01 — The Adventures of Mikuru Asahina Episode 00',{exact:true})).toBeVisible()
  await expect(guide.getByText('Episode 1 · edisi siaran asli 2006 (14 episode)')).toBeVisible()
  await guide.getByRole('button',{name:'2009: susunan 28 episode + film'}).click()
  await expect(guide.locator('.guide-curated-steps li')).toHaveCount(29)
