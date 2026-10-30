@@ -686,7 +686,7 @@ test('curated Fate routes are sourced, switchable and never presented as one can
  await expect(curated.getByRole('button',{name:'Mulai Fate lewat anime modern'})).toHaveAttribute('aria-pressed','true')
  await expect(curated.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'})).toBeVisible()
  await expect(curated.getByRole('link',{name:/Anime Meridian/})).toBeVisible()
- await expect(curated.getByText('Fate/stay night: Unlimited Blade Works (2014)')).toBeVisible()
+ await expect(curated.getByText('Fate/stay night: Unlimited Blade Works (2014)',{exact:true})).toBeVisible()
  await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
  await curated.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'}).click()
  await expect(curated.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'})).toHaveAttribute('aria-pressed','true')
