@@ -20,8 +20,8 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 | YX-04 | P0 | Subtitle appearance and placement | PLANNED | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
 | YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
 | YX-06 | P0 | Source memory/recovery and smart next | PLANNED | Verified source remembering; bounded recovery; manual consent |
-| YX-07 | P0 | Franchise relations on detail | PLANNED | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
-| YX-08 | P1 | Discovery watch-guide subpage | PLANNED | `/jelajahi/panduan-urutan`; no extra primary category tab |
+| YX-07 | P0 | Franchise relations on detail | CODED (direct links only; CI pending) | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
+| YX-08 | P1 | Discovery watch-guide subpage | CODED (search + direct relations; CI pending) | `/jelajahi/panduan-urutan`; no extra primary category tab |
 | YX-09 | P1 | Branching franchise curated paths | PLANNED | Fate etc branching, optionality, spoiler protection; no guessed chronology |
 | YX-10 | P1 | Franchise progress/next-in-path | PLANNED | Local-first versioned migration + backup compatibility |
 | YX-11 | P1 | Search suggestions + aliases | PLANNED | Truthful supported metadata, accessible keyboard navigation |
@@ -45,6 +45,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- Lane A: `feat/yoru-watch-guide-foundation-20261030` implements verifiable first-degree AniList relations, source attribution, separate guide route, and disabled unverified Recommended/Chronology modes. This is NOT a full curated Fate/SAO/Slime path. Tests/CI pending.
 | Date | PR / exact commit | Done | Evidence | Next |
 |---|---|---|---|---|
 | 2026-10-30 | Planning checkpoint, preview `c80150d` | Owner approved UX improvements, branching watch guide, subtitle controls and Torrentio-style source path; epic #44 created | GitHub repository inspected; no new feature tests run | Tracking/handoff PR, then isolated vertical slices |
