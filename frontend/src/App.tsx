@@ -943,7 +943,8 @@ function DetailDialog({
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
    const availableResponses=results.flatMap(result=>result.status==='fulfilled'?[result.value]:[])
    const items=availableResponses.flatMap(result=>result.items)
-   const unavailable=availableResponses.flatMap(result=>result.unavailable??[]).slice(0,20)
+   const unavailable=Array.from(new Map(availableResponses.flatMap(result=>result.unavailable??[])
+    .map(item=>[`${item.kind}:${item.label}:${item.reason}`,item] as const)).values()).slice(0,20)
    const native=rankNativeStreams(items)
    if(!native.length){
     setChoices({episode:ep.number,items:[embedCandidate(ep.number)],unavailable})
@@ -1016,7 +1017,7 @@ function DetailDialog({
        </span>
        <Play size={16}/>
       </button>)}
-      {choices.unavailable?.map((candidate,i)=><button type="button" disabled key={`unavailable-${i}`} title={candidate.reason} aria-label={`${candidate.label} · Belum bisa diputar`}>
+      {choices.unavailable?.map(candidate=><button type="button" disabled key={`${candidate.kind}:${candidate.label}:${candidate.reason}`} title={candidate.reason} aria-label={`${candidate.label} · Belum bisa diputar`}>
        <Info size={17}/>
        <span><strong>{candidate.label} · Belum bisa diputar</strong><small>{candidate.reason}</small></span>
       </button>)}
