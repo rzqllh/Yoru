@@ -23,7 +23,7 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | YX-07 | P0 | Franchise links from anime detail | **TESTED expanded metadata** | PR [#50](https://github.com/rzqllh/Yoru/pull/50) first-degree + [#58](https://github.com/rzqllh/Yoru/pull/58) two-hop, exact head `c5d94c7` CI/E2E PASS; not canon chronology |
 | YX-08 | P1 | Secondary Watch Guide in Jelajahi | **TESTED expanded metadata** | PR #58, search plus opt-in two-hop graph and type filters, source and incomplete-result notices |
 | YX-09 | P1 | Universal watch-order research, graph + curated pathways | **TESTED partial (#58 + #62)** | Generic 2-hop source graph; verified-source editorial options for Fate/Monogatari in PR #62 head `ff104181` CI+Browser E2E PASS; remaining franchise/edition/episode-level coverage OPEN |
-| YX-10 | P1 | Franchise-path progress & next entry | **CODED partial (exact CI pending)** | Manual per-route step checklist and next-step hint via existing IndexedDB preferences/backup. Automatic playback linking and full season/episode progress pending |
+| YX-10 | P1 | Franchise-path progress & next entry | **TESTED partial (#64)** | Manual per-route completion, undo, next-step, backed up via existing preferences; exact feature head `5f7c373` CI+Browser E2E PASS. Automated playback-linked / episode-level tracking remains OPEN |
 | YX-11 | P1 | Search suggestions/aliases | **PLANNED** | Need verified alias data and keyboard UX |
 | YX-12 | P1 | Browse filter state in URL, chips and range | **PLANNED** | Existing filters work; refinement pending |
 | YX-13 | P1 | Local personalized home/library enhancement | **PLANNED** | Existing watchlist/resume only; new product UX pending |
@@ -50,6 +50,8 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | #56 disabled torrent source choices | `ea4c9b45` | `d4aa24d7` | Linux/Windows CI + Chromium/WebKit |
 | #62 sourced editorial route options | `d5651b1a` | `ff104181` | Linux/Windows CI + Chromium/WebKit; editorial scope limited to pilot sources |
 
+| #64 manual path progress | `27e87bdb` | `5f7c373e` | Linux/Windows CI + Chromium/WebKit; manual data and backup-compatible preferences |
+
 These are code acceptance results. **None** are evidence that real torrent streaming works, an AniList franchise guide is complete, or Safari physical/prod is signed off.
 
 ## 2026-10-30 — universal watch-order graph verified checkpoint
@@ -66,12 +68,12 @@ These are code acceptance results. **None** are evidence that real torrent strea
 - Open: comprehensive franchise coverage and edition-specific episode insertion; community correction submissions remain manual and need review; real upstream stream availability, Safari and production release remain unverified.
 - Public docs updated in final documentation PR following #62 integration.
 
-## 2026-10-30 — manual watch-path progress checkpoint
-- Branch `feat/yoru-manual-watch-path-progress-20261030` on preview after PR #63 merge `6967cd0db1e64005510a0ed47a00769c0b298fcf`.
-- YX-10 CODED PARTIAL: manual step progress per curated `pathId`, label of next step, undo control, progress isolation across alternative routes, existing `preferences` store + v1 backup export/import (no IndexedDB schema migration).
+## 2026-10-30 — manual watch-path progress checkpoint (merged #64)
+- PR [#64](https://github.com/rzqllh/Yoru/pull/64) merged preview as `27e87bdb3d8954195acc23da6cd2621b3d8098e4`; exact head `5f7c373e831f536e97271c09c710321cc2750f01` CI Linux/Windows and Browser E2E Chromium/WebKit PASS.
+- YX-10 TESTED PARTIAL: manual step progress per curated `pathId`, label of next step, undo control, progress isolation across alternative routes, existing `preferences` store + v1 backup export/import (no IndexedDB schema migration).
 - Does NOT assert any video has been played. No automatic mark-watched based on provider state. Existing library and episode progress remain untouched.
-- New Node unit + browser persistence tests; CI/Browser E2E pending exact PR SHA.
-- Next: verify, merge tested PR preview only; then update public documentation and issue #44. Remaining YX-10 advanced episode-level progress is open.
+- New unit + browser persistence/undo/alternative-route tests PASS on the exact feature head; source/provider live testing and physical Safari not done.
+- Next: complete editorial long-tail dataset, implement verified provider/episode integration if approved; manual path progress already backed up with v1. Public documentation updated in separate final docs PR.
 
 ## Next independently resumable lanes
 
