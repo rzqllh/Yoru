@@ -7,7 +7,7 @@ import {getDailyAnimeTrends} from '../pipeline/daily-trends.js'
 import {getWatchGuide} from '../pipeline/watch-guide.js'
 import { getAnime, getAnimeEpisodes, getDiscover, searchAnime, browseAnime, type BrowseFilters } from '../pipeline/jikan.js'
 import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../providers/local.js'
-import {getStremioConfig,getStremioEpisodes,getStremioStreams} from '../providers/stremio.js'
+import {getStremioConfig,getStremioEpisodes,getStremioSourceCandidates} from '../providers/stremio.js'
 import {externalStream} from '../providers/public-embed.js'
 import {getMiruroEpisodes,getMiruroStreams,isMiruroConfigured} from '../providers/miruro.js'
 import {downloadSubtitle,findSubtitles,toWebVtt,subtitleStatus,verifySubtitleGrant,type SubtitleProvider} from '../providers/subtitles.js'
@@ -100,7 +100,8 @@ app.get('/api/streams',async c=>{
  const ref=c.req.query('episodeRef')||''
  const start=Number(c.req.query('start')||'0')
  if(ref.length>160||!(/^[a-z0-9-]+:[1-9]\d*:[1-9]\d*$/.test(ref)))return c.json({error:'INVALID_EPISODE_REF'},400)
- try{return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('stremio-')?await getStremioStreams(ref):ref.startsWith('miruro-')?await getMiruroStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
+ try{if(ref.startsWith('stremio-'))return c.json(await getStremioSourceCandidates(ref))
+  return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('miruro-')?await getMiruroStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
 })
 
 app.get('/api/subtitles/status',c=>c.json({configured:subtitleStatus()}))
