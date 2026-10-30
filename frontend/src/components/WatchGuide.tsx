@@ -105,12 +105,14 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
     {selectedCurated.spoilerRisk==='contextual'&&<div className="guide-information"><Info size={17}/>
      <p>Rute ini dapat memperlihatkan hubungan cerita lebih awal daripada urutan rilis. Sinopsis episode dan twist sengaja tidak dicantumkan.</p></div>}
     <ol className="guide-curated-steps">
-     {selectedCurated.steps.map(step=>{
+     {selectedCurated.steps.map((step,index)=>{
       const matched=step.aniListId?entryById.get(step.aniListId):undefined
       return <li key={`${selectedCurated.id}:${step.aniListId??step.title}`}>
+       <span className="guide-path-number" aria-hidden="true">{String(index+1).padStart(2,'0')}</span>
        <div><strong>{step.title}</strong>
         <small>{step.kind} · {step.optional?'Opsional dalam rute ini':'Bagian dari rute ini'}</small>
         <p>{step.note}</p>
+        {step.episodeRange&&<small>Episode {step.episodeRange.start}–{step.episodeRange.end} · edisi {step.episodeRange.edition}</small>}
        </div>
        {matched?.malId?<button type="button" className="btn btn-outline" onClick={()=>{if(matched?.malId)onOpenAnime(matched.malId)}}>Buka detail</button>:
         step.aniListId?<a href={`https://anilist.co/anime/${step.aniListId}`} target="_blank" rel="noopener noreferrer">Lihat di AniList</a>:
