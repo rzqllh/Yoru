@@ -4,7 +4,7 @@
  * This registry is extensible by PR with verifiable sources and review dates.
  */
 export type PathStep={
- title:string;aniListId:number|null;kind:'TV'|'MOVIE'|'OVA'|'SPECIAL'|'GROUP';
+ title:string;aniListId:number|null;kind:'TV'|'MOVIE'|'OVA'|'ONA'|'SPECIAL'|'GROUP';
  optional:boolean;note:string;episodeRange?:{start:number;end:number;edition:string}
 }
 export type CuratedPath={
@@ -84,7 +84,7 @@ export const CURATED_WATCH_PATHS:readonly CuratedPath[]=[
    entry('Hanamonogatari',null,'TV','Rilis terpisah; peletakan novel dan anime berbeda.'),
    entry('Tsukimonogatari',null,'SPECIAL','Lanjutkan kisah utama.'),
    entry('Owarimonogatari (bagian pertama)',null,'TV','Edisi layanan bisa memecah episode dengan cara berbeda.'),
-   entry('Koyomimonogatari',null,'OVA','Tonton sebagai instalmen tersendiri menurut rute editorial ini.'),
+   entry('Koyomimonogatari',null,'ONA','Tonton sebagai instalmen tersendiri menurut rute editorial ini.'),
    entry('Owarimonogatari (bagian kedua)',null,'TV','Berlanjut setelah bagian pertama dan instalmen relevan.'),
    entry('Zoku Owarimonogatari',null,'OVA','Rute ini berhenti di sini, tidak mengklaim keseluruhan franchise selesai.')
   ]
