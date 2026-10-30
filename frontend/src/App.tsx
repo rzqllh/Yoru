@@ -35,7 +35,7 @@ import {
  X,
 } from 'lucide-react'
 import type {Anime,Episode,LibraryEntry,LibraryStatus,ProgressEntry,Stream} from './types'
-import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered,dailyTrends,type DailyTrendResponse} from './lib/api'
+import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered,dailyTrends,type DailyTrendResponse,type UnavailableStream} from './lib/api'
 import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime,getPreference,setPreference} from './lib/db'
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {getBreadcrumbs,parseRoute,routeToPath,type RouteState} from './lib/router'
@@ -843,7 +843,7 @@ function DetailDialog({
  const [loading,setLoading]=useState(true)
  const [playing,setPlaying]=useState('')
  const [error,setError]=useState('')
- const [choices,setChoices]=useState<{episode:number;items:Stream[]}|null>(null)
+ const [choices,setChoices]=useState<{episode:number;items:Stream[];unavailable?:UnavailableStream[]}|null>(null)
  useEffect(()=>{
   if(!choices)return
   const frame=requestAnimationFrame(()=>pickerRef.current?.scrollIntoView({block:'nearest',behavior:'auto'}))
@@ -941,16 +941,19 @@ function DetailDialog({
     return
    }
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
-   const items=results.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
+   const availableResponses=results.flatMap(result=>result.status==='fulfilled'?[result.value]:[])
+   const items=availableResponses.flatMap(result=>result.items)
+   const unavailable=Array.from(new Map(availableResponses.flatMap(result=>result.unavailable??[])
+    .map(item=>[`${item.kind}:${item.label}:${item.reason}`,item] as const)).values()).slice(0,20)
    const native=rankNativeStreams(items)
    if(!native.length){
-    setChoices({episode:ep.number,items:[embedCandidate(ep.number)]})
+    setChoices({episode:ep.number,items:[embedCandidate(ep.number)],unavailable})
     return
    }
    if(native.length===1){
     await checkAndWatch(native[0],ep.number)
    }else{
-    setChoices({episode:ep.number,items:native})
+    setChoices({episode:ep.number,items:native,unavailable})
    }
   }catch{
    setError('Belum bisa menyiapkan video. Coba lagi.')
@@ -1013,6 +1016,10 @@ function DetailDialog({
         <small>{stream.format==='embed'?'Pengaturan dan pilihan subtitle mungkin berbeda':'Video akan diperiksa sebelum diputar'}</small>
        </span>
        <Play size={16}/>
+      </button>)}
+      {choices.unavailable?.map(candidate=><button type="button" disabled key={`${candidate.kind}:${candidate.label}:${candidate.reason}`} title={candidate.reason} aria-label={`${candidate.label} · Belum bisa diputar`}>
+       <Info size={17}/>
+       <span><strong>{candidate.label} · Belum bisa diputar</strong><small>{candidate.reason}</small></span>
       </button>)}
      </div>
     </div>}
