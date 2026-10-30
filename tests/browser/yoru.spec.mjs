@@ -570,3 +570,23 @@ test('watch guide is a secondary discover route with truthful unsupported chrono
  await expect(page.getByRole('button',{name:'Belum terpetakan'})).toBeDisabled()
  await expect(page.getByRole('link',{name:'Sumber: AniList'})).toHaveAttribute('href','https://anilist.co/anime/10')
 })
+
+
+test('caption styling settings persist and remain scoped to the native video player',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const player=page.getByRole('main',{name:'Layar tonton'})
+ await player.getByRole('button',{name:/Subtitle ·/}).click()
+ await player.getByRole('combobox',{name:'Transparansi teks subtitle'}).selectOption('75')
+ await player.getByRole('combobox',{name:'Opasitas latar subtitle'}).selectOption('25')
+ await player.getByRole('combobox',{name:'Garis tepi subtitle'}).selectOption('2')
+ await expect(player.locator('video')).toHaveClass(/subtitle-text-75/)
+ await expect(player.locator('video')).toHaveClass(/subtitle-bg-25/)
+ await expect(player.locator('video')).toHaveClass(/subtitle-outline-2/)
+ await player.getByRole('button',{name:'Kembali'}).click()
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ await expect(page.locator('video')).toHaveClass(/subtitle-text-75/)
+ await expect(page.locator('video')).toHaveClass(/subtitle-bg-25/)
+})
