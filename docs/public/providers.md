@@ -88,14 +88,21 @@ Salin `configs/stremio.local.json.example` menjadi `configs/stremio.local.json` 
 
 **Batasan saat ini:**
 - Hanya membaca respons **stream/series** HTTP/JSON dari addon yang telah dimapping.
-- Hanya stream langsung HTTPS **HLS/MP4** dan subtitle track kompatibel; **magnet, torrent, debrid, DRM, scraper JS, addon installer otomatis tidak didukung**.
+- Sumber video langsung HTTPS **HLS/MP4** yang memenuhi syarat dapat dipilih dan diperiksa di browser. Respons `infoHash/fileIdx` bergaya Torrentio dikenali sebagai kandidat **torrent belum dapat diputar** dan ditampilkan disabled beserta alasannya; ini bukan mesin torrent, magnet player, atau debrid.
+- DRM, scraper JS arbitrer dan instalasi addon otomatis tidak disediakan.
 - URL manifest harus HTTPS, domain publik, tanpa kredensial/parameter rahasia.
 - Server membatasi akses jaringan (DNS/IP), timeout, response size dan redirect. URL media tetap dimainkan **langsung oleh browser**; bukan proxy universal.
 - Tidak semua addon menggunakan ID/season/episode yang sama; kompatibilitas harus diuji sendiri.
 
+**ID addon:** `stremioId` dapat berupa ID yang benar-benar diterima addon, termasuk `tt...` (IMDb) jika addon mendukungnya. Pemetaan `malId` → `stremioId`, season, dan episode harus dibuat eksplisit; jangan menganggap angka MAL otomatis sama dengan ID IMDb.
+
+**Torrentio/YTS-style:** sebuah addon dapat mengembalikan URL HTTP yang kompatibel atau metadata torrent `infoHash/fileIdx`. Metadata torrent **bukan** URL media. Yoru saat ini hanya menawarkan pemutaran langsung untuk HLS/MP4 HTTPS yang lolos pemeriksaan; kandidat berbasis hash tidak bisa di-Play sampai tersedia resolver/engine opt-in yang terverifikasi pada perangkat tersebut. Jangan memasukkan URL internal, token dalam URL, atau kredensial di frontend.
+
 ## Sub Indo, kualitas dan fallback
 
-`lang: "id"` menandai track Indonesia, **bukan** jaminan isinya benar. Hardsub sudah menempel di gambar dan tidak dapat dinonaktifkan. File subtitle eksternal harus benar-benar bisa diunduh oleh browser serta memiliki format yang didukung. Jika dua provider menawarkan episode sama, Yoru dapat menampilkan beberapa pilihan stream.
+`lang: "id"` menandai track Indonesia, **bukan** jaminan isinya benar. Hardsub sudah menempel di gambar dan tidak dapat dinonaktifkan. File subtitle eksternal harus benar-benar bisa diunduh oleh browser serta memiliki format yang didukung. Jika dua provider menawarkan episode sama, Yoru dapat menampilkan beberapa pilihan stream. Pilihan resolusi HLS dalam player berasal dari representasi manifest yang benar-benar terdeteksi; default **Auto**. Browser native yang tidak mengekspos pilihan resolusi manual menampilkan kontrol tersebut disabled, bukan angka kualitas yang dikarang.
+
+Untuk WebVTT native, Yoru menyediakan font, ukuran, opasitas teks/latar, outline, posisi yang didukung browser, dan pratinjau. Ini tidak memodifikasi subtitle menyatu di gambar atau pengaturan subtitle dari iframe eksternal.
 
 ## Keamanan konfigurasi
 
@@ -105,7 +112,7 @@ Buka [Panduan penggunaan](using-yoru.md) untuk memilih episode dan memutar media
 
 ## Pilihan C: Coba pemutar eksternal tanpa menyiapkan JSON
 
-Pada detail anime, pilih episode untuk mencoba player embed berbasis MAL ID dari layanan pihak ketiga. Ini **tidak mengonfirmasi episode ada atau bisa ditonton**, tidak menjamin subtitle Indonesia, dan progress dalam iframe tidak masuk ke IndexedDB Yoru. Jika tidak berfungsi, gunakan provider HTTPS pribadi yang terverifikasi. Browser bisa membatasi pemutaran iframe, cookie, dan fullscreen. Link langsung tersedia di panel player untuk diagnosis.
+Pada detail anime, pilih episode untuk mencoba player embed berbasis MAL ID dari layanan pihak ketiga. Ini **tidak mengonfirmasi episode ada atau bisa ditonton**, tidak menjamin subtitle Indonesia, dan progres hanya tersimpan bila player eksternal mengirim event yang diterima melalui protokol terverifikasi; tidak semua iframe mendukungnya. Jika tidak berfungsi, gunakan provider HTTPS pribadi yang terverifikasi. Browser bisa membatasi pemutaran iframe, cookie, dan fullscreen. Link langsung tersedia di panel player untuk diagnosis.
 
 ## External subtitle discovery (release-candidate contract)
 
