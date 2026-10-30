@@ -60,7 +60,7 @@ export async function getStremioEpisodes(animeId:string){
  })
 }
 export async function getStremioSourceCandidates(ref:string){
- const empty={items:[] as Awaited<ReturnType<typeof getStremioStreams>>,unavailable:[] as ReturnType<typeof classifyStremioUnplayable>}
+ const empty={items:[] as ReturnType<typeof parseStremioStreams>,unavailable:[] as ReturnType<typeof classifyStremioUnplayable>}
  const pieces=ref.split(':')
  if(pieces.length!==3||!/^stremio-[a-z0-9-]+$/.test(pieces[0]))return empty
  const addonId=pieces[0].slice('stremio-'.length),malId=Number(pieces[1]),episode=Number(pieces[2])
