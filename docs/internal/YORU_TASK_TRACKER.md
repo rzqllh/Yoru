@@ -17,7 +17,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 | YX-01 | P0 | One-tap continue playback | PLANNED | Correct episode + resume; verified native source; graceful source-choice fallback |
 | YX-02 | P0 | Episode availability and source truth | PLANNED | Metadata candidate/verified/failed states never conflated |
 | YX-03 | P0 | Honest adaptive quality controls | TESTED (CI+Browser E2E PR #48 head b7219869; merged) | Auto as initial choice; no phantom 1080p; unsupported disabled |
-| YX-04 | P0 | Subtitle appearance and placement | PLANNED | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
+| YX-04 | P0 | Subtitle appearance and placement | CODED (CI pending; browser cue limitations) | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
 | YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
 | YX-06 | P0 | Source memory/recovery and smart next | PLANNED | Verified source remembering; bounded recovery; manual consent |
 | YX-07 | P0 | Franchise relations on detail | TESTED (direct links only; #50 head ad000df; not curated) | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
@@ -45,6 +45,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- YX-04 subtitle style `feat/yoru-caption-appearance-20261030`: bounded persisted font/size/text opacity/background opacity/outline/native VTTCue position with disabled unsupported position control. CI+browser validation pending; hardcoded subtitles/iframe unchanged.
 - Watch Guide PR #50 merged preview as `0a184799` after exact head `ad000df` CI+Browser E2E PASS. Only first-degree relations; full curated franchise order still pending.
 - Torrentio parser original branch `5520993` CI+E2E PASS; ancestry conflict after #50 squash required clean rebase to `feat/yoru-torrentio-rebased-20261030` (new exact-SHA verification pending). No torrent playback capability yet.
 - PR #48 merged quality after CI+Browser E2E success on b7219869; preview merge 8b82c1fd.
