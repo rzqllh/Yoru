@@ -90,6 +90,12 @@
 - Node and Chromium browser regressions plus WebKit smoke passed exact feature head; no prod/main release or real live playback claim. Public docs updated in follow-up documentation-only PR.
 - NEXT: source-reviewed editorial coverage for additional anime/continuity classes (Gundam UC/non-UC, Monogatari novel versus anime, Re:ZERO director's cut, Haruhi 2009 episode-level timeline where verified), and independent YX-12 browse URL persistence. Do not invent episode mapping for provider/playback. #20 remains BLOCKED.
 
+## Active YX-12 deep-link browse filters — 2026-10-30
+- Branch `feat/yoru-browse-url-state-20261030` from preview `7e0fd8e5413c36e344afa0648927065cad4e8d2c`.
+- Changes: `frontend/src/lib/router.ts` sanitized URL browse filter parse/encode; `frontend/src/App.tsx` route-owned controlled filters, Back/Forward and category preservation, accessible removable active-filter chips and year range 1950..current+2; `frontend/src/styles.css` responsive chips.
+- Tests in `tests/router.test.mjs` and `tests/browser/yoru.spec.mjs` for deep links, invalid params, browser reload/history/chip reset. **CI/E2E NOT VERIFIED YET.**
+- No account/cloud, streaming/provider, physical Safari, production or release gate changes. Next: PR+exact SHA checks, merge preview if green. Public docs LAST, then create/verify exact-SHA Vercel preview deployment and report SSO limitations to owner.
+
 ## Hard blockers
 
 - **G1–G3 (#20):** real authorized source-provider endpoints with live video, strict season/episode mapping and actual subtitle credentials/download proof. Mocked provider fixtures are not live tests.
