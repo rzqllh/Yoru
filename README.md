@@ -35,7 +35,7 @@ Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan
 | Fitur | Status | Perlu internet / source? |
 | --- | --- | --- |
 | Beranda, seasonal/top/upcoming, cari dan detail anime Jepang | Tersedia | Internet untuk Tenrai |
-| Daftar episode, pemilihan source dan opsi player embed eksternal | Tersedia; external player bergantung layanan pihak ketiga dan belum teruji playback-nya | Ya, internet dan source |
+| Daftar episode dan pemeriksaan sumber yang jujur | Menampilkan kandidat belum terverifikasi, kegagalan penyedia, pemeriksaan native, dan fallback eksternal opt-in | Perlu internet/provider; bukan jaminan episode playable |
 | Pemutar HLS/MP4 + track subtitle WebVTT | Tersedia; contoh lokal sudah diuji Chromium | Contoh lokal: tidak; media nyata: ya |
 | Watchlist, progress, dan lanjut menonton satu ketukan | Tersedia di IndexedDB; sumber episode diperiksa sebelum diputar ulang | Tidak untuk data tersimpan; playback butuh sumber |
 | Backup ekspor/impor data pribadi | Tersedia | Tidak |
