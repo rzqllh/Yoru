@@ -1,21 +1,21 @@
-## Summary
-- Task IDs from https://github.com/rzqllh/Yoru/issues/44:
-- Exact base/HEAD commit:
-- User-visible behavior and unsupported states:
+## Change summary
+- Linked issue and scope:
+- Base commit / proposed HEAD:
+- User-visible behavior and honest unsupported states:
+- Compatibility or migration impact:
 
-## Evidence
-- [ ] Lint/typecheck/unit/build (include URL / exact commit or mark NOT RUN)
-- [ ] Chromium + WebKit E2E (exact commit or NOT RUN)
-- [ ] Windows/Linux CI (exact commit or NOT RUN)
-- [ ] Real provider / actual iPhone (PASS with evidence or NOT RUN)
-- [ ] Security, privacy, license and accessibility reviewed
-- [ ] No implied capability from metadata / fixture / READY-only deployment
+## Review evidence
+- [ ] Lint, typecheck, unit tests and build — exact commit and CI URL
+- [ ] Linux/Windows CI — PASS or NOT RUN with reason
+- [ ] Chromium/WebKit browser E2E — PASS or NOT RUN with reason
+- [ ] Relevant security, privacy, licensing and accessibility risks reviewed
+- [ ] No secret, private provider URL, personal data or unlicensed media committed
+- [ ] User-visible and operator documentation updated when behavior changes
 
-## Durable handoff
-- [ ] Updated `docs/internal/YORU_TASK_TRACKER.md` with task status and this PR
-- [ ] Updated `docs/internal/YORU_HANDOFF.md` with latest SHA, blockers, exact next action
-- [ ] Updated epic #44 with integration status
-- [ ] Public docs deferred until final integration
+## Release assessment
+- [ ] Source candidates are not represented as confirmed playable media
+- [ ] Provider fixtures are distinguished from live source coverage
+- [ ] Real iPhone Safari is not inferred from WebKit smoke tests
+- [ ] If public hosting/release is requested: issue #20 G1–G6 evidence and explicit approval attached
 
-## Release
-Preview only. No merge to main or production promotion until #20 approved.
+A pull request can be integrated into `main` for engineering without authorizing deployment or final public release.
