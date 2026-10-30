@@ -14,10 +14,10 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 
 | ID | Priority | Feature / outcome | State | Acceptance / dependency |
 |---|---|---|---|---|
-| YX-01 | P0 | One-tap continue playback | CODED (CI pending) | Correct episode + resume; verified native source; graceful source-choice fallback |
+| YX-01 | P0 | One-tap continue playback | TESTED (PR #52 head 330b7ab; preview merged 4e482f0) | Correct episode + resume; verified native source; graceful source-choice fallback |
 | YX-02 | P0 | Episode availability and source truth | CODED (candidate label only; needs full state model) | Metadata candidate/verified/failed states never conflated |
 | YX-03 | P0 | Honest adaptive quality controls | TESTED (CI+Browser E2E PR #48 head b7219869; merged) | Auto as initial choice; no phantom 1080p; unsupported disabled |
-| YX-04 | P0 | Subtitle appearance and placement | PLANNED | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
+| YX-04 | P0 | Subtitle appearance and placement | CODED (new exact-head CI/E2E pending) | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
 | YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
 | YX-06 | P0 | Source memory/recovery and smart next | PLANNED | Verified source remembering; bounded recovery; manual consent |
 | YX-07 | P0 | Franchise relations on detail | TESTED (direct links only; #50 head ad000df; not curated) | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
@@ -45,6 +45,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- YX-04 original feature branch `34299fee` passed CI+Browser E2E with native caption style presets/preview and guarded cue placement; rebased onto preview with #52 regressions preserved. New exact head needs testing before merge.
 - Torrentio mapping/classification PR #51 merged preview `a7cacfe9` with exact-SHA CI+Browser E2E green at `3c2d711`; no torrent engine or browser playback.
 - YX-01 one-tap resume on `feat/yoru-one-tap-resume-20261030`: verified-source-first route, fallback to detail if source unavailable, short-clip progress fix, browser regression. CI pending.
 - Watch Guide PR #50 merged preview as `0a184799` after exact head `ad000df` CI+Browser E2E PASS. Only first-degree relations; full curated franchise order still pending.

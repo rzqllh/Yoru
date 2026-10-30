@@ -5,6 +5,7 @@ import type {Anime,Stream} from '../types'
 import {getPreference,getProgress,saveProgress,setPreference} from '../lib/db'
 import {applySubtitleOffset,type CueBaseline} from '../lib/subtitle-offset'
 import {parseLocalSubtitle} from '../lib/local-subtitles'
+import {captionClasses,normalizeCaptionSettings,type CaptionPosition} from '../lib/caption-appearance'
 import {getAvailableQualityLevels} from '../lib/quality-options'
 import {connectAnimeEmbed,extractValidPlaybackProgress} from '../lib/animeembed'
 
@@ -42,6 +43,13 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [captionSize,setCaptionSize]=useState(100)
  const [captionBackdrop,setCaptionBackdrop]=useState<'dark'|'clear'>('dark')
  const [captionScope,setCaptionScope]=useState<'global'|'anime'>('anime')
+ const [captionTextOpacity,setCaptionTextOpacity]=useState<50|75|100>(100)
+ const [captionBackgroundOpacity,setCaptionBackgroundOpacity]=useState<0|25|50|75|100>(75)
+ const [captionOutline,setCaptionOutline]=useState<0|1|2>(1)
+ const [captionPosition,setCaptionPosition]=useState<CaptionPosition>('original')
+ const [captionPositionSupported,setCaptionPositionSupported]=useState(false)
+ const captionLines=useRef(new WeakMap<VTTCue,number|'auto'>())
+
  const subtitleUrlRef=useRef<string|null>(null)
  const [subtitleOffset,setSubtitleOffset]=useState(0)
  const [pipSupported,setPipSupported]=useState(false)
@@ -100,23 +108,72 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    setCaptionScope(animeValue?'anime':'global')
    if(!saved)return
    try{
-    const obj=JSON.parse(saved) as {font?:string;size?:number;backdrop?:string}
-    if(obj.font==='sans'||obj.font==='serif')setCaptionFont(obj.font)
-    if([75,100,125,150].includes(obj.size||0))setCaptionSize(obj.size||100)
-    if(obj.backdrop==='dark'||obj.backdrop==='clear')setCaptionBackdrop(obj.backdrop)
+    const obj=normalizeCaptionSettings(JSON.parse(saved))
+    setCaptionFont(obj.font)
+    setCaptionSize(obj.size)
+    setCaptionBackdrop(obj.backdrop)
+    setCaptionTextOpacity(obj.textOpacity)
+    setCaptionBackgroundOpacity(obj.backgroundOpacity)
+    setCaptionOutline(obj.outline)
+    setCaptionPosition(obj.position)
    }catch{/* invalid preference falls back to safe defaults */}
   }).catch(()=>{})
   return()=>{active=false}
  },[anime,demo])
 
- function saveCaptionStyle(font:'sans'|'serif',size:number,backdrop:'dark'|'clear',scope:'global'|'anime'){
-  setCaptionFont(font)
-  setCaptionSize(size)
-  setCaptionBackdrop(backdrop)
+ function saveCaptionStyle(
+  font:'sans'|'serif',size:number,backdrop:'dark'|'clear',scope:'global'|'anime',
+  extras:Partial<{textOpacity:50|75|100;backgroundOpacity:0|25|50|75|100;outline:0|1|2;position:CaptionPosition}>={}
+ ){
+  const normalized=normalizeCaptionSettings({font,size,backdrop,
+   textOpacity:extras.textOpacity??captionTextOpacity,
+   backgroundOpacity:extras.backgroundOpacity??captionBackgroundOpacity,
+   outline:extras.outline??captionOutline,
+   position:extras.position??captionPosition})
+  setCaptionFont(normalized.font)
+  setCaptionSize(normalized.size)
+  setCaptionBackdrop(normalized.backdrop)
   setCaptionScope(scope)
+  setCaptionTextOpacity(normalized.textOpacity)
+  setCaptionBackgroundOpacity(normalized.backgroundOpacity)
+  setCaptionOutline(normalized.outline)
+  setCaptionPosition(normalized.position)
   const key=scope==='anime'&&anime&&!demo?'subtitle-style:'+anime.id:'subtitle-style:global'
-  void setPreference(key,JSON.stringify({font,size,backdrop})).catch(()=>{})
+  void setPreference(key,JSON.stringify(normalized)).catch(()=>{})
  }
+
+ useEffect(()=>{
+  if(stream.format==='embed')return
+  const v=video.current
+  if(!v)return
+  const supported=typeof VTTCue!=='undefined'
+  setCaptionPositionSupported(supported)
+  if(!supported)return
+  const apply=()=>{
+   for(let i=0;i<v.textTracks.length;i++){
+    const cues=v.textTracks[i].cues
+    if(!cues)continue
+    for(let n=0;n<cues.length;n++){
+     const cue=cues[n]
+     if(!(cue instanceof VTTCue))continue
+     if(!captionLines.current.has(cue))captionLines.current.set(cue,cue.line)
+     try{
+      cue.line=captionPosition==='original'?captionLines.current.get(cue)??'auto':
+       captionPosition==='top'?0:-1
+     }catch{/* native cue renderer may reject placement */}
+    }
+   }
+  }
+  const load=()=>apply()
+  for(const track of Array.from(v.querySelectorAll('track')))track.addEventListener('load',load)
+  v.textTracks.addEventListener('addtrack',load)
+  apply()
+  return()=>{
+   for(const track of Array.from(v.querySelectorAll('track')))track.removeEventListener('load',load)
+   v.textTracks.removeEventListener('addtrack',load)
+  }
+ },[stream.format,captionPosition])
+
 
  useEffect(()=>{
   let alive=true
@@ -592,7 +649,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka video di tab baru</a>
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
-   <video ref={video} className={`subtitle-font-${captionFont} subtitle-size-${captionSize} subtitle-backdrop-${captionBackdrop}`} playsInline preload="metadata" crossOrigin="anonymous" onPlay={()=>setIsPaused(false)} onPause={()=>{setIsPaused(true);saveLocal()}} onVolumeChange={()=>{if(video.current){setVolume(video.current.volume);setIsMuted(video.current.muted)}}} onLoadedMetadata={()=>{setReady(true);setDuration(video.current?.duration||0);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onDurationChange={()=>setDuration(video.current?.duration||0)} onTimeUpdate={()=>{setPosition(video.current?.currentTime||0);if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onEnded={()=>{setIsPaused(true);saveLocal();void prepareNextEpisode()}} autoPlay>
+   <video ref={video} className={captionClasses(normalizeCaptionSettings({font:captionFont,size:captionSize,backdrop:captionBackdrop,textOpacity:captionTextOpacity,backgroundOpacity:captionBackgroundOpacity,outline:captionOutline,position:captionPosition}))} playsInline preload="metadata" crossOrigin="anonymous" onPlay={()=>setIsPaused(false)} onPause={()=>{setIsPaused(true);saveLocal()}} onVolumeChange={()=>{if(video.current){setVolume(video.current.volume);setIsMuted(video.current.muted)}}} onLoadedMetadata={()=>{setReady(true);setDuration(video.current?.duration||0);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onDurationChange={()=>setDuration(video.current?.duration||0)} onTimeUpdate={()=>{setPosition(video.current?.currentTime||0);if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onEnded={()=>{setIsPaused(true);saveLocal();void prepareNextEpisode()}} autoPlay>
     {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={subtitlePreferenceReady&&!subtitleOff&&!selectedSubtitle&&t.lang===(subtitlePreference==='en'?'en':stream.tracks.some(track=>track.lang==='id')?'id':'en')}/>)}
     {selectedSubtitle&&!subtitleOff&&<track key={selectedSubtitle.url} kind="subtitles" srcLang={selectedSubtitle.lang} label={selectedSubtitle.id} src={selectedSubtitle.url} default onLoad={()=>{
      const tracks=video.current?.textTracks
@@ -692,13 +749,32 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <label>Ukuran <select aria-label="Ukuran subtitle" value={captionSize} onChange={event=>saveCaptionStyle(captionFont,Number(event.target.value),captionBackdrop,captionScope)}>
      {[75,100,125,150].map(size=><option value={size} key={size}>{size}%</option>)}
     </select></label>
-    <label>Latar subtitle <select aria-label="Background subtitle" value={captionBackdrop} onChange={event=>saveCaptionStyle(captionFont,captionSize,event.target.value as 'dark'|'clear',captionScope)}>
-     <option value="dark">Gelap</option><option value="clear">Transparan</option>
+
+    <label>Transparansi teks <select aria-label="Transparansi teks subtitle" value={captionTextOpacity} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,captionScope,{textOpacity:Number(event.target.value) as 50|75|100})}>
+     <option value={100}>100%</option><option value={75}>75%</option><option value={50}>50%</option>
+    </select></label>
+    <label>Transparansi latar <select aria-label="Opasitas latar subtitle" value={captionBackgroundOpacity} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,captionScope,{backgroundOpacity:Number(event.target.value) as 0|25|50|75|100})}>
+     {[0,25,50,75,100].map(n=><option key={n} value={n}>{n}%</option>)}
+    </select></label>
+    <label>Garis tepi <select aria-label="Garis tepi subtitle" value={captionOutline} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,captionScope,{outline:Number(event.target.value) as 0|1|2})}>
+     <option value={0}>Tanpa garis</option><option value={1}>Tipis</option><option value={2}>Tebal</option>
+    </select></label>
+    <label>Posisi <select aria-label="Posisi subtitle" disabled={!captionPositionSupported} value={captionPosition} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,captionScope,{position:event.target.value as CaptionPosition})}>
+     <option value="original">Bawaan video</option><option value="top">Atas</option><option value="bottom">Bawah</option>
     </select></label>
     <label>Simpan untuk <select aria-label="Lingkup preferensi subtitle" value={captionScope} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,event.target.value as 'global'|'anime')}>
      <option value="global">Seluruh Yoru</option><option value="anime">Anime ini</option>
     </select></label>
    </div>
+   <figure className={`caption-preview caption-preview-${captionPosition}`}><figcaption className="sr-only">Pratinjau gaya subtitle</figcaption>
+    <span style={{
+     fontFamily:captionFont==='serif'?'Georgia,serif':'Arial,sans-serif',
+     fontSize:`${Math.max(12,Math.round(captionSize*0.16))}px`,
+     color:`rgba(255,255,255,${captionTextOpacity/100})`,
+     backgroundColor:`rgba(0,0,0,${captionBackgroundOpacity/100})`,
+     textShadow:captionOutline===0?'none':captionOutline===1?'0 1px 2px #000,0 0 3px #000':'1px 1px 4px #000,-1px -1px 4px #000,0 0 5px #000'
+    }}>Contoh subtitle Bahasa Indonesia</span>
+   </figure>
    <small role="status">{subtitleSearch?'Mencari subtitle…':subtitleState||'Pilih subtitle yang tersedia untuk video ini.'}</small>
    </>}
   </div>}
