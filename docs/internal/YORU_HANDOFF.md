@@ -125,3 +125,10 @@ DO NOT: merge main, promote production, invent provider/Subtitle Indonesia/relea
 ```
 
 **Resume suggestion:** extend curated path evidence by verified franchise/edition, episode ranges, optionality, prerequisite relationships and public correction process; Haruhi 2006/2009 and Re:Zero OVAs now implemented (#68), next Gundam continuities and Monogatari source order. Local manual path-progress storage is already implemented (#64), but playback-linked automatic progress is NOT. Fate/Monogatari options already live in preview code but not production. In parallel, YX-12 browse URL-state task remains open, whereas YX-02 deterministic code acceptance is now tested. In parallel, YX-06 enhanced source memory and YX-12 browse URL persistence can be scoped into independent PRs.
+
+## 2026-10-30 — continuation: two timeline modes (unmerged)
+- Read current preview integration HEAD directly as `6455a8a5ea1f50052820a10311b7a1755cf63914`; main moved to `74144ef694cd1b452516d424124348e72e05cf5f`. Branches diverged (preview 33 ahead, 4 behind). Never use stale main SHA from older handoffs.
+- Feature branch `feat/yoru-evidence-gated-timeline-20261030` isolates owner-requested UI simplification from playback changes. Watch Guide now shows only **Tahun rilis** / **Kronologi**. The chronology choice is disabled until there is an explicitly classified, source-reviewed, validator-passing in-story chronology route. Fate editorial, Monogatari introductory, Haruhi broadcast and Re:ZERO newcomer routes **are not canon chronology**.
+- This patch is **CODED only, exact-head CI/E2E NOT RUN**, no live/provider/iPhone assertion. No preview merge, main merge, release or deployment authorized. Do not treat this branch as TESTED without independently verifying its commit status and browser suite.
+- Open PRs #15, #16 overlap player/UI and must be salvaged selectively, not blindly merged; #33 preview deployment still distinct from final production. #20 G1–G6 BLOCKED.
+- Next: validate the feature branch with CI Linux/Windows and Chromium/WebKit, review UI and any regressions, then merge into preview only after evidence. Refresh docs and Issue #44 with exact commit SHA.
