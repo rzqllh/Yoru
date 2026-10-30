@@ -3,7 +3,7 @@ import {existsSync} from 'node:fs'
 import {resolve} from 'node:path'
 import {lookup} from 'node:dns/promises'
 import {request} from 'node:https'
-import {isPublicIPv4,parseStremioStreams,normalizeStremioSubtitles,stremioStreamPath,stremioSubtitlePath,validateStremioConfig,type StremioAddon,type StremioConfig} from './stremio-core.js'
+import {isPublicIPv4,parseStremioStreams,classifyStremioUnplayable,normalizeStremioSubtitles,stremioStreamPath,stremioSubtitlePath,validateStremioConfig,type StremioAddon,type StremioConfig} from './stremio-core.js'
 
 export async function getStremioConfig():Promise<StremioConfig|null>{
  const hosted=process.env.STREMIO_ADDONS_JSON
@@ -59,17 +59,24 @@ export async function getStremioEpisodes(animeId:string){
   return match.episodes.map(number=>({id:`stremio-${addon.id}:${malId}:${number}`,animeId,number,title:`Episode ${number}`,providerId:`stremio-${addon.id}`}))
  })
 }
-export async function getStremioStreams(ref:string){
+export async function getStremioSourceCandidates(ref:string){
+ const empty={items:[] as Awaited<ReturnType<typeof getStremioStreams>>,unavailable:[] as ReturnType<typeof classifyStremioUnplayable>}
  const pieces=ref.split(':')
- if(pieces.length!==3||!/^stremio-[a-z0-9-]+$/.test(pieces[0]))return []
+ if(pieces.length!==3||!/^stremio-[a-z0-9-]+$/.test(pieces[0]))return empty
  const addonId=pieces[0].slice('stremio-'.length),malId=Number(pieces[1]),episode=Number(pieces[2])
  const cfg=await getStremioConfig()
  const addon:StremioAddon|undefined=cfg?.addons.find(a=>a.id===addonId)
  const anime=addon?.anime.find(a=>a.malId===malId)
- if(!addon||!anime?.episodes.includes(episode))return []
+ if(!addon||!anime?.episodes.includes(episode))return empty
  const path=stremioStreamPath(addon,anime.stremioId,anime.season,episode)
  const payload=await fetchJsonPinned(path)
- return parseStremioStreams(payload,`stremio-${addon.id}`).map((stream,i)=>({...stream,id:`stremio-${addon.id}:${malId}:${episode}:${i}`}))
+ return {
+  items:parseStremioStreams(payload,`stremio-${addon.id}`).map((stream,i)=>({...stream,id:`stremio-${addon.id}:${malId}:${episode}:${i}`})),
+  unavailable:classifyStremioUnplayable(payload,`stremio-${addon.id}`)
+ }
+}
+export async function getStremioStreams(ref:string){
+ return (await getStremioSourceCandidates(ref)).items
 }
 
 
