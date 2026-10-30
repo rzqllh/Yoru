@@ -28,7 +28,7 @@
 ## Verified code checkpoint
 
 - GitHub repo: `https://github.com/rzqllh/Yoru`.
-- Preview ref after generic graph #58: `dad6ed4e51ca1fa0070b54229e7180e7043b6c74`.
+- Preview ref after graph #58 and docs #59: `c5e7c66118b830efe16b072521406921da4a9e4d` (fetch live HEAD; a later checkpoint-only PR may advance it).
 - `main` observed `8200bf235c56c866e30b2012d3b683b63dc7803e`; never infer unchanged after this date.
 - PR #45 (`fbc7bf6b`), #48 (`8b82c1fd`), #50 (`0a184799`), #51 (`a7cacfe9`), #52 (`4e482f07`), #55 (`3bbc1437`), #56 (`ea4c9b45`) **merged to preview**, not `main`.
 - Exact tested feature heads: #48 `b7219869`, #50 `ad000df0`, #51 `3c2d7115`, #52 `330b7abc`, #55 `40a2bb88`, #56 `d4aa24d7` (GitHub Linux/Windows CI and Chromium/WebKit Browser E2E PASS). Check current branch HEAD independently.
@@ -56,9 +56,9 @@
 - PR #58 `feat/yoru-universal-watch-graph-20261030` **merged to preview** as `dad6ed4e51ca1fa0070b54229e7180e7043b6c74`. Exact feature head `c5d94c741967fee3638024920452d76cbed1fad8`: GitHub CI Linux/Windows and Browser E2E Chromium/WebKit PASS. Not live-provider validation.
 - General code: `backend/pipeline/watch-graph-core.ts` pure relation normalizer and `watch-graph.ts` bounded AniList retrieval; `/api/anime/:id/watch-guide?depth=2` opt-in; `frontend/src/components/WatchGuide.tsx` universal search/filter. No franchise-specific hardcoded viewing order, no claim that AniList media relations encode the episode-by-episode plot chronology.
 - Controls: max 10 direct neighbors expanded, max 75 mapped nodes, visited/deduped graph cycles, 12 expansions/min process-local cap, 20min success cache, partial/upstream response labels, sorted known month/year with unknown last; categories TV, movie, OVA/Special/ONA, alternative paths, compilation and other.
-- Documentation update phase on `docs/yoru-universal-watch-guide-20261030`: [public usage guide](../public/watch-order.md), README/DESIGN/provider/release status, tracker/handoff consistency; **documentation PR not yet verified/merged** at this checkpoint.
+- Documentation PR [#59](https://github.com/rzqllh/Yoru/pull/59) **MERGED** to preview `c5e7c66118b830efe16b072521406921da4a9e4d`. Its exact head `3f430e6521ec378d1118215116a9cd68d58124e2` passed CI (Linux/Windows) and Browser E2E (Chromium/WebKit). [Public user guide](../public/watch-order.md), README/DESIGN/usage/release/development/troubleshooting/production guides now reflect the bounded graph and correction process.
 - **NOT COMPLETED:** all-series forum review or automatically reliable chronology; curated Fate/Monogatari/Gundam/Haruhi/OVA episode insertion routes; human-reviewed and cited `pathId` steps/optionality, rewatch/spoiler classifications, local path progress; real AniList queries and physical Safari. Keep Recommended/Chronology disabled pending editorial proof.
-- **NEXT RESUME STEP:** verify documentation PR exact-head Linux/Windows CI and Chromium/WebKit, merge to preview only if PASS; update #44 with SHA, then start curated schema and sourced pilot routes with clear no-spoiler distinctions. No main/production promotion.
+- **NEXT RESUME STEP:** read current preview HEAD and open PRs; implement generic **curated watch-path data schema** with source/edition/episode range/branch/spoiler verification and pilot across different forum issue categories. Keep unsupported Recommended/Chronology modes disabled. YX-02 honest source lifecycle and YX-12 browse URL persist remain independent lanes. No main/production promotion. No main/production promotion.
 
 ## Hard blockers
 
