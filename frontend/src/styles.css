@@ -2688,3 +2688,5 @@ body {
 .guide-curated-sources{display:flex;flex-direction:column;gap:7px;font-size:13px;border-top:1px solid var(--line);padding-top:14px}
 .guide-curated-sources small{color:var(--muted);line-height:1.5}
 @media(max-width:600px){.guide-curated{padding:12px}.guide-curated-choices button{flex:1 1 100%}.guide-curated-steps{padding-left:24px}.guide-curated-steps li>.btn{width:100%}}
+
+.guide-curated-steps{list-style:none;padding-left:0}.guide-path-number{display:inline-flex;min-width:25px;align-self:flex-start;font-weight:750;color:var(--accent);font-variant-numeric:tabular-nums}
