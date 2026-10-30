@@ -88,7 +88,6 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
    setProgressError('Progres gagal disimpan. Coba lagi atau periksa kapasitas penyimpanan.')
   }finally{setProgressBusy(false)}
  }
- useEffect(()=>setTimelineMode('release'),[malId])
  const pick=(id:number)=>{setDepth(1);setFilter('all');setCuratedId(null);setTimelineMode('release');setData(null);setMatches([]);onPick(id)}
  return <div className="page-body yoru-watch-guide">
   <div className="page-intro"><div>
