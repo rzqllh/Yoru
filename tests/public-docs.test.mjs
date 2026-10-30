@@ -5,34 +5,43 @@ import {resolve,dirname} from 'node:path'
 import {fileURLToPath} from 'node:url'
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..')
-const docs=['README.md','docs/public/README.md','docs/public/getting-started.md','docs/public/using-yoru.md','docs/public/providers.md','docs/public/troubleshooting.md','docs/public/development.md','docs/public/releases.md','docs/public/production-readiness.md','DESIGN.md']
+const docs=[
+ 'README.md','DESIGN.md','docs/public/README.md','docs/public/architecture.md',
+ 'docs/public/development.md','docs/public/getting-started.md','docs/public/operations.md',
+ 'docs/public/production-readiness.md','docs/public/providers.md','docs/public/quality-gates.md',
+ 'docs/public/releases.md','docs/public/security.md','docs/public/troubleshooting.md',
+ 'docs/public/using-yoru.md','docs/public/vercel-preview.md','docs/public/watch-order.md'
+]
 
-test('public navigation points to real checked-in docs',()=>{
+test('all public documentation links resolve to committed files',()=>{
  for(const file of docs){
   const absolute=resolve(root,file)
-  assert.ok(existsSync(absolute),`Missing: ${file}`)
+  assert.ok(existsSync(absolute),`Missing public document: ${file}`)
   const content=readFileSync(absolute,'utf8')
-  assert.ok(content.length>200,`Empty public doc: ${file}`)
+  assert.ok(content.length>200,`Empty public document: ${file}`)
   const links=[...content.matchAll(/\]\(([^)#]+)(?:#[^)]*)?\)/g)].map(match=>match[1])
   for(const link of links){
    if(/^(?:https?:|mailto:)/.test(link))continue
-   assert.ok(existsSync(resolve(dirname(absolute),link)),`Broken local link in ${file}: ${link}`)
+   assert.ok(existsSync(resolve(dirname(absolute),link)),`Broken link in ${file}: ${link}`)
   }
  }
 })
-test('release workflow never publishes a source-like web ZIP',()=>{
- const content=readFileSync(resolve(root,'.github/workflows/web-preview-release.yml'),'utf8')
- assert.equal(content.includes('gh release create'),false)
- assert.equal(content.includes('zip -qr'),false)
- assert.ok(content.includes('gh release delete-asset'))
+
+test('public source tree does not ship private planning or agent files',()=>{
+ for(const path of ['docs/internal','docs/superpowers','AGENTS.md','.claude','.cursor','.codex']){
+  assert.equal(existsSync(resolve(root,path)),false,`Unexpected private file or directory: ${path}`)
+ }
+ const template=readFileSync(resolve(root,'.github/PULL_REQUEST_TEMPLATE.md'),'utf8')
+ assert.equal(/YORU_HANDOFF|YORU_TASK_TRACKER|docs\/internal|superpowers/i.test(template),false)
 })
 
+test('obsolete release asset cleanup workflow is no longer checked in',()=>{
+ assert.equal(existsSync(resolve(root,'.github/workflows/web-preview-release.yml')),false)
+})
 
-
-test('internal notes are excluded and this documentation branch cannot auto-deploy',()=>{
- assert.equal(existsSync(resolve(root,'docs/internal/README.md')),false)
- assert.equal(existsSync(resolve(root,'docs/internal/.gitkeep')),false)
+test('engineering main branch is not an automatic production deployment',()=>{
  const config=JSON.parse(readFileSync(resolve(root,'vercel.json'),'utf8'))
- assert.equal(config.git.deploymentEnabled['docs/cleanup-public-guides-20261029'],false)
  assert.equal(config.git.deploymentEnabled.main,false)
+ assert.equal(config.framework,'vite')
+ assert.equal(config.rewrites[0].source,'/api/:path*')
 })
