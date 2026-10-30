@@ -21,7 +21,7 @@ test('WebKit desktop displays anime catalog and does not invent playable episode
  await page.getByRole('button',{name:'Buka Yoru WebKit Fixture'}).first().click()
  const dialog=page.getByRole('dialog',{name:'Detail Yoru WebKit Fixture'})
  await expect(dialog).toBeVisible()
- await expect(dialog.getByText(/Belum menemukan video yang bisa diputar/).first()).toBeVisible()
+ await expect(dialog.getByText(/Belum menemukan kandidat video/).first()).toBeVisible()
  await dialog.locator('.episode-list .episode-row').first().click()
  await expect(dialog.getByText(/Coba video alternatif/)).toBeVisible()
  await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
