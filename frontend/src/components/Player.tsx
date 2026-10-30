@@ -172,7 +172,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    for(const track of Array.from(v.querySelectorAll('track')))track.removeEventListener('load',load)
    v.textTracks.removeEventListener('addtrack',load)
   }
- },[stream.format,stream.url,selectedSubtitle,captionPosition])
+ },[stream.format,captionPosition])
 
 
  useEffect(()=>{
