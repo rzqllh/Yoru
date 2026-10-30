@@ -31,7 +31,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 | YX-15 | P1 | UI design system + microcopy | PLANNED | Canonical CSS tokens, coherent radius/space/color, WCAG/HIG, no marketing fluff |
 | YX-16 | P1 | Visual load and performance | PLANNED | Lazy poster loading, correct sizing, measured CWV |
 | YX-17 | P1 | First-run and recovery UX | PLANNED | Actionable error states; transparent setup; backup reassurance |
-| YX-18 | P0 | Stremio/Torrentio response parity | TESTED (parser/ID only; PR #51 head 3c2d711; no resolver) | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
+| YX-18 | P0 | Stremio/Torrentio response parity | CODED (parser+disabled UI; new CI pending) | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
 | YX-19 | P0 | Opt-in torrent-capable playback path | BLOCKED | Explicit verified playback engine/resolver; browser/platform limitations and secure config |
 | YX-20 | P0 | Real video/subtitle compatibility matrix | BLOCKED | Independent real examples, codecs, source access, safe URL checks, user approval and device proof |
 | YX-21 | P0 | QA and release gates | BLOCKED | Exact-SHA CI+E2E, physical iPhone, no unresolved P0/P1, release issue #20 |
@@ -45,6 +45,8 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- PR #52 One-tap resume merged preview `4e482f0753d4e90450366fa091bc92d748dbd7dd`; exact CI+Browser E2E PASS at head `330b7abc758388ceb6eba822d546f69bddaba042`.
+- YX-18 source visibility lane `feat/yoru-torrentio-source-visibility-20261030`: backend `unavailable` candidates from Torrentio-style Stremio sources surfaced as explicitly disabled in episode picker, no torrent engine/resolver. Exact CI pending.
 - Torrentio mapping/classification PR #51 merged preview `a7cacfe9` with exact-SHA CI+Browser E2E green at `3c2d711`; no torrent engine or browser playback.
 - YX-01 one-tap resume on `feat/yoru-one-tap-resume-20261030`: verified-source-first route, fallback to detail if source unavailable, short-clip progress fix, browser regression. CI pending.
 - Watch Guide PR #50 merged preview as `0a184799` after exact head `ad000df` CI+Browser E2E PASS. Only first-degree relations; full curated franchise order still pending.
