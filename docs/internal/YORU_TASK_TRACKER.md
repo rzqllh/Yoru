@@ -5,7 +5,7 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 ## Current integration state
 
 - Repository: `rzqllh/Yoru`.
-- Preview integration: `deploy/vercel-preview-20261029`, verified pre-docs head `ea4c9b457443002d7145abd37e5d9977fe62dd6d`. **Fetch latest head before working.**
+- Preview integration: `deploy/vercel-preview-20261029`, verified pre-docs head `dad6ed4e51ca1fa0070b54229e7180e7043b6c74`. **Fetch latest head before working.**
 - Production branch `main`: `8200bf235c56c866e30b2012d3b683b63dc7803e` at last check. **No merge/release to main authorized.**
 - Public docs alignment is the *final task of this implementation wave*; do not treat other unimplemented epic items as shipped.
 - Status semantics: `PLANNED` = design backlog; `CODED` = implementation exists but acceptance incomplete; `TESTED` = exact-code CI/Browser E2E evidence; `LIVE_VERIFIED` = real upstream/device test; `BLOCKED` = real dependency. Tests with mocked provider metadata do not prove live source coverage.
@@ -20,9 +20,9 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | YX-04 | P0 | Native subtitle styling | **TESTED code, live device pending** | PR [#55](https://github.com/rzqllh/Yoru/pull/55), head `40a2bb88` CI/E2E PASS; font, size, opacities, outline, conditional VTTCue position, preview |
 | YX-05 | P0 | iPhone Safari physical acceptance | **BLOCKED** | Real iPhone OS/model and playback/fullscreen/PiP/subtitle/PWA validation |
 | YX-06 | P0 | Source memory, recovery and smart next | **PLANNED** | Prior auto-next/recovery exists; new persisted source preference/enhancement not implemented |
-| YX-07 | P0 | Franchise links from anime detail | **CODED expanded; CI pending** | PR [#50](https://github.com/rzqllh/Yoru/pull/50), head `ad000df0` CI/E2E PASS; **first-degree AniList relationships only** |
-| YX-08 | P1 | Secondary Watch Guide in Jelajahi | **CODED expanded; CI pending** | PR #50, `/jelajahi/panduan-urutan` route/search, source attribution |
-| YX-09 | P1 | Universal watch-order research, graph + curated pathways | **CODED partial; CI pending** | General two-hop AniList graph and filters; editorial/sourced watch paths, episode-level insertions and branch-specific recommendations remain open |
+| YX-07 | P0 | Franchise links from anime detail | **TESTED expanded metadata** | PR [#50](https://github.com/rzqllh/Yoru/pull/50) first-degree + [#58](https://github.com/rzqllh/Yoru/pull/58) two-hop, exact head `c5d94c7` CI/E2E PASS; not canon chronology |
+| YX-08 | P1 | Secondary Watch Guide in Jelajahi | **TESTED expanded metadata** | PR #58, search plus opt-in two-hop graph and type filters, source and incomplete-result notices |
+| YX-09 | P1 | Universal watch-order research, graph + curated pathways | **TESTED generic graph; curated paths PLANNED** | Forum complaint taxonomy and two-hop AniList explorer in PR #58; episode insertion, novel/broadcast orders, branch-specific human-reviewed recommendations remain open |
 | YX-10 | P1 | Franchise-path progress & next entry | **PLANNED** | IndexedDB schema and backup migration not yet implemented |
 | YX-11 | P1 | Search suggestions/aliases | **PLANNED** | Need verified alias data and keyboard UX |
 | YX-12 | P1 | Browse filter state in URL, chips and range | **PLANNED** | Existing filters work; refinement pending |
@@ -35,7 +35,7 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | YX-19 | P0 | Opt-in playable torrent resolver | **BLOCKED** | Requires trusted, explicit engine/resolver, credentials/security/rights review, browser/device verification |
 | YX-20 | P0 | Live video/subtitle matrix | **BLOCKED** | Real source/episode coverage, subtitle provider keys, signed download, codecs, host authorization |
 | YX-21 | P0 | Full release sign-off | **BLOCKED** | Issue #20 G1–G6; production must not be promoted |
-| YX-22 | FINAL WAVE | Sync public docs and delivery status | **CODED (documentation PR)** | README, DESIGN, public guides updated truthfully; verify exact PR checks before integration |
+| YX-22 | FINAL WAVE | Sync public docs and delivery status | **TESTED prior wave; current update pending** | PR #57 merged public docs; universal guide docs and handoff in new documentation PR pending exact checks |
 
 ## Successfully integrated on preview (not main)
 
@@ -51,16 +51,16 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 
 These are code acceptance results. **None** are evidence that real torrent streaming works, an AniList franchise guide is complete, or Safari physical/prod is signed off.
 
-## 2026-10-30 — universal timeline expansion checkpoint (unmerged)
-- Scope clarification: analyze recurring watch-order confusion across all franchise types (not only Fate/SAO/Slime). Evidence taxonomy in [WATCH_ORDER_RESEARCH_2026-10-30.md](WATCH_ORDER_RESEARCH_2026-10-30.md), including 2026 community discussions.
-- Branch: `feat/yoru-universal-watch-graph-20261030`, targeting preview HEAD `22de50a4d9df9f6b9c937fba1f4611a351ea5fbd`.
-- CODED: opt-in `?depth=2` AniList graph expansion with bounded 10 direct neighbors, max 75 nodes, cyclic/deduplicated edges, 12 expansions/min process-local budget, 20min success cache, strict source mapping, partial/upstream-failure honesty. UI categories TV, film, OVA/special/ONA, alternative continuity, recap, other, provenance for second-hop relationships.
-- NOT DONE: curated broadcast/chronological/source-novel/episode-insertion paths; Reddit/forum correction pipeline; real live graph API checks; browser+CI exact-commit tests currently NOT VERIFIED. No production/main change.
-- Next: open PR and validate Linux/Windows CI + Chromium/WebKit E2E on exact head; fix failures before merge. Then update public docs, status and handoff.
+## 2026-10-30 — universal watch-order graph verified checkpoint
+- Owner: applies to recurring community watch-order problems across **all anime**, not only Fate/SAO/Slime; curated route coverage is distinct from automatic media-link exploration. Evidence taxonomy: [WATCH_ORDER_RESEARCH_2026-10-30.md](WATCH_ORDER_RESEARCH_2026-10-30.md).
+- PR [#58](https://github.com/rzqllh/Yoru/pull/58) **MERGED to preview** `dad6ed4e51ca1fa0070b54229e7180e7043b6c74`. Exact tested feature head `c5d94c741967fee3638024920452d76cbed1fad8`: CI Linux/Windows and Browser E2E Chromium/WebKit **PASS**.
+- Implemented: opt-in `?depth=2` AniList graph, fan-out 10 direct neighbors and 75-node cap, deduplicated relation edges including cycles, 12 expansions/min per-process budget, 20-min success cache, strict IDs, honest partial/upstream-failure notes; UI filter TV, movie, OVA/special, continuity branches, recap, other.
+- **NOT LIVE VERIFIED / STILL OPEN**: real upstream AniList coverage per franchise, editorial broadcast-vs-source/chronological episode insertions, curated recommended paths, integrated forum correction process, iPhone physical tests. Do not infer canon or total franchise completeness from 2 hops.
+- New public usage guide and final alignment branch `docs/yoru-universal-watch-guide-20261030`; docs checks/merge pending. Release #20 remains BLOCKED and `main` unchanged.
 
 ## Next independently resumable lanes
 
-1. **Guide editorial/data lane:** YX-09, then YX-10. Source-backed branching paths with spoiler safeguards, distinction between recommended release viewing and in-universe chronology. Preserve disabled unsupported modes.
+1. **Guide editorial/data lane:** YX-09 curator schema (episode-level insertion, source-order, route provenance, spoiler safeguards), then YX-10. Source-backed branching paths with spoiler safeguards, distinction between recommended release viewing and in-universe chronology. Preserve disabled unsupported modes.
 2. **Playback lane:** YX-02/YX-06, then YX-19 only after approved resolver architecture. Never treat `infoHash` as an HTTPS URL.
 3. **Browse/library lane:** YX-11/12/13/14. Local-only preferences; minimal unnecessary API requests.
 4. **Visual/reliability lane:** YX-05/15/16/17/20/21. Exact-SHA tests and real device/provider evidence.
