@@ -2666,3 +2666,25 @@ body {
 .guide-groups button:focus-visible,.guide-expand button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .guide-groups button:hover:not(.active){background:var(--surface-hover)}
 @media(max-width:600px){.guide-expand{padding:12px}.guide-expand>.btn{width:100%;justify-content:center}.guide-groups button{flex:1 0 auto}}
+
+/* Verified editorial watch paths: separate from automated AniList relation sorting. */
+.guide-curated{padding:18px;display:flex;flex-direction:column;gap:16px;border:1px solid var(--line-strong);border-radius:var(--radius-lg);background:var(--surface)}
+.guide-curated-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.guide-curated-header h3{margin:7px 0}.guide-curated-header p{margin:0;color:var(--soft);line-height:1.55;max-width:72ch}
+.guide-curated-header>small{color:var(--muted);white-space:nowrap}
+.guide-curated-choices{display:flex;flex-wrap:wrap;gap:8px;border:0;padding:0;margin:0;min-width:0}
+.guide-curated-choices legend{font-weight:700;margin-bottom:10px}
+.guide-curated-choices button{min-height:44px;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--line-strong);background:var(--surface-2);color:var(--text);text-align:left}
+.guide-curated-choices button.active{border-color:var(--accent);color:var(--accent)}
+.guide-curated-choices button:focus-visible,.guide-curated-steps button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.guide-curated-steps{list-style:decimal;margin:0;padding:0 0 0 28px;display:flex;flex-direction:column;gap:9px}
+.guide-curated-steps li{padding:10px 10px 10px 6px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--line)}
+.guide-curated-steps li::marker{font-weight:700;color:var(--accent)}
+.guide-curated-steps li>div{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:5px}
+.guide-curated-steps li strong{overflow-wrap:anywhere}
+.guide-curated-steps li small,.guide-unmapped{color:var(--muted);font-size:12px}
+.guide-curated-steps li p{margin:0;color:var(--soft);font-size:13px;line-height:1.5}
+.guide-curated-steps li a,.guide-curated-sources a{color:var(--accent);text-underline-offset:3px}
+.guide-curated-sources{display:flex;flex-direction:column;gap:7px;font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+.guide-curated-sources small{color:var(--muted);line-height:1.5}
+@media(max-width:600px){.guide-curated{padding:12px}.guide-curated-choices button{flex:1 1 100%}.guide-curated-steps{padding-left:24px}.guide-curated-steps li>.btn{width:100%}}
