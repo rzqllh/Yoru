@@ -1,20 +1,26 @@
-# Status rilis dan jenis unduhan Yoru
+# Status rilis Yoru
 
-## Bedakan source dengan aplikasi jadi
+**Status saat ini: web preview, belum final public release.** Kode pada branch preview tidak otomatis sama dengan `main` atau website production. Publikasi produksi membutuhkan persetujuan pemilik dan bukti release gate [#20](https://github.com/rzqllh/Yoru/issues/20).
 
-| Bentuk | Siapa yang membutuhkan | Cara mendapatkan |
-| --- | --- | --- |
-| **Source code** | Kontributor / pengguna yang punya Node.js | Tombol **Code** GitHub atau `git clone` |
-| **PWA web lokal** | Pengguna browser komputer | Jalankan `npm ci`, `npm run build`, `npm start` |
-| **GitHub Actions artifact** | Developer yang mengecek CI | Dari run GitHub Actions; **bukan** installer |
-| **Installer Windows / APK / IPA** | Pengguna akhir tanpa Node.js | **Belum dirilis** |
+## Jenis unduhan
 
-ZIP versi `v0.9.0-rc.1` sebelumnya adalah kumpulan hasil build + file Node untuk menjalankan server, **bukan binary siap-install**. Asset tersebut telah ditarik dari release agar tidak menyesatkan; source archive otomatis GitHub mungkin tetap tampil karena disediakan platform.
+| Bentuk | Ketersediaan |
+| --- | --- |
+| Source code | Tersedia dari GitHub; membutuhkan Node.js untuk menjalankan aplikasi |
+| PWA web lokal | Bisa dijalankan dengan `npm ci`, `npm run build`, dan `npm start` |
+| GitHub Actions artifact | Bukti build/pengujian untuk developer, bukan installer |
+| Windows EXE, Android APK, iOS IPA | **Belum dirilis** |
 
-**Jangan mencari tombol download APK/EXE yang belum ada** atau menganggap source ZIP bisa langsung dibuka sebagai aplikasi. Ketika build native benar-benar tersedia dan diuji, release berikutnya akan menamai file sesuai platform beserta instruksi instalasi.
+ZIP source atau hasil build bukan installer. Arsip ZIP web build versi lama `v0.9.0-rc.1` pernah disalahartikan sebagai aplikasi siap pakai dan telah ditarik sebagai asset release; source archive otomatis GitHub tetap dapat ditampilkan oleh platform.
 
-## Status fitur yang perlu diketahui
+## Fitur pada branch preview
 
-Yoru web saat ini mendukung katalog Tenrai, navigasi kanonikal browser, player demo HLS/WebVTT, player embed AnimeEmbed dengan sinkronisasi progres tontonan via postMessage dan resume `?start=`, library IndexedDB, offline shell, provider manual, dan Stremio HTTPS opt-in. Subtitle bawaan AnimeEmbed adalah Bahasa Inggris, sementara subtitle Indonesia didukung penuh via file lokal/kustom. Safari fisik serta installer desktop/mobile native belum dirilis.
+Yoru menyediakan katalog anime, pencarian dan filter, hero tren harian AniList dengan label sumber, watchlist/progres lokal, resume satu ketukan setelah memeriksa sumber, player native HLS/MP4, mode embed eksternal, serta kontrol subtitle WebVTT. Detail anime dan Jelajahi dapat membuka **Panduan urutan anime** berisi relasi langsung AniList dan susunan tanggal rilis yang tersedia.
 
-Lihat [Panduan mulai](getting-started.md) untuk menjalankan versi web dan [Issue tracking](https://github.com/rzqllh/Yoru/issues/3) untuk blocker release berikutnya.
+Untuk HLS yang terpapar ke hls.js, kualitas **Auto** menjadi default dan hanya representasi yang benar-benar ditemukan pada manifest yang dapat dipilih. Penyesuaian caption native mencakup font, ukuran, opasitas teks/latar, outline, dan posisi saat browser mengizinkannya. Semua kontrol ini memiliki batasan per browser dan tidak memodifikasi subtitle permanen/iframe.
+
+Addon Stremio opt-in dapat mengembalikan sumber HTTPS langsung atau metadata torrent bergaya Torrentio. Kandidat `infoHash` dikenali dan ditampilkan **disabled**, bukan diputar. Mesin/resolver torrent bawaan belum tersedia; tidak ada klaim kompatibilitas live atas seluruh addon.
+
+**Belum selesai**: panduan terkurasi kronologi bercabang Fate/SAO/Slime, progres per-jalur franchise, resolver torrent nyata, dukungan akun/cloud, verifikasi video/subtitle provider secara live, pengujian Safari iPhone fisik, dan pemeriksaan deployment publik end-to-end.
+
+Lihat [cara menggunakan Yoru](using-yoru.md), [konfigurasi provider](providers.md), [roadmap UX](https://github.com/rzqllh/Yoru/issues/44), dan [release gate](https://github.com/rzqllh/Yoru/issues/20). Tes CI Chromium/WebKit tidak menggantikan bukti pemutaran anime nyata atau pengujian perangkat fisik.
