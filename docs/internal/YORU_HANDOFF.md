@@ -32,6 +32,9 @@ Last updated: 2026-10-30, Asia/Jakarta. Source of truth: **GitHub**, not remembe
 - CSS tokens in `DESIGN.md` and late `styles.css` overrides drift; fix carefully.
 - The tracker documents tasks, not completed promises. Expect changes since this timestamp; VERIFY repo HEAD first.
 
+## In-progress changes
+- Adaptive quality branch rebased onto actual preview after tracker #45 squash. Prior #46 had clean source CI (64263345b) but could not merge due base history conflict; replacement PR is tracked separately. Do not claim rebased head verified until its own exact-SHA checks pass.
+
 ## Architecture boundaries
 - `frontend/src/App.tsx`: UI state, home, browse, library, detail. `frontend/src/components/Player.tsx`: direct media player and subtitle controls.
 - `backend/pipeline/jikan.ts`: Jikan/Tenrai catalog API; separate AniList relations may need new fixed-host API with strict timeouts.
