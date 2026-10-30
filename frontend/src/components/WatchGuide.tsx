@@ -158,14 +158,14 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
      {selectedCurated.steps.map((step,index)=>{
       const matched=step.aniListId?entryById.get(step.aniListId):undefined
       return <li className={manualProgress?.id===selectedCurated.id&&index<manualProgress.data.completed?'guide-step-done':''}
-       key={`${selectedCurated.id}:${step.aniListId??step.title}`}>
+       key={`${selectedCurated.id}:${step.aniListId??"unmapped"}:${step.episodeRange?.edition??"full"}:${step.episodeRange?.start??"all"}:${step.title}`}>
        <span className="guide-path-number" aria-hidden="true">{String(index+1).padStart(2,'0')}</span>
        <div><strong>{step.title}</strong>
         <small>{step.kind} · {step.optional?'Opsional dalam rute ini':'Bagian dari rute ini'}</small>
         <p>{step.note}</p>
-        {step.episodeRange&&<small>Episode {step.episodeRange.start}–{step.episodeRange.end} · edisi {step.episodeRange.edition}</small>}
+        {step.episodeRange&&<small>{step.episodeRange.start===step.episodeRange.end?`Episode ${step.episodeRange.start}`:`Episode ${step.episodeRange.start}–${step.episodeRange.end}`} · edisi {step.episodeRange.edition}</small>}
        </div>
-       {matched?.malId?<button type="button" className="btn btn-outline" onClick={()=>{if(matched?.malId)onOpenAnime(matched.malId)}}>Buka detail</button>:
+       {matched?.malId?<button type="button" className="btn btn-outline" onClick={()=>{if(matched?.malId)onOpenAnime(matched.malId)}}>{step.episodeRange?'Detail serial':'Buka detail'}</button>:
         step.aniListId?<a href={`https://anilist.co/anime/${step.aniListId}`} target="_blank" rel="noopener noreferrer">Lihat di AniList</a>:
         <span className="guide-unmapped">Belum terhubung ke katalog</span>}
       </li>
@@ -174,6 +174,7 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
     <div className="guide-curated-sources"><strong>Sumber panduan editorial</strong>
      {selectedCurated.sources.map(source=><a key={source.url} href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a>)}
      <small>Sumber dan rute dapat berbeda pendapat. Yoru tidak menjamin ketersediaan video pada judul-judul ini.</small>
+     <small>Nomor episode berlaku untuk edisi yang tertulis. Tombol Detail serial tidak membuka episode tertentu secara otomatis.</small>
     </div>
    </section>}
    <div className="guide-expand">
