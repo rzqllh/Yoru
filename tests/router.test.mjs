@@ -63,3 +63,21 @@ test('router parses settings and fallback paths', () => {
   assert.equal(unknownRoute.page, 'home')
   assert.equal(routeToPath(unknownRoute), '/')
 })
+
+test('browse URL round trips validated genre, type, score, year, order and query on selected tab',()=>{
+ const route=parseRoute('/jelajahi/populer','q=bleach&genre=Action&type=TV&minScore=8&year=2012&order=rating')
+ assert.equal(route.browseKind,'top')
+ assert.deepEqual(route.browseFilters,{genre:'Action',format:'TV',minimumScore:8,year:'2012',order:'rating'})
+ assert.equal(routeToPath(route),'/jelajahi/populer?genre=Action&type=TV&minScore=8&year=2012&order=rating&q=bleach')
+ assert.deepEqual(parseRoute('/jelajahi/populer',routeToPath(route).split('?')[1]),route)
+})
+test('browse URL discards unsupported filters and malformed scores/years rather than passing to API',()=>{
+ const route=parseRoute('/jelajahi/akan-datang','q=test&genre=Hacked&type=Unknown&minScore=99&year=1200&order=evil')
+ assert.deepEqual(route.browseFilters,{genre:'',format:'',minimumScore:0,year:'',order:'default'})
+ assert.equal(routeToPath(route),'/jelajahi/akan-datang?q=test')
+})
+test('historical year filter and canonical season shortcut survive reload',()=>{
+ const route=parseRoute('/jelajahi/musim-ini','genre=Drama&year=1965')
+ assert.equal(route.browseFilters.year,'1965')
+ assert.equal(routeToPath(route),'/jelajahi/musim-ini?genre=Drama&year=1965')
+})

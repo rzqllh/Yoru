@@ -1,63 +1,53 @@
-# Menjalankan Yoru di komputer
+# Getting Started
 
-Panduan ini untuk **Windows, macOS, atau Linux**, tidak membutuhkan akun Yoru dan tidak membutuhkan konfigurasi source untuk mencoba demo player.
+**Scope:** locally running Yoru with the shipped demonstration player. The procedure does not enable a real anime streaming catalogue.
 
-## 1. Persiapan
+## Supported developer baseline
 
-Instal [Node.js versi 22.12 atau lebih baru](https://nodejs.org/) (npm sudah termasuk) dan Git. Buka PowerShell/Terminal dan cek:
+- Node.js 22.12+ and npm; Git for cloning.
+- A modern browser; Chromium is used for automated browser acceptance, WebKit for Safari-family smoke. Physical iPhone Safari is not signed off.
+- Network for installation and external metadata. The demo HLS fixture is local after installation.
 
-```sh
-node --version
-npm --version
-git --version
-```
+## Install and verify
 
-Jika `node` atau `npm` tidak dikenali, tutup-buka terminal setelah instalasi.
-
-## 2. Unduh kode resmi
-
-```sh
+```bash
 git clone https://github.com/rzqllh/Yoru.git
 cd Yoru
-```
-
-Tidak punya Git? Pada halaman repository pilih **Code → Download ZIP**, ekstrak dan buka terminal pada folder hasil ekstraksi. Itu adalah **source code**, bukan installer; langkah berikutnya tetap dibutuhkan.
-
-## 3. Jalankan untuk pertama kali
-
-```sh
+node --version
 npm ci
+npm run check
 npm run dev
 ```
 
-Tunggu dua layanan menyala, lalu buka **http://127.0.0.1:5173**. Jangan tutup terminal selama aplikasi dipakai. Backend tersedia di **http://127.0.0.1:8787/api/health**.
+Browse to `http://127.0.0.1:5173`. Under Pengaturan, open the **local test player**. This fixture is a short sample with Indonesian WebVTT subtitles, **not** a licensed external title.
 
-Coba alurnya:
-1. Buka **Beranda** dan **Jelajahi** saat online; katalog datang dari Tenrai.
-2. Cari satu judul anime lalu buka detailnya.
-3. Buka **Pengaturan → Test player** untuk video HLS pendek dengan track WebVTT **Bahasa Indonesia**.
-4. Buka **Koleksi** untuk menyimpan anime. Data ini tersimpan di browser yang digunakan.
+## Production-style local preview
 
-Video contoh bukan episode anime. Setelah metadata termuat, detail anime menyediakan player embed eksternal dengan sinkronisasi progres tontonan ke IndexedDB lokal. Subtitle bawaan pemutar embed umumnya berbahasa Inggris. Untuk sumber video HLS/MP4 mandiri dan takarir Bahasa Indonesia, lihat [Panduan provider](providers.md).
+Stop the development servers, then run:
 
-## 4. Coba versi PWA
-
-Hentikan `npm run dev` dengan **Ctrl+C**. Jalankan:
-
-```sh
+```bash
 npm run build
 npm start
 ```
 
-Buka **http://127.0.0.1:8787** dari komputer yang menjalankan server. Pada Chrome/Edge, cari ikon **Install** di bilah alamat atau menu browser. Aplikasi bisa terbuka dalam jendela mandiri dan menampilkan shell saat offline; **data katalog baru dan video remote tetap membutuhkan internet**.
+Open `http://127.0.0.1:8787`. API health: `http://127.0.0.1:8787/api/health`. The server defaults to loopback (`127.0.0.1`); exposing it externally requires an approved HTTPS gateway and additional security controls.
 
-**Di iPhone:** iPhone tidak menjalankan server Node dari ZIP. Jalankan backend di komputer/server HTTPS, akses melalui HTTPS tepercaya dari Safari, lalu gunakan Share → Add to Home Screen. Browser Safari iOS belum diuji langsung oleh tim proyek; perlakukan ini sebagai panduan uji, bukan jaminan kompatibilitas.
+## Optional real sources
 
-## 5. Mematikan dan memperbarui
+For an authorized HTTPS HLS/MP4 source, copy the checked-in example into the corresponding ignored local file:
 
-- **Matikan server:** kembali ke terminal dan tekan Ctrl+C.
-- **Update source:** `git pull` dari folder Yoru, lalu `npm ci` dan jalankan lagi.
-- **Reset setelah error dependency:** tutup server, jalankan `npm ci`, ulangi.
-- **Data koleksi:** gunakan fitur ekspor backup di Pengaturan sebelum membersihkan data situs.
+```powershell
+Copy-Item configs/providers.local.json.example configs/providers.local.json
+```
 
-Butuh bantuan? [Troubleshooting](troubleshooting.md). Untuk kontribusi: [Development](development.md).
+Follow [Providers](providers.md). Do **not** place API keys or media entitlement tokens in Git, query strings, screenshots or public issues. Static metadata or addon availability does not guarantee actual playback.
+
+## Install PWA
+
+A built version can be installed where the browser supports PWA installation in a secure context. Loopback usually qualifies; another device on a LAN generally requires trusted HTTPS. The offline service worker caches the application shell, not newly discovered anime or media.
+
+## Verify installation and recover
+
+Run `npm run check` before reporting a defect. For failures, check Node version, dependency installation, the local health endpoint, browser console and [Troubleshooting](troubleshooting.md). Local library data lives in IndexedDB and may disappear when site storage is cleared; export a backup before resetting browser data.
+
+Next: [Using Yoru](using-yoru.md), [Development](development.md), and [Production readiness](production-readiness.md).

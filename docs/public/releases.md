@@ -1,33 +1,30 @@
-# Status rilis dan jenis unduhan Yoru
+# Releases, Versioning and Distribution
 
-## Bedakan source dengan aplikasi jadi
+**Current designation: engineering preview. Public production release remains BLOCKED** by [G1–G6](production-readiness.md) and [Issue #20](https://github.com/rzqllh/Yoru/issues/20).
 
-| Bentuk | Siapa yang membutuhkan | Cara mendapatkan |
+## What repository artifacts mean
+
+| Artifact | Definition | Installation/production meaning |
 | --- | --- | --- |
-| **Source code** | Kontributor / pengguna yang punya Node.js | Tombol **Code** GitHub atau `git clone` |
-| **PWA web lokal** | Pengguna browser komputer | Jalankan `npm ci`, `npm run build`, `npm start` |
-| **GitHub Actions artifact** | Developer yang mengecek CI | Dari run GitHub Actions; **bukan** installer |
-| **Installer Windows / APK / IPA** | Pengguna akhir tanpa Node.js | **Belum dirilis** |
+| Git source checkout or GitHub source ZIP | Developer source files | Requires Node, npm, build and backend |
+| GitHub Actions build artifact | Temporary CI output from a particular SHA | Engineering evidence, not a consumer installer |
+| Local built PWA | Vite frontend and Hono API served together | Local developer preview |
+| Hosted preview | Branch-specific HTTPS deployment subject to access control/quota | Not publicly production-certified |
+| APK/IPA/Windows installer | Not currently released | Do not advertise as available |
 
-ZIP versi `v0.9.0-rc.1` sebelumnya adalah kumpulan hasil build + file Node untuk menjalankan server, **bukan binary siap-install**. Asset tersebut telah ditarik dari release agar tidak menyesatkan; source archive otomatis GitHub mungkin tetap tampil karena disediakan platform.
+Historical release-candidate tags and archives may exist but are not evidence of a signed native installer or live source availability.
 
-**Jangan mencari tombol download APK/EXE yang belum ada** atau menganggap source ZIP bisa langsung dibuka sebagai aplikasi. Ketika build native benar-benar tersedia dan diuji, release berikutnya akan menamai file sesuai platform beserta instruksi instalasi.
+## Version and release procedure
 
-## Status fitur yang perlu diketahui
+1. Define a scoped change list and immutable Git SHA.
+2. Confirm exact-head lint/typecheck/unit/build and Linux/Windows/Chromium/WebKit evidence.
+3. Document provider, subtitle, device and public infrastructure results separately.
+4. Update compatibility notes, migrations, third-party dependencies and rollback procedure.
+5. Obtain a recorded owner approval against every gate before producing a public release tag, installer or production deployment.
+6. Keep published notes precise about supported features and limitations; never silently swap an older READY deployment into a latest-SHA announcement.
 
-Yoru web saat ini mendukung katalog Tenrai, navigasi kanonikal browser, player demo HLS/WebVTT, player embed AnimeEmbed dengan sinkronisasi progres tontonan via postMessage dan resume `?start=`, library IndexedDB, offline shell, provider manual, dan Stremio HTTPS opt-in. Bahasa subtitle AnimeEmbed mengikuti layanan eksternal. Subtitle Indonesia memerlukan track kompatibel yang benar-benar tersedia pada sumber atau file kustom. Safari fisik serta installer desktop/mobile native belum dirilis.
+## Not included
 
-Lihat [Panduan mulai](getting-started.md) untuk menjalankan versi web dan [Issue tracking](https://github.com/rzqllh/Yoru/issues/3) untuk blocker release berikutnya.
+No managed user accounts, cloud sync, signed native mobile packages, integrated torrent engine, licensed content distribution guarantee, independent enterprise compliance certification, or supported production SLA.
 
-## Action to be taken before public release
-
-Release status: **BLOCKED**. Merging code into `main` does not mean the service is ready for public streaming. Track these items to closure in [Public release gate #20](https://github.com/rzqllh/Yoru/issues/20):
-
-- **G1 — Live video providers:** verify independent, authorized real HLS/MP4 sources against representative anime and episodes, including CORS, codecs, expiry and failure behavior.
-- **G2 — Availability truthfulness:** validate season/cour/special/movie identity and prove the UI never labels an unplayable candidate as ready.
-- **G3 — Live subtitles:** test OpenSubtitles, SubDL and SubSource with authorized credentials and real search/download responses, including quotas and errors. Keep secrets server-side.
-- **G4 — Physical iPhone Safari:** record device model/iOS and verify playback, subtitles, fullscreen, PiP, PWA install and upgrade on an actual device.
-- **G5 — Hosting/security:** provide a real HTTPS deployment URL, server-only secrets, gateway authentication/rate limiting, CSP/CORS, logs/alerts and a tested rollback.
-- **G6 — Final acceptance:** attach exact-commit CI/browser evidence, quantified coverage, zero unresolved P0/P1, and explicit owner go/no-go.
-
-Do not claim live-provider coverage, iPhone Safari support, or production readiness until evidence is attached. A demo stream, fixture, or READY preview deployment is not sufficient evidence.
+For building locally see [Getting started](getting-started.md), for operator deployment see [Operations](operations.md) and [Production readiness](production-readiness.md).

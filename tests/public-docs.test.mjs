@@ -34,5 +34,5 @@ test('internal notes are excluded and this documentation branch cannot auto-depl
  assert.equal(existsSync(resolve(root,'docs/internal/.gitkeep')),false)
  const config=JSON.parse(readFileSync(resolve(root,'vercel.json'),'utf8'))
  assert.equal(config.git.deploymentEnabled['docs/cleanup-public-guides-20261029'],false)
- assert.equal(config.git.deploymentEnabled.main,undefined)
+ assert.equal(config.git.deploymentEnabled.main,false)
 })

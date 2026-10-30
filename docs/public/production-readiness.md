@@ -1,86 +1,28 @@
-# Production readiness : Yoru
+# Public Production Readiness — Gate Ledger
 
-Yoru is a local-first anime catalog and PWA. A passing CI build does **not** make this a multi-tenant, enterprise-certified service. The current browser stores watch history and library data locally in IndexedDB; there is no account system, operator identity, cloud sync, or availability SLA.
+**Decision on 30 October 2026: NO-GO / BLOCKED.** Source integration into `main` is permitted as engineering work but **does not imply** a hosted production launch, a general anime streaming service, or final release authorization. The authoritative issue is [#20](https://github.com/rzqllh/Yoru/issues/20); progress planning is in [#44](https://github.com/rzqllh/Yoru/issues/44).
 
-## Required deployment controls
+## Release gates
 
-1. Build and validate: `npm ci && npm run check` and the Chromium browser workflow; review dependency audit and open security findings.
-2. Default `npm start` binds to `127.0.0.1:8787` only. This is deliberate, so the local preview is not exposed on a network.
-3. For an approved external deployment, set `HOST=0.0.0.0` explicitly **behind an HTTPS reverse proxy**. The Node server speaks HTTP; do not expose it directly to the internet. Enforce TLS and HSTS at the reverse proxy, with a narrowly scoped firewall and health probes.
-4. Deploy the frontend and API together; routing requires the production Hono backend as well as the static frontend. A static-only site cannot serve the API.
-5. Confirm CSP, external player framing, stylesheet/fonts, poster images, subtitle tracks, HLS segments, and IndexedDB in the **actual** hosted environment. Yoru's HTTP response headers restrict script sources and embedding while allowing HTTPS media and metadata artwork.
-6. Test the service worker on HTTPS, SPA direct routes, offline shell, reloads and updates. Offline shell does not mean offline anime playback.
-7. Keep `configs/*.local.json` off Git and out of public assets. Audit approved media and addon hosts, credentials, DNS behavior and source licensing separately. No token-bearing media URLs should be committed.
-8. Verify cross-browser behavior, physical iOS Safari, actual playback across multiple anime/episodes and actual subtitle tracks before claiming full streaming support.
-9. Capture immutable commit, CI run links, dependency report, deployment URL, version, and rollback artifact. Use a rollback procedure that restores the previous known-good version without erasing users' browser storage.
-10. Configure branch protection (required CI/Chromium checks, review gate and no force pushes) in GitHub repository settings. This requires repository administrator action and is not covered by CI alone.
-
-## Verification matrix
-
-| Area | Local/CI evidence | Before public release |
+| Gate | Required evidence | Current verdict |
 | --- | --- | --- |
-| Node Hono server + web build | Build, HTTP smoke, security headers | HTTPS proxy, domain, logs, uptime/alerting |
-| Metadata catalog | Endpoint and browser tests | Upstream reliability, rate limits, degradation |
-| Local HLS + Sub Indo sample | Chromium playback and subtitles | Device/browser compatibility |
-| External anime embed | Origin-checked protocol and iframe tests | Real titles/episodes, origin redirects, actual subtitles |
-| Local data | IndexedDB persistence and backup tests | Recovery instructions, quota/privacy review |
-| PWA | Manifest, offline shell in Chromium | Install on real devices and upgrade behavior |
-| CI | Unit, typecheck, lint, build, Chromium, dependency audit | Signed/verified deployment provenance and rollback drill |
+| G1 — Native media | Authorized real HLS/MP4 hosts, titles/episodes, CORS, codec, redirects, expiry and failure coverage | **BLOCKED** |
+| G2 — Availability integrity | Correct season/cour/OVA/movie matching, no false Play state, failed/empty-provider matrix | **BLOCKED** live verification |
+| G3 — Real subtitles | Authenticated OpenSubtitles/SubDL/SubSource search and downloads, language, quotas, grants, sync | **BLOCKED** |
+| G4 — Physical iPhone | Actual model and iOS, native HLS, fullscreen, PiP, WebVTT styling and PWA install/upgrade | **BLOCKED** |
+| G5 — Public infrastructure | Approved HTTPS domain, frontend+Hono API, CSP/CORS, secret storage, gateway protection, logs, rollback | **BLOCKED** |
+| G6 — Acceptance decision | Exact final SHA tests, quantified coverage, zero unresolved P0/P1, approved release owner go/no-go | **BLOCKED** |
 
-## Release and operational policy
+No gate may pass based on CI fixtures alone. GitHub Actions, a Vercel READY marker or an accessible URL prove neither authorized media nor device compatibility.
 
-- Publishing a tag, GitHub Release, public hosting, native installer or app-store build requires separate owner approval.
-- The historical `v0.9.0-rc.1` release is a source preview. Do not treat its archives as an installer.
-- The historical release-cleanup workflow is **manual-only**, so pushing to `main` cannot silently modify older release notes.
-- Security response headers apply to production responses, including the API; API routes are marked `Cache-Control: no-store`.
-- To report vulnerabilities, do not paste credentials or private media URLs into public issues.
+## Infrastructure minimum
 
-**Current release stance:** release-candidate source awaiting public infrastructure and real-device/third-party streaming verification, not enterprise-certified production hosting.
+The default Node backend binds `127.0.0.1:8787`. Public binding requires controlled HTTPS ingress, HSTS, firewall, CSP evaluation, abuse controls beyond process-local budgets, least-privilege credentials and DNS/redirect/SSRF testing for approved provider targets. The frontend and Hono API must deploy together. Configure branch protections, required checks and a human review gate. Keep `configs/*.local.json` and all tokens outside Git and browser bundles.
 
-## Q12 strict source availability : implementation gate (29 October 2026)
+## Live subtitle verification
 
-A configured source, provider episode mapping, metadata listing, or constructed embed URL is **not** proof of a playable episode. Candidate streams are browser-preflighted to the decoded-first-frame stage before the native player is opened. A successful probe is valid only in that browser and at that moment; actual playback can still fail afterward. The player must surface the error rather than silently claiming success.
+Run `npm run verify:subtitles:live` only in a controlled environment with approved real credentials and an untracked `YORU_LIVE_SUBTITLE_FIXTURES` file. The fixture file must contain explicit provider/title/type/episode/language samples; review each provider's authenticated search, signed grant, bounded download and actual WebVTT cue. Log only status and synthetic identifiers, not credentials or subtitle text. A PASS means the *specified fixtures* worked, not comprehensive coverage.
 
-The fixed AnimeEmbed route is an **explicit, unverified external fallback**, not a verified catalogue provider. It requires a deliberate user action; native HLS/MP4 candidates may fail the probe because of codec, origin policy, networking, or availability. A pending or failed probe must never become a green availability badge. Strict verification for external embeds is still an unsolved release blocker unless a trustworthy playback confirmation protocol is established.
+## Go/no-go package
 
-**Not release-ready until**: a verified multi-adapter native provider roster, dedicated OpenSubtitles/SubSource/SubDL subtitle discovery and rendering, source/quality/episode recovery, Q6-Q11 player controls, real iPhone Safari sign-off, configured HTTPS hosting, and repeatable provider/availability measurements. The above Q12 UI fix does not satisfy those gates independently.
-
-## Subtitle integration verification
-
-The three subtitle adapters are opt-in backend integrations and may be **unconfigured**. CI mocks only validate response parsing, fixed-domain request construction, SRT/ASS dialogue conversion, and picker behavior. Do not mark the real-provider availability gate PASS until each key and official endpoint has been exercised with real anime/episode fixtures, rate-limit handling, denied/expired download cases, and verification on the intended devices. Server-side download endpoints require request throttling/authentication controls before untrusted public traffic is allowed to consume provider quotas.
-
-## Optional third-party video aggregation
-
-The Miruro-compatible adapter is operator-configured through `MIRURO_API_BASE` and off by default. AniList cross-ID mapping, episode parsing and stream filtering have deterministic contract tests; those tests are **not** proof that the third-party hosted API is live or that all third-party CDNs support CORS, seek, iPhone codecs, or permitted playback. A public release requires representative live-provider evidence and affirmative authorization where needed.
-
-## Subtitle quota fail-safe
-
-Subtitle lookup and download endpoints enforce small **process-local** fixed-window budgets (20 lookups and 30 downloads/minute) to avoid unlimited uncontrolled upstream requests. Exceeding them returns HTTP 429 with `Retry-After`. These limits are global per Node process, intentionally conservative, and may cause shared-user contention; they are **not sufficient** for public hosting. Configure identity-aware throttling and abuse prevention in the HTTPS ingress; do not share provider credentials with browsers.
-
-## Reproducible live subtitle sign-off (never infer from CI fixtures)
-
-The project now provides an **opt-in live test**, deliberately separate from mock-based CI:
-`npm run verify:subtitles:live`. It fails closed unless all three backend API keys, the OpenSubtitles login token, and three explicit, owner-approved title/episode fixtures are present. Define `YORU_LIVE_SUBTITLE_FIXTURES` as the absolute path to a **local, untracked** JSON file:
-
-```json
-[
-  {"provider":"subdl","title":"Replace with a verified anime title","type":"TV","episode":1,"language":"id"},
-  {"provider":"subsource","title":"Replace with a verified anime title","type":"TV","episode":1,"language":"id"},
-  {"provider":"opensubtitles","title":"Replace with a verified anime title","type":"TV","episode":1,"language":"en"}
-]
-```
-
-Each test searches the actual provider, validates episode/language identity, verifies the signed download grant, downloads a bounded native subtitle file using the backend credentials, and checks a WebVTT cue. It prints only provider/status codes, never credentials, full subtitle text, or temporary download URLs. **Passing the script is evidence only for the exact three fixtures**; it does not certify coverage for every anime, native video playability, physical iPhone Safari, or a production deployment. Secrets stay in environment variables, not committed JSON files.
-
-## Action to be taken — outstanding public release gates
-
-The current release is blocked pending empirical evidence for all six gates. Track ownership and evidence in [GitHub issue #20](https://github.com/rzqllh/Yoru/issues/20):
-
-1. **G1:** real, authorized HLS/MP4 provider coverage across representative titles/episodes and failure modes.
-2. **G2:** correct season/cour/special/movie matching and no false availability claims.
-3. **G3:** live OpenSubtitles, SubDL and SubSource search/download verification with authorized credentials, quotas and error handling.
-4. **G4:** physical iPhone Safari validation, with device/iOS recorded, including subtitles, fullscreen, PiP and PWA install/upgrade.
-5. **G5:** HTTPS hosting, server-only secrets, gateway auth/rate limiting, CSP/CORS, observability and a tested rollback.
-6. **G6:** exact-final-commit CI/browser evidence, measured coverage, no unresolved P0/P1 and explicit owner go/no-go.
-
-A successful merge, unit test, browser fixture or READY preview deployment does not independently close these gates.
+Record release candidate SHA, asset provenance, dependency review, exact Linux/Windows/Chromium/WebKit checks, sample counts and exceptions, iPhone evidence, infrastructure/security sign-off, rollback drill, on-call ownership and a dated explicit owner approval. If any blocker persists, status stays **NO-GO**. See [Operations](operations.md), [Security](security.md), [Quality gates](quality-gates.md) and [Releases](releases.md).

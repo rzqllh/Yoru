@@ -1,12 +1,52 @@
-export type Page = 'home' | 'browse' | 'library' | 'settings'
+export type Page = 'home' | 'browse' | 'guide' | 'library' | 'settings'
 export type BrowseKind = 'season' | 'top' | 'upcoming'
 export type LibraryView = 'all' | 'continue'
+
+export type BrowseFilters={
+ genre:string;format:string;minimumScore:number;year:string;order:'default'|'rating'|'newest'
+}
+export const EMPTY_BROWSE_FILTERS:BrowseFilters={
+ genre:'',format:'',minimumScore:0,year:'',order:'default'
+}
+const GENRES=new Set(['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'])
+const FORMATS=new Set(['TV','Movie','OVA','ONA','Special','Music'])
+export function sanitizeBrowseFilters(candidate:Partial<BrowseFilters>):BrowseFilters{
+ const year=Number(candidate.year)
+ const yearValid=typeof candidate.year==='string'&&/^\d{4}$/.test(candidate.year)&&
+  Number.isSafeInteger(year)&&year>=1950&&year<=new Date().getFullYear()+2
+ return {
+  genre:typeof candidate.genre==='string'&&GENRES.has(candidate.genre)?candidate.genre:'',
+  format:typeof candidate.format==='string'&&FORMATS.has(candidate.format)?candidate.format:'',
+  minimumScore:[7,8,9].includes(Number(candidate.minimumScore))?Number(candidate.minimumScore):0,
+  year:yearValid?String(year):'',
+  order:candidate.order==='rating'||candidate.order==='newest'?candidate.order:'default'
+ }
+}
+export function parseBrowseFilters(params:URLSearchParams):BrowseFilters{
+ return sanitizeBrowseFilters({
+  genre:params.get('genre')??'',format:params.get('type')??'',
+  minimumScore:Number(params.get('minScore')??0),year:params.get('year')??'',
+  order:(params.get('order')??'default') as BrowseFilters['order']
+ })
+}
+export function browseFilterParams(filters:BrowseFilters):URLSearchParams{
+ const p=new URLSearchParams()
+ const safe=sanitizeBrowseFilters(filters)
+ if(safe.genre)p.set('genre',safe.genre)
+ if(safe.format)p.set('type',safe.format)
+ if(safe.minimumScore)p.set('minScore',String(safe.minimumScore))
+ if(safe.year)p.set('year',safe.year)
+ if(safe.order!=='default')p.set('order',safe.order)
+ return p
+}
 
 export type RouteState = {
   page: Page
   browseKind: BrowseKind
   libraryView: LibraryView
   searchQuery: string
+  browseFilters?: BrowseFilters
+  guideMalId?: number
   shortcut?: 'season' | 'continue'
 }
 
@@ -14,6 +54,7 @@ export function parseRoute(pathname: string, search: string): RouteState {
   const cleanPath = pathname.toLowerCase().replace(/\/+$/, '') || '/'
   const params = new URLSearchParams(search)
   const q = params.get('q') || ''
+  const browseFilters=parseBrowseFilters(params)
 
   if (cleanPath === '' || cleanPath === '/') {
     return {
@@ -24,12 +65,19 @@ export function parseRoute(pathname: string, search: string): RouteState {
     }
   }
 
+  if (cleanPath === '/jelajahi/panduan-urutan') {
+    const raw=Number(params.get('anime'))
+    const guideMalId=Number.isSafeInteger(raw)&&raw>0&&raw<=999999999?raw:undefined
+    return {page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId}
+  }
+
   if (cleanPath === '/jelajahi/musim-ini') {
     return {
       page: 'browse',
       browseKind: 'season',
       libraryView: 'all',
       searchQuery: q,
+      browseFilters,
       shortcut: 'season',
     }
   }
@@ -40,6 +88,7 @@ export function parseRoute(pathname: string, search: string): RouteState {
       browseKind: 'top',
       libraryView: 'all',
       searchQuery: q,
+      browseFilters,
     }
   }
 
@@ -49,6 +98,7 @@ export function parseRoute(pathname: string, search: string): RouteState {
       browseKind: 'upcoming',
       libraryView: 'all',
       searchQuery: q,
+      browseFilters,
     }
   }
 
@@ -58,6 +108,7 @@ export function parseRoute(pathname: string, search: string): RouteState {
       browseKind: 'season',
       libraryView: 'all',
       searchQuery: q,
+      browseFilters,
     }
   }
 
@@ -99,18 +150,18 @@ export function parseRoute(pathname: string, search: string): RouteState {
 
 export function routeToPath(state: RouteState): string {
   if (state.page === 'home') return '/'
+  if (state.page === 'guide') return '/jelajahi/panduan-urutan'+(state.guideMalId?`?anime=${state.guideMalId}`:'')
 
   if (state.page === 'browse') {
-    let base = '/jelajahi'
-    if (state.shortcut === 'season' || (state.browseKind === 'season' && !state.searchQuery)) {
-      base = state.shortcut === 'season' ? '/jelajahi/musim-ini' : '/jelajahi'
-    } else if (state.browseKind === 'top' && !state.searchQuery) {
-      base = '/jelajahi/populer'
-    } else if (state.browseKind === 'upcoming' && !state.searchQuery) {
-      base = '/jelajahi/akan-datang'
-    }
-    const q = state.searchQuery?.trim()
-    return q ? `${base}?q=${encodeURIComponent(q)}` : base
+    // Preserve the selected tab even when searching/filtering and share one canonical URL.
+    const base=state.browseKind==='top'?'/jelajahi/populer':
+     state.browseKind==='upcoming'?'/jelajahi/akan-datang':
+     state.shortcut==='season'?'/jelajahi/musim-ini':'/jelajahi'
+    const params=browseFilterParams(state.browseFilters??EMPTY_BROWSE_FILTERS)
+    const query=state.searchQuery.trim()
+    if(query)params.set('q',query)
+    const value=params.toString()
+    return value?`${base}?${value}`:base
   }
 
   if (state.page === 'library') {
@@ -124,6 +175,7 @@ export function routeToPath(state: RouteState): string {
 
 export function getBreadcrumbs(state: RouteState): string[] {
   if (state.page === 'home') return ['Yoru', 'Beranda']
+  if (state.page === 'guide') return ['Yoru', 'Jelajahi', 'Panduan urutan']
 
   if (state.page === 'browse') {
     if (state.searchQuery) {

@@ -14,10 +14,20 @@ const testStream={
  tracks:[{lang:'id',label:'Bahasa Indonesia',url:'/demo-id.vtt'}],
 }
 test.beforeEach(async({page})=>{
+ await page.route('**/api/anime/daily-trends',route=>route.fulfill({status:503,json:{error:'DAILY_TRENDS_UNAVAILABLE'}}))
  await page.route('**/api/anime/discover?**',async route=>
   route.fulfill({json:{items:[anime],page:1,hasNext:false}}))
  await page.route('**/api/anime/search?**',async route=>
   route.fulfill({json:{items:[anime],page:1,hasNext:false}}))
+ await page.route('**/api/anime/browse?**',async route=>{
+  const params=new URL(route.request().url()).searchParams
+  const matches=(!params.get('genre')||anime.genres.includes(params.get('genre'))) &&
+   (!params.get('type')||anime.type===params.get('type')) &&
+   (!params.get('minScore')||anime.score>=Number(params.get('minScore'))) &&
+   (!params.get('year')||anime.year===Number(params.get('year')))
+  await route.fulfill({json:{items:matches?[anime]:[],page:Number(params.get('page')||1),hasNext:false}})
+ })
+
  await page.route('**/api/anime/1',async route=>
   route.fulfill({json:anime}))
  await page.route('**/api/anime/1/episodes?**',async route=>
@@ -35,7 +45,7 @@ test('desktop: catalog, search, detail, library and playback with Indonesian VTT
  await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toBeVisible()
  await page.getByRole('dialog',{name:'Detail Yoru Test Anime'}).getByRole('button',{name:/Koleksiku/}).click()
  await page.locator('.episode-list .episode-row').first().click()
- await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
  await expect(page.locator('video track[srclang="id"]')).toHaveCount(1)
  await expect.poll(async()=>page.locator('video').evaluate(video=>video.readyState),{timeout:20000}).toBeGreaterThan(0)
  await page.screenshot({path:'test-results/desktop-player.png',fullPage:true})
@@ -53,7 +63,7 @@ test('player keyboard shortcuts control native playback without hijacking input 
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
  const video=page.locator('video')
- await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
  await video.evaluate(async v=>{await v.play();v.currentTime=1.2})
  await page.getByRole('button',{name:'Fullscreen video'}).focus()
  await page.keyboard.press('k')
@@ -66,6 +76,7 @@ test('player keyboard shortcuts control native playback without hijacking input 
  await expect.poll(()=>video.evaluate(v=>v.currentTime)).toBeGreaterThanOrEqual(0)
  await expect(page.getByRole('button',{name:'Mundur 10 detik'})).toBeVisible()
  await expect(page.getByRole('button',{name:'Maju 10 detik'})).toBeVisible()
+ await page.getByRole('button',{name:'Pengaturan'}).click()
  const speed=page.getByRole('combobox',{name:'Kecepatan pemutaran'})
  await speed.focus()
  await page.keyboard.press('k')
@@ -75,13 +86,14 @@ test('native player speed and per-anime subtitle offset survive playback reopeni
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- const player=page.getByRole('dialog',{name:'Video player'})
+ const player=page.getByRole('main',{name:'Layar tonton'})
  await expect(player).toBeVisible()
+ await page.getByRole('button',{name:'Pengaturan'}).click()
  const speed=page.getByRole('combobox',{name:'Kecepatan pemutaran'})
  await speed.selectOption('1.5')
  await expect.poll(()=>page.locator('video').evaluate(video=>video.playbackRate)).toBe(1.5)
  await player.getByRole('button',{name:'Subtitle 0.5 detik lebih lambat'}).click()
- await expect(player.getByText('Sync sub: +0.5s')).toBeVisible()
+ await expect(player.getByText('Waktu subtitle: +0.5s')).toBeVisible()
  await expect.poll(async()=>page.evaluate(async()=>{
   const request=indexedDB.open('yoru-local-v1')
   return new Promise(resolve=>{
@@ -96,7 +108,8 @@ test('native player speed and per-anime subtitle offset survive playback reopeni
  await player.getByRole('button',{name:'Kembali'}).click()
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- await expect(page.getByRole('dialog',{name:'Video player'}).getByText('Sync sub: +0.5s')).toBeVisible()
+ await page.getByRole('main',{name:'Layar tonton'}).getByRole('button',{name:'Pengaturan'}).click()
+await expect(page.getByRole('main',{name:'Layar tonton'}).getByText('Waktu subtitle: +0.5s')).toBeVisible()
 })
 
 test('Q7 subtitle Off persists when reopening the same anime player',async({page})=>{
@@ -104,17 +117,17 @@ test('Q7 subtitle Off persists when reopening the same anime player',async({page
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- const player=page.getByRole('dialog',{name:'Video player'})
- const cc=player.getByRole('button',{name:/CC/})
+ const player=page.getByRole('main',{name:'Layar tonton'})
+ const cc=player.locator('.player-subtitle-trigger')
  await cc.click()
  await player.getByRole('button',{name:'Off',exact:true}).click()
  await expect(cc).toContainText('Off')
  await player.getByRole('button',{name:'Kembali'}).click()
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- const reopened=page.getByRole('dialog',{name:'Video player'})
- await expect(reopened.getByRole('button',{name:/CC/})).toContainText('Off')
- await reopened.getByRole('button',{name:/CC/}).click()
+ const reopened=page.getByRole('main',{name:'Layar tonton'})
+ await expect(reopened.locator('.player-subtitle-trigger')).toContainText('Off')
+ await reopened.locator('.player-subtitle-trigger').click()
  await expect(reopened.getByRole('button',{name:'Off',exact:true})).toHaveAttribute('aria-pressed','true')
 })
 
@@ -132,12 +145,12 @@ test('native subtitle picker loads a validated Indonesian external track and res
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- const player=page.getByRole('dialog',{name:'Video player'})
+ const player=page.getByRole('main',{name:'Layar tonton'})
  await expect(player).toBeVisible()
- const cc=page.getByRole('button',{name:/CC/})
+ const cc=page.locator('.player-subtitle-trigger')
  await expect(cc).toContainText(/Indonesia/)
  await cc.click()
- await expect(page.getByText(/Indonesia · subdl · file berhasil dimuat|Indonesia · subdl · dipilih otomatis/i)).toBeVisible()
+ await expect(page.getByText(/Subtitle Indonesia siap|Subtitle Indonesia dipilih otomatis/i)).toBeVisible()
  await page.getByRole('button',{name:'Off',exact:true}).click()
  await expect(cc).toContainText('Off')
  await expect(page.getByText(/dimatikan atas pilihan pengguna/i)).toBeVisible()
@@ -153,12 +166,12 @@ test('verified episode two activates auto-next countdown and navigates only afte
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- const first=page.getByRole('dialog',{name:'Video player'})
+ const first=page.getByRole('main',{name:'Layar tonton'})
  await expect(first).toBeVisible()
  await page.locator('video').evaluate(video=>video.dispatchEvent(new Event('ended')))
  await expect(page.getByText(/Episode 2 dalam \d+ detik/)).toBeVisible({timeout:25000})
  await page.getByRole('button',{name:'Lanjut sekarang'}).click()
- await expect(page.getByRole('dialog',{name:'Video player'}).getByText(/Episode 2/).first()).toBeVisible()
+ await expect(page.getByRole('main',{name:'Layar tonton'}).getByText(/Episode 2/).first()).toBeVisible()
 })
 
 test('when episode next native is unavailable, auto-next never fabricates an embed',async({page})=>{
@@ -166,18 +179,18 @@ test('when episode next native is unavailable, auto-next never fabricates an emb
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
  await page.locator('video').evaluate(video=>video.dispatchEvent(new Event('ended')))
- await expect(page.getByText('Episode berikutnya belum mempunyai sumber native terverifikasi.')).toBeVisible()
+ await expect(page.getByText('Episode berikutnya belum bisa diputar.')).toBeVisible()
  await expect(page.getByRole('button',{name:'Lanjut sekarang'})).toHaveCount(0)
 })
 
 test('mobile: navigation and sample player remain usable at iPhone-sized viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844})
  await page.goto('/')
- await page.getByRole('button',{name:'Buka menu'}).click()
- await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
+ await expect(page.locator('.mobile-bottom')).toBeVisible()
+ await page.locator('.mobile-bottom').getByRole('button',{name:'Pengaturan'}).click()
  await expect(page.getByRole('heading',{name:/^Pengaturan/})).toBeVisible()
- await page.getByRole('button',{name:/Test player/}).click()
- await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
+ await page.getByRole('button',{name:/Coba pemutar/}).click()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
  await expect(page.locator('video track[srclang="id"]')).toHaveCount(1)
  await page.screenshot({path:'test-results/mobile-player.png',fullPage:true})
 })
@@ -204,7 +217,7 @@ test('search query always restarts from page one after browsing another page',as
  await page.goto('/')
  await page.locator('.main-nav').getByRole('button',{name:'Jelajahi'}).click()
  await page.getByRole('button',{name:/Muat lebih banyak/}).click()
- await page.getByRole('textbox',{name:'Cari judul anime'}).fill('Yoru')
+ await page.getByRole('textbox',{name:'Cari anime'}).fill('Yoru')
  await expect.poll(()=>searchPages.at(-1),{timeout:10000}).toBe(1)
 })
 
@@ -222,7 +235,7 @@ test('multiple providers for one episode appear as separate source options',asyn
  await page.locator('.episode-list .episode-row').first().click()
  await expect(page.locator('.source-options button')).toHaveCount(2)
  await page.locator('.source-options button').last().click()
- await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
 })
 
 test('legacy backup imports without missing-metadata crashes and persists after reload',async({page})=>{
@@ -279,13 +292,13 @@ test('real HLS playback writes progress to IndexedDB and keeps it after reload',
 
 test('settings reports a degraded provider while keeping healthy providers listed',async({page})=>{
  await page.route('**/api/providers',async route=>route.fulfill({json:{
-  providers:[{id:'local',name:'Configured local source',animeCount:2}],
+  providers:[{id:'local',name:'Sumber pribadi',animeCount:2}],
   warnings:['stremio']
  }}))
  await page.goto('/')
  await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
- await expect(page.getByText('Configured local source')).toBeVisible()
- await expect(page.locator('.config-error')).toContainText('stremio')
+ await expect(page.getByText('Sumber pribadi')).toBeVisible()
+ await expect(page.locator('.config-error')).toContainText('Beberapa sumber sedang tidak tersedia')
 })
 
 test('detail modal traps keyboard focus and restores the opener after closing',async({page})=>{
@@ -302,13 +315,13 @@ test('detail modal traps keyboard focus and restores the opener after closing',a
  await expect(dialog).toHaveCount(0)
  await expect(trigger).toBeFocused()
 })
-test('player modal restores focus to the Settings test-player button',async({page})=>{
+test('watch screen restores focus to the Settings preview button',async({page})=>{
  await page.goto('/')
  await page.locator('.main-nav').getByRole('button',{name:'Pengaturan'}).click()
- const opener=page.getByRole('button',{name:/Test player/})
+ const opener=page.getByRole('button',{name:/Coba pemutar/})
  await opener.focus()
  await opener.click()
- const dialog=page.getByRole('dialog',{name:'Video player'})
+ const dialog=page.getByRole('main',{name:'Layar tonton'})
  await expect(dialog.getByRole('button',{name:'Kembali'})).toBeFocused()
  await page.keyboard.press('Escape')
  await expect(dialog).toHaveCount(0)
@@ -330,12 +343,12 @@ test('anime without configured sources provides clearly labelled external embed 
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- await expect(page.getByText(/Buka pemutar eksternal \(belum diverifikasi\)/i)).toBeVisible()
+ await expect(page.getByText(/Coba video alternatif/i)).toBeVisible()
  await page.locator('.source-options button').first().click()
- await expect(page.getByRole('dialog',{name:'Video player'})).toBeVisible()
- const frame=page.getByTitle('External player · Episode 1')
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
+ const frame=page.getByTitle('Video alternatif · Episode 1')
  await expect(frame).toHaveAttribute('src','https://www.animeembed.com/embed/mal/1/1')
- await expect(page.getByText(/ketersediaan episode dan bahasa subtitle belum diverifikasi/i)).toBeVisible()
+ await expect(page.getByText('Mode video alternatif',{exact:true})).toBeVisible()
 })
 
 
@@ -360,4 +373,487 @@ test('browse keeps results when a search changes only in trailing whitespace',as
  await input.fill('Yoru ')
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await expect(page.getByText('Tidak ada judul yang cocok')).toHaveCount(0)
+})
+
+
+test('glass watch screen has Yoru-owned transport and local subtitle upload',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const player=page.getByRole('main',{name:'Layar tonton'})
+ await expect(player).toBeVisible()
+ await expect(page.locator('video')).not.toHaveAttribute('controls')
+ await expect(player.getByRole('slider',{name:'Posisi video'})).toBeVisible()
+ await expect(player.getByRole('button',{name:/Putar video|Jeda video/})).toBeVisible()
+ await player.locator('.player-subtitle-trigger').click()
+ await player.locator('input[type=file][accept*=".srt"]').setInputFiles({
+  name:'uji.srt',mimeType:'text/plain',
+  buffer:Buffer.from('1\n00:00:01,000 --> 00:00:03,000\nHalo dari berkas pribadi\n')
+ })
+ await expect(player.getByText(/Subtitle pribadi.*siap/i)).toBeVisible()
+ await expect(player.locator('video track[src^="blob:"]')).toHaveCount(1)
+})
+
+test('embedded fallback keeps an honest Yoru subtitle panel',async({page})=>{
+ await page.route('https://www.animeembed.com/**',route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Video alternative</title>'}))
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[]}}))
+ await test.step('Choose an episode without playable native streams',async()=>{
+  await page.goto('/')
+  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+  await page.locator('.episode-list .episode-row').first().click()
+  await expect(page.locator('.source-picker .source-options button')).toHaveCount(1)
+ })
+ await test.step('Select the explicit embedded fallback',async()=>{
+  await page.locator('.source-picker .source-options button').first().click()
+  await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
+ })
+ await test.step('Expose a truthful subtitle limitation and no fake seek',async()=>{
+  const player=page.getByRole('main',{name:'Layar tonton'})
+  await player.locator('.player-subtitle-trigger').click()
+  await expect(player.getByText(/diatur oleh pemutar video alternatif/i)).toBeVisible()
+  await expect(player.getByRole('slider',{name:'Posisi video'})).toHaveCount(0)
+ })
+})
+
+test('browse filters loaded anime and header has a single deliberate discovery entry',async({page})=>{
+ await page.goto('/')
+ await expect(page.locator('.topbar .search-control')).toHaveCount(0)
+ await page.getByRole('button',{name:'Jelajahi anime'}).click()
+ await expect(page.getByRole('heading',{name:'Jelajahi'})).toBeVisible()
+ await page.getByRole('combobox',{name:'Genre'}).selectOption('Action')
+ await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
+ await page.getByRole('combobox',{name:'Genre'}).selectOption('Romance')
+ await expect(page.getByText('Yoru Test Anime')).toHaveCount(0)
+ await expect(page.getByText(/seluruh katalog/i)).toBeVisible()
+})
+
+
+test('mobile has one visible navigation dock and resets scroll on page changes',async({page})=>{
+ await page.setViewportSize({width:390,height:844})
+ await page.goto('/')
+ await expect(page.locator('.sidebar')).toBeHidden()
+ await expect(page.locator('.mobile-menu')).toBeHidden()
+ await expect(page.locator('.mobile-bottom')).toBeVisible()
+ await page.evaluate(()=>window.scrollTo(0,600))
+ await page.locator('.mobile-bottom button').nth(1).click()
+ await expect(page.getByRole('heading',{name:'Jelajahi'})).toBeVisible()
+ await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBe(0)
+ await expect(page.locator('.browse-filter-group')).toBeVisible()
+ await expect(page.locator('.category-switch').getByRole('button',{name:'Musim ini'})).toBeVisible()
+ await expect(page.locator('.category-switch').getByRole('button',{name:'Populer'})).toBeVisible()
+ await expect(page.locator('.category-switch').getByRole('button',{name:'Akan datang'})).toBeVisible()
+ await expect(page.getByRole('button',{name:/Musim berikutnya/})).toHaveCount(0)
+})
+
+test('watch page replaces catalog rather than opening a modal over its scroll',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const watch=page.getByRole('main',{name:'Layar tonton'})
+ await expect(watch).toBeVisible()
+ await expect(page.getByRole('dialog',{name:'Video player'})).toHaveCount(0)
+ await expect(page.locator('.app-shell')).toHaveCount(0)
+ await expect(page.locator('.mobile-bottom')).toHaveCount(0)
+ await watch.getByRole('button',{name:'Kembali'}).click()
+ await expect(page.locator('.app-shell')).toBeVisible()
+})
+
+
+test('mobile detail source picker scrolls inside dialog rather than behind it',async({page})=>{
+ await page.setViewportSize({width:390,height:680})
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[]}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog).toBeVisible()
+ await expect.poll(()=>page.evaluate(()=>document.body.style.position)).toBe('fixed')
+ await expect.poll(()=>dialog.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true)
+ await dialog.evaluate(el=>{el.scrollTop=el.scrollHeight})
+ await expect.poll(()=>dialog.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
+ await dialog.locator('.episode-list .episode-row').first().click()
+ const picker=dialog.locator('.source-picker')
+ await expect(picker).toBeVisible()
+ await expect(picker).toBeInViewport({ratio:0.35})
+ await dialog.getByRole('button',{name:'Tutup detail anime'}).click()
+ await expect.poll(()=>page.evaluate(()=>document.body.style.position)).not.toBe('fixed')
+})
+
+test('mobile discover groups three categories and filters on one shared surface',async({page})=>{
+ await page.setViewportSize({width:390,height:680})
+ await page.goto('/')
+ await page.locator('.mobile-bottom').getByRole('button',{name:'Jelajahi'}).click()
+ await expect(page.locator('.browse-controls')).toHaveCount(1)
+ await expect(page.locator('.browse-controls .category-switch button')).toHaveCount(3)
+ await expect(page.locator('.topbar-discover')).toHaveCount(0)
+ await expect(page.locator('.browse-controls input[aria-label="Cari anime"]')).toBeVisible()
+ await expect(page.locator('.browse-controls select[aria-label="Genre"]')).toBeVisible()
+})
+
+
+test('top ten catalog selector changes featured anime without claiming daily views',async({page})=>{
+ await page.route('**/api/anime/discover?**',async route=>{
+  const kind=new URL(route.request().url()).searchParams.get('kind')
+  const items=kind==='top'?Array.from({length:10},(_,i)=>({...anime,id:`mal:${i+1}`,malId:i+1,title:`Anime Pilihan ${i+1}`})):[anime]
+  await route.fulfill({json:{items,page:1,hasNext:false}})
+ })
+ await page.goto('/')
+ const selector=page.locator('.hero-top-ten')
+ await expect(selector).toBeVisible()
+ await expect(selector.locator('button')).toHaveCount(10)
+ await selector.getByRole('button',{name:/peringkat 2:/i}).click()
+ await expect(page.locator('.hero-copy h2')).toHaveText('Anime Pilihan 2')
+ await expect(page.getByText('10 anime populer',{exact:true}).first()).toBeVisible()
+})
+
+test('library uses its own responsive layout without changing navigation',async({page})=>{
+ await page.setViewportSize({width:390,height:844})
+ await page.goto('/')
+ await page.locator('.mobile-bottom').getByRole('button',{name:'Koleksi'}).click()
+ await expect(page.locator('.library-page')).toBeVisible()
+ await expect(page.getByRole('heading',{name:'Koleksi',exact:true})).toBeVisible()
+})
+
+
+test('real dated AniList daily trends replace fallback and manually rotate through ten titles',async({page})=>{
+ await page.route('**/api/anime/daily-trends',route=>route.fulfill({json:{
+  items:Array.from({length:10},(_,i)=>({...anime,id:'mal:'+(i+100),malId:i+100,title:'Tren AniList '+(i+1)})),
+  source:'AniList',sourceUrl:'https://anilist.co',date:'2026-10-29',metric:'daily-media-activity'
+ }}))
+ await page.clock.install()
+ await page.goto('/')
+ await expect(page.getByText(/Aktivitas AniList · 29 Okt 2026/)).toBeVisible()
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 1')
+ await page.clock.fastForward(8000)
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 2')
+ await page.getByRole('button',{name:'Jeda pergantian hero'}).click()
+ await page.clock.fastForward(16000)
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 2')
+ await page.getByRole('button',{name:'Anime berikutnya'}).click()
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 3')
+ await expect(page.getByRole('link',{name:'Lihat sumber'})).toHaveAttribute('href','https://anilist.co')
+})
+
+test('reduced motion prevents hero auto rotation while controls remain usable',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'})
+ await page.route('**/api/anime/daily-trends',route=>route.fulfill({json:{
+  items:Array.from({length:10},(_,i)=>({...anime,id:'mal:'+(i+200),malId:i+200,title:'Tren Tenang '+(i+1)})),
+  source:'AniList',sourceUrl:'https://anilist.co',date:'2026-10-29',metric:'daily-media-activity'
+ }}))
+ await page.clock.install()
+ await page.goto('/')
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 1')
+ await page.clock.fastForward(9000)
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 1')
+ await page.getByRole('button',{name:'Anime berikutnya'}).click()
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 2')
+})
+
+
+test('watch guide is a secondary discover route with truthful unsupported chronology',async({page})=>{
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:{
+  source:'AniList',sourceUrl:'https://anilist.co/anime/10',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:10,malId:1,title:'Yoru Test Anime',format:'TV',year:2024,month:1,relation:'CURRENT',image:null},
+   {aniListId:9,malId:null,title:'Related OVA',format:'OVA',year:2023,month:6,relation:'SIDE_STORY',image:null}
+  ]
+ }}))
+ await page.goto('/jelajahi')
+ await expect(page.getByRole('button',{name:'Panduan urutan anime'})).toBeVisible()
+ await page.getByRole('button',{name:'Panduan urutan anime'}).click()
+ await expect(page).toHaveURL(/\/jelajahi\/panduan-urutan$/)
+ await expect(page.getByRole('heading',{name:'Panduan urutan anime'})).toBeVisible()
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ await expect(page.getByRole('heading',{name:'Jaringan judul yang berhubungan'})).toBeVisible()
+ await expect(page.locator('.guide-mode button')).toHaveCount(2)
+ await expect(page.getByRole('button',{name:'Tahun rilis'})).toHaveAttribute('aria-pressed','true')
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+ await expect(page.getByText(/Kronologi cerita belum tersedia/)).toBeVisible()
+ await expect(page.getByText('Related OVA')).toBeVisible()
+ await expect(page.getByRole('button',{name:'Belum terpetakan'})).toBeDisabled()
+ await expect(page.getByRole('link',{name:'Sumber: AniList'})).toHaveAttribute('href','https://anilist.co/anime/10')
+})
+
+
+test('continue watching verifies a source then resumes the same episode without reopening detail',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const video=page.locator('video')
+ await expect.poll(()=>video.evaluate(v=>v.readyState),{timeout:20000}).toBeGreaterThan(0)
+ await video.evaluate(v=>{v.currentTime=2;v.pause();v.dispatchEvent(new Event('pause'))})
+ await expect.poll(async()=>page.evaluate(async()=>{
+  const request=indexedDB.open('yoru-local-v1')
+  return new Promise(resolve=>{
+   request.onsuccess=()=>{
+    const db=request.result,tx=db.transaction('progress','readonly'),get=tx.objectStore('progress').get('mal:1')
+    get.onsuccess=()=>{resolve(get.result?.seconds??0);db.close()}
+   }
+  })
+ })).toBeGreaterThan(1)
+ await page.getByRole('button',{name:'Kembali'}).click()
+ await expect(page.locator('.continue-card')).toHaveCount(1)
+ await page.locator('.continue-card').click()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible({timeout:30000})
+ await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toHaveCount(0)
+ await expect(page.getByRole('main',{name:'Layar tonton'}).getByText(/Episode 1/)).toBeVisible()
+})
+
+test('caption styling settings persist and remain scoped to the native video player',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const player=page.getByRole('main',{name:'Layar tonton'})
+ await player.getByRole('button',{name:/Subtitle ·/}).click()
+ await player.getByRole('combobox',{name:'Transparansi teks subtitle'}).selectOption('75')
+ await player.getByRole('combobox',{name:'Opasitas latar subtitle'}).selectOption('25')
+ await player.getByRole('combobox',{name:'Garis tepi subtitle'}).selectOption('2')
+ await expect(player.locator('video')).toHaveClass(/subtitle-text-75/)
+ await expect(player.locator('video')).toHaveClass(/subtitle-bg-25/)
+ await expect(player.locator('video')).toHaveClass(/subtitle-outline-2/)
+ await player.getByRole('button',{name:'Kembali'}).click()
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ await expect(page.locator('video')).toHaveClass(/subtitle-text-75/)
+ await expect(page.locator('video')).toHaveClass(/subtitle-bg-25/)
+})
+
+test('Torrentio hash-only video is clearly disabled while verified-source fallback stays selectable',async({page})=>{
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{
+  items:[],unavailable:[{kind:'torrent',label:'Torrentio 1080p',reason:'Torrent membutuhkan mesin streaming/resolver yang terhubung; belum bisa diputar langsung.'}]
+ }}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ const disabled=dialog.getByRole('button',{name:'Torrentio 1080p · Belum bisa diputar'})
+ await expect(disabled).toBeDisabled()
+ await expect(dialog.getByText('Torrent membutuhkan mesin streaming/resolver yang terhubung; belum bisa diputar langsung.')).toBeVisible()
+ await expect(dialog.getByRole('button',{name:/Coba video alternatif/})).toBeEnabled()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
+})
+
+
+test('generic franchise guide expands on demand, filters alternatives and never calls them canon',async({page})=>{
+ const base={
+  source:'AniList',sourceUrl:'https://anilist.co/anime/10',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:10,malId:1,title:'Generic Anime',format:'TV',year:2024,month:1,relation:'CURRENT',image:null},
+   {aniListId:11,malId:11,title:'Generic Sequel',format:'TV',year:2025,month:1,relation:'SEQUEL',image:null}
+  ]
+ }
+ let graphCalls=0
+ await page.route('**/api/anime/1/watch-guide?depth=2',route=>{
+  graphCalls++
+  return route.fulfill({json:{...base,graph:{
+   status:'expanded',scannedDirect:1,directTotal:1,truncated:false,
+   note:'Maksimal dua tingkat hubungan dari judul ini. Ini bukan kronologi canon atau panduan menonton terkurasi.',
+   edges:[{from:10,to:11,relation:'SEQUEL'},{from:11,to:12,relation:'ALTERNATIVE'}],
+   nodes:[
+    {...base.items[0],distance:0,viaAniListId:null},
+    {...base.items[1],distance:1,viaAniListId:10},
+    {aniListId:12,malId:null,title:'Generic Alternate Movie',format:'MOVIE',
+     year:2022,month:2,relation:'ALTERNATIVE',image:null,distance:2,viaAniListId:11}
+   ]
+  }}})
+ })
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:base}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ await expect(page.getByRole('heading',{name:'Jaringan judul yang berhubungan'})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+ await expect(page.getByText('Generic Alternate Movie')).toHaveCount(0)
+ await expect.poll(()=>graphCalls).toBe(0)
+ await page.getByRole('button',{name:/Perluas hubungan/}).click()
+ await expect(page.getByText('Generic Alternate Movie')).toBeVisible()
+ await expect.poll(()=>graphCalls).toBe(1)
+ await page.getByRole('button',{name:/Cabang cerita/}).click()
+ await expect(page.getByText('Generic Alternate Movie')).toBeVisible()
+ await expect(page.getByText('Generic Sequel',{exact:true})).toHaveCount(0)
+ await expect(page.getByRole('button',{name:'Belum terpetakan'})).toBeDisabled()
+ await expect(page.getByText(/Ditemukan melalui Generic Sequel/)).toBeVisible()
+ await expect(page.getByText(/bukan daftar franchise lengkap/)).toBeVisible()
+})
+
+test('curated Fate routes are sourced, switchable and never presented as one canon chronology',async({page})=>{
+ const anime={source:'AniList',sourceUrl:'https://anilist.co/anime/19603',
+  scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:19603,malId:1,title:'Fate/stay night: Unlimited Blade Works',format:'TV',year:2014,month:10,relation:'CURRENT',image:null},
+   {aniListId:20791,malId:null,title:'Heaven\'s Feel I',format:'MOVIE',year:2017,month:10,relation:'ALTERNATIVE',image:null}
+  ]
+ }
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:anime}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const curated=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ await expect(curated).toBeVisible()
+ await expect(curated.getByRole('button',{name:'Mulai Fate lewat anime modern'})).toHaveAttribute('aria-pressed','true')
+ await expect(curated.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'})).toBeVisible()
+ await expect(curated.getByRole('link',{name:/Anime Meridian/})).toBeVisible()
+ await expect(curated.getByText('Fate/stay night: Unlimited Blade Works (2014)',{exact:true})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+ await curated.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'}).click()
+ await expect(curated.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'})).toHaveAttribute('aria-pressed','true')
+ await expect(curated.getByRole('listitem').first()).toContainText('Fate/Zero')
+ await expect(curated.getByText(/bukan satu timeline canon linear/i)).toBeVisible()
+ await expect(curated.getByRole('link',{name:/Popverse/})).toBeVisible()
+})
+test('curated editorial notes only appear when AniList IDs match, not from vague title text',async({page})=>{
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:{
+  source:'AniList',sourceUrl:'https://anilist.co/anime/1',scope:'direct-relations',animeMalId:1,
+  items:[{aniListId:5081,malId:1,title:'Bakemonogatari',format:'TV',year:2009,month:7,relation:'CURRENT',image:null}]
+ }}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const curated=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ await expect(curated.getByText('Panduan menonton Monogatari')).toBeVisible()
+ await expect(curated.getByRole('link',{name:/Crunchyroll/})).toBeVisible()
+ await expect(curated.getByText('Kizumonogatari II: Nekketsu-hen')).toBeVisible()
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+})
+
+
+test('manual franchise path completion persists separately for alternate routes and survives reload',async({page})=>{
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:{
+  source:'AniList',sourceUrl:'https://anilist.co/anime/19603',scope:'direct-relations',animeMalId:1,
+  items:[{aniListId:19603,malId:1,title:'Fate/stay night: Unlimited Blade Works',format:'TV',year:2014,month:10,relation:'CURRENT',image:null}]
+ }}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const guide=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ const done=guide.getByRole('button',{name:'Tandai langkah berikutnya selesai'})
+ await expect(guide.getByText('0 dari 7 langkah ditandai selesai')).toBeVisible()
+ await done.click()
+ await expect(guide.getByText('1 dari 7 langkah ditandai selesai')).toBeVisible()
+ await expect(guide.getByText(/Berikutnya: Fate\/stay night: Unlimited Blade Works 2nd Season/)).toBeVisible()
+ const key=async()=>page.evaluate(async()=>{
+  const db=await new Promise((resolve,reject)=>{
+   const request=indexedDB.open('yoru-local-v1')
+   request.onsuccess=()=>resolve(request.result)
+   request.onerror=()=>reject(request.error)
+  })
+  const item=await new Promise((resolve,reject)=>{
+   const tx=db.transaction('preferences','readonly')
+   const get=tx.objectStore('preferences').get('watch-path:fate-anime-newcomer')
+   get.onsuccess=()=>resolve(get.result?.value)
+   get.onerror=()=>reject(get.error)
+  })
+  db.close()
+  return item
+ })
+ await expect.poll(async()=>JSON.parse(await key()).completed).toBe(1)
+ await guide.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'}).click()
+ await expect(guide.getByText('0 dari 7 langkah ditandai selesai')).toBeVisible()
+ await page.reload()
+ await expect(guide.getByText('1 dari 7 langkah ditandai selesai')).toBeVisible()
+ await guide.getByRole('button',{name:'Batalkan langkah terakhir'}).click()
+ await expect(guide.getByText('0 dari 7 langkah ditandai selesai')).toBeVisible()
+ await expect.poll(async()=>JSON.parse(await key()).completed).toBe(0)
+})
+
+
+test('provider outage displays failure rather than falsely claiming no video exists',async({page})=>{
+ await page.route('**/api/streams?**',route=>route.fulfill({status:503,json:{error:'PROVIDER_UNAVAILABLE'}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog.getByRole('status').filter({hasText:'Semua penyedia video gagal dihubungi.'})).toBeVisible()
+ await expect(dialog.getByRole('button',{name:/Coba video alternatif/})).toBeEnabled()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
+})
+test('mixed provider failures retain candidates and report partial metadata uncertainty',async({page})=>{
+ await page.route('**/api/anime/1/provider-episodes',route=>route.fulfill({json:{items:[
+  {id:'healthy:1',animeId:'mal:1',number:1,title:'Episode 1',providerId:'healthy'},
+  {id:'unreachable:1',animeId:'mal:1',number:1,title:'Episode 1',providerId:'unreachable'}
+ ]}}))
+ await page.route('**/api/streams?**',route=>{
+  const ep=new URL(route.request().url()).searchParams.get('episodeRef')
+  if(ep==='unreachable:1')return route.fulfill({status:503,json:{error:'Provider down'}})
+  return route.fulfill({json:{items:[
+   {id:'a',format:'hls',url:'https://media.example.test/a.m3u8',tracks:[],subtitleMode:'unknown'},
+   {id:'b',format:'mp4',url:'https://media.example.test/b.mp4',tracks:[],subtitleMode:'unknown'}
+  ]}})
+ })
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog.getByRole('status').filter({hasText:/Sebagian penyedia gagal dihubungi/})).toBeVisible()
+ await expect(dialog.locator('.source-options button')).toHaveCount(2)
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
+})
+
+
+test('edition-aware Haruhi route switches 2006 broadcast and 2009 re-airing without mixing episode numbers',async({page})=>{
+ const payload={
+  source:'AniList',sourceUrl:'https://anilist.co/anime/849',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:849,malId:1,title:'Haruhi Suzumiya 2006',format:'TV',year:2006,month:4,relation:'CURRENT',image:null},
+   {aniListId:4382,malId:2,title:'Haruhi Suzumiya 2009',format:'TV',year:2009,month:4,relation:'ALTERNATIVE',image:null},
+   {aniListId:7311,malId:3,title:'Haruhi Disappearance',format:'MOVIE',year:2010,month:2,relation:'SEQUEL',image:null}
+  ]
+ }
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:payload}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const guide=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ await expect(guide.getByRole('button',{name:'2006: urutan siaran asli (14 episode)'})).toHaveAttribute('aria-pressed','true')
+ await expect(guide.locator('.guide-curated-steps li')).toHaveCount(14)
+ await expect(guide.getByText('Episode 01 — The Adventures of Mikuru Asahina Episode 00',{exact:true})).toBeVisible()
+ await expect(guide.getByText('Episode 1 · edisi siaran asli 2006 (14 episode)')).toBeVisible()
+ await guide.getByRole('button',{name:'2009: susunan 28 episode + film'}).click()
+ await expect(guide.locator('.guide-curated-steps li')).toHaveCount(29)
+ await expect(guide.getByText('Episode 25 — The Adventures of Mikuru Asahina Episode 00')).toBeVisible()
+ await expect(guide.getByText('Episode 25 · edisi siaran 2009 (28 episode)')).toBeVisible()
+ await expect(guide.getByText('The Disappearance of Haruhi Suzumiya (film 2010)')).toBeVisible()
+ await expect(guide.getByRole('button',{name:'Detail serial'}).first()).toBeEnabled()
+ await expect(guide.getByText(/tidak membuka episode tertentu secara otomatis/)).toBeVisible()
+ await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
+})
+test('Re:ZERO OVA duo is mapped as episode 1 and episode 2 within one AniList release',async({page})=>{
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:{
+  source:'AniList',sourceUrl:'https://anilist.co/anime/21355',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:21355,malId:1,title:'Re:ZERO Season 1',format:'TV',year:2016,month:4,relation:'CURRENT',image:null},
+   {aniListId:100049,malId:2,title:'Re:ZERO OVAs',format:'OVA',year:2018,month:10,relation:'SIDE_STORY',image:null}
+  ]
+ }}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const guide=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ await expect(guide.getByRole('button',{name:'Season + OVA: jalur penonton baru'})).toBeVisible()
+ await expect(guide.locator('.guide-curated-steps li')).toHaveCount(6)
+ await expect(guide.getByText('OVA 1 — Memory Snow')).toBeVisible()
+ await expect(guide.getByText('OVA 2 — The Frozen Bond')).toBeVisible()
+ await expect(guide.getByText('Episode 1 · edisi Re:ZERO OVAs (2 episode dalam 1 entri AniList)')).toBeVisible()
+ await expect(guide.getByText('Episode 2 · edisi Re:ZERO OVAs (2 episode dalam 1 entri AniList)')).toBeVisible()
+ await expect(guide.getByText(/Director’s Cut merupakan versi sunting ulang/)).toBeVisible()
+})
+
+test('browse filters survive deep links, reload, and back-forward navigation without resetting the tab',async({page})=>{
+ await page.goto('/jelajahi/populer?genre=Action&type=TV&minScore=8&year=2024&order=rating')
+ await expect(page.getByRole('combobox',{name:'Genre'})).toHaveValue('Action')
+ await expect(page.getByRole('combobox',{name:'Jenis anime'})).toHaveValue('TV')
+ await expect(page.getByRole('combobox',{name:'Skor minimum'})).toHaveValue('8')
+ await expect(page.getByRole('combobox',{name:'Tahun rilis'})).toHaveValue('2024')
+ await expect(page.getByRole('combobox',{name:'Urutkan anime'})).toHaveValue('rating')
+ await expect(page.getByRole('button',{name:'Populer'})).toHaveAttribute('aria-pressed','true')
+ await expect(page.getByRole('button',{name:'Hapus filter Genre: Action'})).toBeVisible()
+ await page.reload()
+ await expect(page.getByRole('combobox',{name:'Genre'})).toHaveValue('Action')
+ await page.getByRole('combobox',{name:'Genre'}).selectOption('Drama')
+ await expect(page).toHaveURL(/\/jelajahi\/populer\?[^#]*genre=Drama/)
+ await page.goBack()
+ await expect(page.getByRole('combobox',{name:'Genre'})).toHaveValue('Action')
+ await page.goForward()
+ await expect(page.getByRole('combobox',{name:'Genre'})).toHaveValue('Drama')
+ await page.getByRole('button',{name:'Hapus filter Genre: Drama'}).click()
+ await expect(page.getByRole('combobox',{name:'Genre'})).toHaveValue('')
+ await expect(page).not.toHaveURL(/genre=Drama/)
+ await page.getByRole('button',{name:'Reset filter'}).click()
+ await expect(page).toHaveURL(/\/jelajahi\/populer$/)
+})
+test('unsupported URL filters are discarded and long-tail historical year is selected',async({page})=>{
+ await page.goto('/jelajahi/musim-ini?genre=Unknown&type=INVALID&minScore=999&year=1965&order=wat')
+ await expect(page.getByRole('combobox',{name:'Genre'})).toHaveValue('')
+ await expect(page.getByRole('combobox',{name:'Jenis anime'})).toHaveValue('')
+ await expect(page.getByRole('combobox',{name:'Tahun rilis'})).toHaveValue('1965')
+ await expect(page.getByRole('combobox',{name:'Skor minimum'})).toHaveValue('0')
+ await expect(page.getByRole('combobox',{name:'Urutkan anime'})).toHaveValue('default')
+ await expect(page.getByRole('button',{name:'Musim ini',exact:true})).toHaveAttribute('aria-pressed','true')
 })
