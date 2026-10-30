@@ -4,6 +4,8 @@ import {search,watchGuide,type WatchGuideEntry,type WatchGuideResponse} from '..
 import {WATCH_GROUPS,filterWatchEntries,isExtendedNode,sortWatchEntries,type WatchGroup} from '../lib/watch-guide-view'
 import type {Anime} from '../types'
 import {discoverCuratedPaths} from '../lib/curated-watch-paths'
+import {getPreference,setPreference} from '../lib/db'
+import {normalizeWatchPathProgress,updateWatchPathProgress,watchPathPreferenceKey,type WatchPathProgress} from '../lib/watch-path-progress'
 
 const suggestions=['Fate','Monogatari','Gundam','Toaru','Haruhi','Re:Zero','Steins;Gate','K-On!']
 const labels:Record<WatchGuideEntry['relation'],string>={
@@ -24,6 +26,9 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
  const [depth,setDepth]=useState<1|2>(1)
  const [filter,setFilter]=useState<WatchGroup>('all')
  const [curatedId,setCuratedId]=useState<string|null>(null)
+ const [manualProgress,setManualProgress]=useState<{id:string;data:WatchPathProgress}|null>(null)
+ const [progressBusy,setProgressBusy]=useState(false)
+ const [progressError,setProgressError]=useState('')
  useEffect(()=>{
   const q=query.trim()
   if(q.length<2){setMatches([]);setSearchLoading(false);return}
@@ -52,6 +57,33 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
  const entryById=useMemo(()=>new Map(entries.map(e=>[e.aniListId,e])),[entries])
  const curated=useMemo(()=>discoverCuratedPaths(entries.map(e=>e.aniListId)),[entries])
  const selectedCurated=curated.find(path=>path.id===curatedId)??curated[0]
+ const selectedId=selectedCurated?.id
+ useEffect(()=>{
+  if(!selectedId){setManualProgress(null);setProgressError('');return}
+  let active=true
+  setManualProgress(null);setProgressError('')
+  const key=watchPathPreferenceKey(selectedId)
+  const size=selectedCurated.steps.length
+  getPreference(key,'').then(value=>{
+   if(active)setManualProgress({id:selectedId,data:normalizeWatchPathProgress(value,size)})
+  }).catch(()=>{if(active)setProgressError('Progres lokal belum dapat dimuat. Periksa penyimpanan browser.')})
+  return()=>{active=false}
+ },[selectedId,selectedCurated?.steps.length])
+ async function changeManualProgress(direction:-1|1){
+  const path=selectedCurated
+  if(!path||progressBusy||manualProgress?.id!==path.id)return
+  const next=updateWatchPathProgress(manualProgress.data,path.steps.length,direction,Date.now())
+  if(next.completed===manualProgress.data.completed)return
+  const before=manualProgress
+  setProgressBusy(true);setProgressError('')
+  setManualProgress({id:path.id,data:next})
+  try{
+   await setPreference(watchPathPreferenceKey(path.id),JSON.stringify(next))
+  }catch{
+   setManualProgress(current=>current?.id===path.id?before:current)
+   setProgressError('Progres gagal disimpan. Coba lagi atau periksa kapasitas penyimpanan.')
+  }finally{setProgressBusy(false)}
+ }
  const pick=(id:number)=>{setDepth(1);setFilter('all');setCuratedId(null);setData(null);setMatches([]);onPick(id)}
  return <div className="page-body yoru-watch-guide">
   <div className="page-intro"><div>
@@ -104,10 +136,29 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
     </fieldset>
     {selectedCurated.spoilerRisk==='contextual'&&<div className="guide-information"><Info size={17}/>
      <p>Rute ini dapat memperlihatkan hubungan cerita lebih awal daripada urutan rilis. Sinopsis episode dan twist sengaja tidak dicantumkan.</p></div>}
+    <div className="guide-path-progress">
+     <div className="guide-path-progress-copy">
+      <strong>Progres rute (manual)</strong>
+      <small role="status">{manualProgress?.id===selectedCurated.id?
+       `${manualProgress.data.completed} dari ${selectedCurated.steps.length} langkah ditandai selesai`:
+       'Memuat progres lokal…'}</small>
+      <small>Catatan ini tersimpan di browser dan ikut dalam backup Yoru. Bukan status video yang telah diputar.</small>
+      {manualProgress?.id===selectedCurated.id&&manualProgress.data.completed<selectedCurated.steps.length&&
+       <span>Berikutnya: {selectedCurated.steps[manualProgress.data.completed].title}</span>}
+      {progressError&&<small role="alert">{progressError}</small>}
+     </div>
+     <div className="guide-path-progress-actions">
+      <button type="button" className="btn btn-outline" disabled={progressBusy||!manualProgress||manualProgress.id!==selectedCurated.id||manualProgress.data.completed===0}
+       onClick={()=>void changeManualProgress(-1)}>Batalkan langkah terakhir</button>
+      <button type="button" className="btn btn-primary" disabled={progressBusy||!manualProgress||manualProgress.id!==selectedCurated.id||manualProgress.data.completed>=selectedCurated.steps.length}
+       onClick={()=>void changeManualProgress(1)}>Tandai langkah berikutnya selesai</button>
+     </div>
+    </div>
     <ol className="guide-curated-steps">
      {selectedCurated.steps.map((step,index)=>{
       const matched=step.aniListId?entryById.get(step.aniListId):undefined
-      return <li key={`${selectedCurated.id}:${step.aniListId??step.title}`}>
+      return <li className={manualProgress?.id===selectedCurated.id&&index<manualProgress.data.completed?'guide-step-done':''}
+       key={`${selectedCurated.id}:${step.aniListId??step.title}`}>
        <span className="guide-path-number" aria-hidden="true">{String(index+1).padStart(2,'0')}</span>
        <div><strong>{step.title}</strong>
         <small>{step.kind} · {step.optional?'Opsional dalam rute ini':'Bagian dari rute ini'}</small>

@@ -2690,3 +2690,15 @@ body {
 @media(max-width:600px){.guide-curated{padding:12px}.guide-curated-choices button{flex:1 1 100%}.guide-curated-steps{padding-left:24px}.guide-curated-steps li>.btn{width:100%}}
 
 .guide-curated-steps{list-style:none;padding-left:0}.guide-path-number{display:inline-flex;min-width:25px;align-self:flex-start;font-weight:750;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* Local-only, manually confirmed route progress; never inferred from stream availability. */
+.guide-path-progress{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;padding:14px;border:1px solid var(--line-strong);border-radius:var(--radius-md);background:var(--surface-2)}
+.guide-path-progress-copy{display:flex;flex:1 1 240px;min-width:0;flex-direction:column;gap:5px;line-height:1.4}
+.guide-path-progress-copy small{color:var(--muted)}
+.guide-path-progress-copy [role="alert"]{color:var(--text)}
+.guide-path-progress-copy span{font-weight:600;font-size:13px}
+.guide-path-progress-actions{display:flex;flex-wrap:wrap;gap:8px}
+.guide-path-progress-actions button{min-height:44px}
+.guide-curated-steps li.guide-step-done{opacity:.72}
+.guide-curated-steps li.guide-step-done .guide-path-number{color:var(--soft)}
+@media(max-width:600px){.guide-path-progress-actions{width:100%}.guide-path-progress-actions button{width:100%;justify-content:center}}
