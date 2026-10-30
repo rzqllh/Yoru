@@ -3,7 +3,7 @@
  * Each published path is a bounded RECOMMENDATION, not a canon assertion.
  * This registry is extensible by PR with verifiable sources and review dates.
  */
-import {EDITION_WATCH_PATHS} from './curated-watch-path-editions'
+import {EDITION_WATCH_PATHS} from './curated-watch-path-editions.ts'
 
 export type PathStep={
  title:string;aniListId:number|null;kind:'TV'|'MOVIE'|'OVA'|'ONA'|'SPECIAL'|'GROUP';
