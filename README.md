@@ -42,7 +42,7 @@ Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan
 | Install PWA dan shell offline | Tersedia di build produksi | Katalog baru tetap membutuhkan internet |
 | Provider lokal HTTPS dengan file JSON | Tersedia | Konfigurasi manual |
 | Addon Stremio: HLS/MP4, subtitle, dan metadata sumber Torrentio | Opt-in; torrent berbasis hash ditampilkan **tidak dapat diputar**, bukan video siap tonton | Addon HTTPS dan mapping manual; tidak ada mesin torrent/debrid |
-| Filter genre, jenis, skor, tahun, dan urutan | Tersedia melalui katalog; muat lebih banyak untuk halaman berikutnya | Internet untuk katalog |
+| Filter genre, jenis, skor, tahun, dan urutan | Pilihan tersimpan di URL, dukung Back/Forward, tautan berbagi dan chip hapus filter; rentang tahun mulai 1950 | Internet untuk katalog |
 | Subtitle SRT/VTT lokal, preferensi bahasa dan tampilan | Font, ukuran, opasitas teks/latar, outline, dan posisi WebVTT bila browser mendukung | Tidak berlaku untuk hardsub/iframe; Sub Indo tidak otomatis tersedia |
 | Panduan urutan anime dan pilihan rute editorial | Graph AniList maksimal 2 tingkat + panduan bersumber termasuk Fate, Monogatari, Haruhi 2006/2009 dan Re:ZERO OVA; validasi episode per edisi | Internet untuk AniList; rute editorial lokal, bukan jaminan video |
 
