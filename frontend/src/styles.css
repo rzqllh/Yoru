@@ -2655,3 +2655,14 @@ body {
 .caption-preview{min-height:106px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#111827;display:flex;align-items:flex-end;justify-content:center;text-align:center}
 .caption-preview-top{align-items:flex-start}.caption-preview-bottom{align-items:flex-end}
 .caption-preview-original{align-items:flex-end}.caption-preview span{padding:3px 6px;line-height:1.45;border-radius:3px;max-width:100%}
+
+/* Universal watch graph: a secondary, user-triggered discovery surface. */
+.guide-expand{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);padding:14px 16px}
+.guide-expand>div{display:flex;flex-direction:column;gap:4px}
+.guide-expand small{color:var(--muted)}
+.guide-groups{display:flex;flex-wrap:wrap;gap:8px}
+.guide-groups button{min-height:44px;padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.guide-groups button.active{border-color:var(--accent);color:var(--accent)}
+.guide-groups button:focus-visible,.guide-expand button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.guide-groups button:hover:not(.active){background:var(--surface-hover)}
+@media(max-width:600px){.guide-expand{padding:12px}.guide-expand>.btn{width:100%;justify-content:center}.guide-groups button{flex:1 0 auto}}

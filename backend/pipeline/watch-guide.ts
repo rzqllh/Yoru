@@ -2,7 +2,7 @@
  * AniList relation explorer. This endpoint is evidence for directly linked
  * ANIME nodes only; it is NOT a full/chronological/curated watch order.
  */
-export type WatchRelation='CURRENT'|'PREQUEL'|'SEQUEL'|'SIDE_STORY'|'ALTERNATIVE'|'SPIN_OFF'|'PARENT'|'SUMMARY'|'OTHER'
+export type WatchRelation='CURRENT'|'PREQUEL'|'SEQUEL'|'SIDE_STORY'|'ALTERNATIVE'|'SPIN_OFF'|'PARENT'|'SUMMARY'|'OTHER'|'COMPILATION'|'CONTAINS'|'SAME_UNIVERSE'
 export type WatchGuideEntry={
  aniListId:number;malId:number|null;title:string;format:string;year:number|null;month:number|null;
  relation:WatchRelation;image:string|null
@@ -17,8 +17,8 @@ const record=(value:unknown):Record<string,unknown>=>value&&typeof value==='obje
 const id=(value:unknown)=>Number.isSafeInteger(value)&&Number(value)>0?Number(value):null
 const year=(value:unknown)=>Number.isInteger(value)&&Number(value)>=1900&&Number(value)<=2200?Number(value):null
 const month=(value:unknown)=>Number.isInteger(value)&&Number(value)>=1&&Number(value)<=12?Number(value):null
-const accepted=new Set<WatchRelation>(['PREQUEL','SEQUEL','SIDE_STORY','ALTERNATIVE','SPIN_OFF','PARENT','SUMMARY','OTHER'])
-function normalizeEntry(raw:unknown,relation:WatchRelation):WatchGuideEntry|null{
+const accepted=new Set<WatchRelation>(['PREQUEL','SEQUEL','SIDE_STORY','ALTERNATIVE','SPIN_OFF','PARENT','SUMMARY','OTHER','COMPILATION','CONTAINS','SAME_UNIVERSE'])
+export function normalizeEntry(raw:unknown,relation:WatchRelation):WatchGuideEntry|null{
  const item=record(raw)
  const aniListId=id(item.id)
  if(!aniListId||item.type!=='ANIME')return null
