@@ -16,12 +16,12 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 |---|---|---|---|---|
 | YX-01 | P0 | One-tap continue playback | PLANNED | Correct episode + resume; verified native source; graceful source-choice fallback |
 | YX-02 | P0 | Episode availability and source truth | PLANNED | Metadata candidate/verified/failed states never conflated |
-| YX-03 | P0 | Honest adaptive quality controls | CODED (rebased; exact CI pending) | Auto as initial choice; no phantom 1080p; unsupported disabled |
+| YX-03 | P0 | Honest adaptive quality controls | TESTED (CI+Browser E2E PR #48 head b7219869; merged) | Auto as initial choice; no phantom 1080p; unsupported disabled |
 | YX-04 | P0 | Subtitle appearance and placement | PLANNED | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
 | YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
 | YX-06 | P0 | Source memory/recovery and smart next | PLANNED | Verified source remembering; bounded recovery; manual consent |
-| YX-07 | P0 | Franchise relations on detail | PLANNED | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
-| YX-08 | P1 | Discovery watch-guide subpage | PLANNED | `/jelajahi/panduan-urutan`; no extra primary category tab |
+| YX-07 | P0 | Franchise relations on detail | CODED (direct links only; rebased CI pending) | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
+| YX-08 | P1 | Discovery watch-guide subpage | CODED (rebased CI pending) | `/jelajahi/panduan-urutan`; no extra primary category tab |
 | YX-09 | P1 | Branching franchise curated paths | PLANNED | Fate etc branching, optionality, spoiler protection; no guessed chronology |
 | YX-10 | P1 | Franchise progress/next-in-path | PLANNED | Local-first versioned migration + backup compatibility |
 | YX-11 | P1 | Search suggestions + aliases | PLANNED | Truthful supported metadata, accessible keyboard navigation |
@@ -45,6 +45,8 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- PR #48 merged quality after CI+Browser E2E success on b7219869; preview merge 8b82c1fd.
+- Watch Guide PR #47 tested green at 58303a16 but ancestry conflict after tracker squash; clean rebase `feat/yoru-watch-guide-rebased-20261030` awaiting new exact-SHA CI. Direct relations only, chronology/recommended remain gated.
 - Rebased Lane B: previous feature SHA `64263345b` passed CI+Browser E2E, but #46 conflicted after #45 squash. New clean branch `feat/yoru-honest-quality-rebased-20261030` needs new exact-SHA checks before merge.
 | Date | PR / exact commit | Done | Evidence | Next |
 |---|---|---|---|---|
