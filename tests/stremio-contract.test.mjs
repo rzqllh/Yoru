@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import {test} from 'node:test'
-import {isPublicIPv4,validateStremioConfig,parseStremioStreams,stremioStreamPath} from '../backend/providers/stremio-core.ts'
+import {isPublicIPv4,validateStremioConfig,parseStremioStreams,classifyStremioUnplayable,stremioStreamPath} from '../backend/providers/stremio-core.ts'
 
 test('only globally routable IPv4 hosts can be connected to',()=>{
  for(const value of ['127.0.0.1','10.0.0.4','172.20.5.1','192.168.1.20','169.254.169.254','0.0.0.0','100.64.0.1','198.51.100.3','224.1.2.3'])assert.equal(isPublicIPv4(value),false,value)
@@ -47,4 +47,25 @@ test('Stremio media URLs never target localhost, IP literals, or private DNS dom
  ]},'stremio-example')
  assert.equal(result.length,1)
  assert.equal(result[0].tracks.length,0)
+})
+
+test('Torrentio standard IMDb mapping is explicit, never guessed from a MAL ID',()=>{
+ const configured=validateStremioConfig({addons:[{...addon,anime:[{...addon.anime[0],stremioId:'tt1234567'}]}]})
+ assert.equal(stremioStreamPath(configured.addons[0],'tt1234567',1,2).toString(),
+  'https://addon.example.com/stream/series/tt1234567%3A1%3A2.json')
+})
+test('torrent-only responses remain honest disabled candidates, not invented browser streams',()=>{
+ const payload={streams:[
+  {infoHash:'a'.repeat(40),fileIdx:0,name:'Torrentio 1080p'},
+  {url:'https://cdn.example.com/episode.m3u8',name:'Stream 720p'},
+  {externalUrl:'https://watch.example.com/title',name:'External'},
+  {url:'magnet:?xt=urn:btih:xyz',name:'Bad magnet'},
+  {infoHash:'not-a-hash',name:'Invalid'},
+ ]}
+ assert.equal(parseStremioStreams(payload,'stremio-torrentio').length,1)
+ assert.deepEqual(classifyStremioUnplayable(payload,'stremio-torrentio'),[
+  {kind:'torrent',label:'Torrentio 1080p',reason:'Torrent membutuhkan mesin streaming/resolver yang terhubung; belum bisa diputar langsung.'},
+  {kind:'external',label:'External',reason:'Tautan situs eksternal belum diverifikasi untuk pemutaran langsung.'},
+  {kind:'unsupported',label:'Bad magnet',reason:'Format atau URL belum didukung pemutar browser.'}
+ ])
 })
