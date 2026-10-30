@@ -37,6 +37,14 @@ Safari harus mengakses server melalui **HTTPS tepercaya** ketika berasal dari pe
 
 Jika masih gagal, buat issue di [GitHub Issues](https://github.com/rzqllh/Yoru/issues) dengan OS/browser, langkah reproduksi, pesan error (tanpa token), dan apakah Coba pemutar berfungsi.
 
+## Status pencarian sumber dan pemutaran
+
+Pesan **Semua penyedia video gagal dihubungi** berarti permintaan ke penyedia gagal; itu bukan bukti episode tidak ada. Periksa konfigurasi addon, jaringan, server, serta respons `/api/streams?episodeRef=...` tanpa menyalin token publik.
+
+Pesan **Sebagian penyedia gagal dihubungi** berarti hanya hasil provider yang berhasil yang bisa diperlihatkan. Kualitas dan subtitle tetap harus diverifikasi pada sumber yang dipilih.
+
+Pesan **Kandidat ini belum bisa diputar** berarti pemeriksaan browser terhadap video native gagal (misalnya CORS, codec, HLS atau sumber kedaluwarsa). Kamu boleh pilih kandidat lain atau **Coba video alternatif**. Iframe eksternal bersifat opt-in dan tidak memiliki jaminan kualitas/subtitle yang sama.
+
 ## Ketika sebagian provider masih bekerja
 
 Jika satu provider memiliki konfigurasi rusak, API tetap mengembalikan episode/provider sehat serta `warnings` berisi ID sumber yang gagal. **Pengaturan** menampilkan sumber yang bermasalah. Perbaiki file lokal terkait dan klik refresh provider. Jika *semua* konfigurasi gagal dibaca, API mengembalikan 422. Jangan menafsirkan daftar kosong sebagai keberhasilan streaming.
