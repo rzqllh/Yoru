@@ -14,7 +14,7 @@ Buka **Jelajahi → Panduan urutan anime** atau **Urutan cerita** di detail anim
 
 Yoru mengambil hubungan **langsung** dari AniList. Pengguna dapat memilih **Perluas hubungan (2 tingkat)** untuk mengambil hubungan lanjutan secara opsional (maksimal 10 judul terkait yang dipindai dan sekitar 75 judul dalam hasil, bukan seluruh franchise). Filter TV, film, OVA/special, alternatif, dan rangkuman membantu membedakan jenis media.
 
-Yoru mengambil hubungan **langsung** dari AniList dan dapat menampilkan prekuel, sekuel, side story, alternatif, movie, atau OVA sesuai metadata. Tombol **Urutan rilis** menyusun berdasarkan tanggal yang tersedia. Ini **bukan** kronologi cerita atau urutan lengkap semua judul dalam satu franchise. Untuk Fate dan franchise bercabang, mode **Disarankan** dan **Kronologi** belum aktif karena memerlukan kurasi terverifikasi. Judul tanpa pemetaan MyAnimeList tidak dapat dibuka sebagai detail.
+Daftar menampilkan prekuel, sekuel, side story, jalur alternatif, film atau OVA jika metadata tersedia. Tombol **Urutan rilis** menyusun berdasarkan tanggal yang tersedia. Ini **bukan** kronologi cerita atau urutan lengkap semua judul dalam satu franchise. Untuk Fate dan franchise bercabang, mode **Disarankan** dan **Kronologi** belum aktif karena memerlukan kurasi terverifikasi. Judul tanpa pemetaan MyAnimeList tidak dapat dibuka sebagai detail.
 
 ## Memulai video dan melanjutkan tontonan
 
