@@ -70,12 +70,12 @@
 - Preview after #62 feature merge: `d5651b1a4c6e954a9326d56b56dbdaf9d60c0fdf`. Verify current HEAD, do not assume unchanged.
 - Published paths: Fate anime-modern newcomer; Fate prequel-first alternative; Monogatari introductory editorial. Source links, checked/reviewed date and explicit NOT-canon disclaimer. All other anime retain generic graph. Public documentation PR is **documentation-only** and must pass its own CI before merge.
 
-## Latest in-flight YX-10: manual progress per editorial watch path
-- Working branch: `feat/yoru-manual-watch-path-progress-20261030` from preview `6967cd0db1e64005510a0ed47a00769c0b298fcf`.
+## Latest verified YX-10: manual progress per editorial watch path (#64 merged)
+- PR #64 merged to preview `27e87bdb3d8954195acc23da6cd2621b3d8098e4`, exact tested feature head `5f7c373e831f536e97271c09c710321cc2750f01` with Linux/Windows CI + Chromium/WebKit Browser E2E PASS.
 - Local preference `watch-path:<id>` stores compact JSON completed-step count and updated timestamp; strict bounded parser clamps progress to path length. Existing IndexedDB `preferences` and v1 backup already include this key, **no schema migration**.
 - In WatchGuide, each curated path has explicit next-step and undo actions. Progress is **manual**, not inferred from media playback or streaming availability, and independent between alternative routes.
-- No real iPhone or backend provider test; new unit/browser tests must pass on exact head before merge. After merge update user public docs only at end.
-- Owner tasks still open: comprehensive sourced watch paths for community-reported franchises and episode insertions, YX-10 automatic player integration only with verified session data, #20 public release gate.
+- No real iPhone or live provider test. Local preferences and v1 backup path are covered by current compatibility design; unit and browser reload/independent-route acceptance PASS. Public user docs updated in separate final docs PR.
+- Owner tasks OPEN: extensive sourced watch paths for community-reported franchises, episode insertion, YX-10 automatic player integration ONLY with verified session data, physical Safari and #20 public release gate.
 
 ## Hard blockers
 
@@ -105,4 +105,4 @@ NEXT ACTION (one exact next step):
 DO NOT: merge main, promote production, invent provider/Subtitle Indonesia/release proof.
 ```
 
-**Resume suggestion:** extend curated path evidence by verified franchise/edition, episode ranges, optionality, prerequisite relationships, public correction process; pilot Haruhi broadcast order, Re:Zero OVA placement, Gundam continuities, then add safe local path-progress storage. Fate/Monogatari options already live in preview code but not production. In parallel, independent YX-02 source lifecycle and YX-12 browse state tasks remain open. In parallel, the unrelated YX-02 complete source state model and YX-12 browse URL persistence can be scoped into separate PRs.
+**Resume suggestion:** extend curated path evidence by verified franchise/edition, episode ranges, optionality, prerequisite relationships and public correction process; pilot Haruhi broadcast order, Re:Zero OVA placement, Gundam continuities. Local manual path-progress storage is already implemented (#64), but playback-linked automatic progress is NOT. Fate/Monogatari options already live in preview code but not production. In parallel, independent YX-02 source lifecycle and YX-12 browse state tasks remain open. In parallel, the unrelated YX-02 complete source state model and YX-12 browse URL persistence can be scoped into separate PRs.
