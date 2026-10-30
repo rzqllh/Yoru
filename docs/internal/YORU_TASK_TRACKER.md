@@ -25,7 +25,7 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | YX-09 | P1 | Universal watch-order research, graph + curated pathways | **TESTED partial (#58/#62/#68)** | Generic graph; source-backed Fate/Monogatari; Haruhi 2006/2009 and Re:ZERO OVA episode-edition routes added #68; extensive franchise/source-episode coverage remains OPEN |
 | YX-10 | P1 | Franchise-path progress & next entry | **TESTED partial (#64)** | Manual per-route completion, undo, next-step, backed up via existing preferences; exact feature head `5f7c373` CI+Browser E2E PASS. Automated playback-linked / episode-level tracking remains OPEN |
 | YX-11 | P1 | Search suggestions/aliases | **PLANNED** | Need verified alias data and keyboard UX |
-| YX-12 | P1 | Browse filter state in URL, chips and range | **PLANNED** | Existing filters work; refinement pending |
+| YX-12 | P1 | Browse filter state in URL, chips and range | **CODED, CI/E2E pending** | URL controls genre/format/min score/year/order and preserves selected category; removable chips, expanded year range and history restoration; live browser acceptance pending |
 | YX-13 | P1 | Local personalized home/library enhancement | **PLANNED** | Existing watchlist/resume only; new product UX pending |
 | YX-14 | P1 | Shareable anime detail/trailers | **PLANNED** | Respect available catalog metadata |
 | YX-15 | P1 | Unified CSS tokens, antislop UX, accessibility | **CODED docs only** | `DESIGN.md` aligns effective token values; source CSS consolidation and full audit pending |
@@ -91,6 +91,13 @@ These are code acceptance results. **None** are evidence that real torrent strea
 - Validator now permits repeated AniList IDs only for nonoverlapping episode ranges within the identical edition. Watch Guide displays edition number and avoids false direct-episode playback links. Local manual progress remains per route, with existing v1 backup.
 - **TESTED CODE (#68)**. No claims of universal full franchise coverage, chronological canon, provider playback or iPhone Safari acceptance.
 - Next: expand sourced edition/episode paths for other franchise types (Gundam alternative universes, Monogatari source-order, Haruhi chronology if episode-specific mapping can be reviewed), plus future alias and browsing UX. Public watch-order docs updated in final documentation PR.
+
+## 2026-10-30 — YX-12 browse filters in URL (in-flight)
+- Branch `feat/yoru-browse-url-state-20261030` based on preview `7e0fd8e5413c36e344afa0648927065cad4e8d2c`; main remains unchanged.
+- Router validates and round-trips genre, media type, minimum score, year, ordering and search query. Tabs retain selected category in URL even with query/filter. Noncanonical unsupported filters ignored rather than forwarded upstream.
+- Browse controls use route state (not private React state), so reload, sharing, Back/Forward and reset work. Removable accessible chips, historical year selector back to 1950 (rather than 1990).
+- Unit and browser E2E written; **exact-head CI/E2E pending**, no merge to preview/main. This is UX reliability, not provider live/source guarantee.
+- Next: verify exact PR head, fix regressions, merge to preview only when green. Then update public docs and handoff before Vercel preview deployment at exact SHA.
 
 ## Next independently resumable lanes
 
