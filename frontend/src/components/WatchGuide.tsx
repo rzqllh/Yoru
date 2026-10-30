@@ -88,11 +88,11 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
     {!data.graph&&<button type="button" className="btn btn-outline" disabled={loading||entries.length<2} onClick={()=>setDepth(2)}><Network size={16}/> Perluas hubungan (2 tingkat)</button>}
    </div>
    {data.graph&&<div className="guide-information" role="status"><Network size={18}/><p>{data.graph.note} {data.graph.scannedDirect} dari {data.graph.directTotal} judul langsung ditelusuri. Hasil ini tetap bukan daftar franchise lengkap.</p></div>}
-   <div className="guide-groups" role="group" aria-label="Filter jenis hubungan anime">
+   <fieldset className="guide-groups"><legend className="sr-only">Filter jenis hubungan anime</legend>
     {WATCH_GROUPS.map(group=><button type="button" key={group.id}
      className={filter===group.id?'active':''} aria-pressed={filter===group.id}
      onClick={()=>setFilter(group.id)}>{group.label} ({filterWatchEntries(entries,group.id).length})</button>)}
-   </div>
+   </fieldset>
    {filtered.length===0?<p className="guide-information">Belum ada judul dalam kategori ini pada metadata yang ditemukan.</p>:
    <div className="guide-entries">{filtered.map((item,index)=><div className="guide-entry" key={item.aniListId}>
     <div className="guide-order">{String(index+1).padStart(2,'0')}</div>
