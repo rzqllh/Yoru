@@ -706,3 +706,41 @@ test('curated editorial notes only appear when AniList IDs match, not from vague
  await expect(curated.getByText('Kizumonogatari II: Nekketsu-hen')).toBeVisible()
  await expect(page.getByRole('button',{name:'Kronologi'})).toBeDisabled()
 })
+
+
+test('manual franchise path completion persists separately for alternate routes and survives reload',async({page})=>{
+ await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:{
+  source:'AniList',sourceUrl:'https://anilist.co/anime/19603',scope:'direct-relations',animeMalId:1,
+  items:[{aniListId:19603,malId:1,title:'Fate/stay night: Unlimited Blade Works',format:'TV',year:2014,month:10,relation:'CURRENT',image:null}]
+ }}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ const guide=page.getByRole('region',{name:'Panduan menonton dengan sumber'})
+ const done=guide.getByRole('button',{name:'Tandai langkah berikutnya selesai'})
+ await expect(guide.getByText('0 dari 7 langkah ditandai selesai')).toBeVisible()
+ await done.click()
+ await expect(guide.getByText('1 dari 7 langkah ditandai selesai')).toBeVisible()
+ await expect(guide.getByText(/Berikutnya: Fate\/stay night: Unlimited Blade Works 2nd Season/)).toBeVisible()
+ const key=async()=>page.evaluate(async()=>{
+  const db=await new Promise((resolve,reject)=>{
+   const request=indexedDB.open('yoru-local-v1')
+   request.onsuccess=()=>resolve(request.result)
+   request.onerror=()=>reject(request.error)
+  })
+  const item=await new Promise((resolve,reject)=>{
+   const tx=db.transaction('preferences','readonly')
+   const get=tx.objectStore('preferences').get('watch-path:fate-anime-newcomer')
+   get.onsuccess=()=>resolve(get.result?.value)
+   get.onerror=()=>reject(get.error)
+  })
+  db.close()
+  return item
+ })
+ await expect.poll(async()=>JSON.parse(await key()).completed).toBe(1)
+ await guide.getByRole('button',{name:'Alternatif: mulai dari Fate/Zero'}).click()
+ await expect(guide.getByText('0 dari 7 langkah ditandai selesai')).toBeVisible()
+ await page.reload()
+ await expect(guide.getByText('1 dari 7 langkah ditandai selesai')).toBeVisible()
+ await guide.getByRole('button',{name:'Batalkan langkah terakhir'}).click()
+ await expect(guide.getByText('0 dari 7 langkah ditandai selesai')).toBeVisible()
+ await expect.poll(async()=>JSON.parse(await key()).completed).toBe(0)
+})
