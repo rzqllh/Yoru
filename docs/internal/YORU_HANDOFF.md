@@ -77,6 +77,12 @@
 - No real iPhone or live provider test. Local preferences and v1 backup path are covered by current compatibility design; unit and browser reload/independent-route acceptance PASS. Public user docs updated in separate final docs PR.
 - Owner tasks OPEN: extensive sourced watch paths for community-reported franchises, episode insertion, YX-10 automatic player integration ONLY with verified session data, physical Safari and #20 public release gate.
 
+## Active source-lifecycle checkpoint (2026-10-30)
+- Preview base `c09d333042b5bc0981c14d86e145aa67a6991dd5`; branch `feat/yoru-source-lifecycle-20261030`.
+- YX-02 CODED: isolated pure provider-summary module in `frontend/src/lib/source-lifecycle.ts`, separate outcomes for candidate metadata, no direct sources, provider errors, partial failure. Detail source picker shows search/check/verified/failed and preserves opt-in embed fallback after a single native candidate fails. Stale response guard per request.
+- Added Node and deterministic browser tests (provider outage and partial source failure); **exact CI/Browser E2E PENDING**. No live media/provider availability, no physical iPhone sign-off.
+- Next action: create PR against preview, run exact SHA Linux/Windows CI + Chromium/WebKit E2E; fix if needed; merge preview only on green and update public docs after. Do not touch `main`/production or change #20.
+
 ## Hard blockers
 
 - **G1–G3 (#20):** real authorized source-provider endpoints with live video, strict season/episode mapping and actual subtitle credentials/download proof. Mocked provider fixtures are not live tests.
