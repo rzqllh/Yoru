@@ -32,6 +32,12 @@ Pertanyaan yang berulang di komunitas mencakup pilihan jalur dalam Fate/Gundam, 
 
 Rujukan diskusi contoh: [franchise dengan urutan awal yang diperdebatkan](https://www.reddit.com/r/anime/comments/ii06cr/), [novel versus anime](https://www.reddit.com/r/anime/comments/1863wgj/), [perdebatan Haruhi](https://www.reddit.com/r/Haruhi/comments/1u1i9kq/), dan [OVA Re:Zero](https://www.reddit.com/r/Re_Zero/comments/1d026ic). Sumber relasi untuk hasil pada aplikasi adalah [AniList](https://docs.anilist.co/guide/graphql/queries/media), bukan forum.
 
+## Menyimpan progres rute menonton
+
+Untuk rute editorial yang sudah tersedia, Yoru menyimpan **catatan manual per rute**: jumlah langkah selesai, judul berikutnya, serta tombol **Tandai langkah berikutnya selesai** dan **Batalkan langkah terakhir**. Contohnya, progres jalur Fate pemula tidak otomatis menjadi progres jalur Fate/Zero-first.
+
+Catatan tersimpan di browser melalui IndexedDB dan ikut dalam ekspor/impor backup Yoru versi 1. Tidak diperlukan akun atau migrasi data lama. Ini bukan penanda otomatis bahwa video telah berhasil ditonton: pengguna sendiri yang memilih kapan sebuah langkah dianggap selesai. Anime yang belum memiliki rute editorial terkurasi tetap bisa melihat hubungan metadata, tetapi tidak memiliki checklist tersebut.
+
 ## Membantu memperbaiki urutan
 
 Jika judul, edisi, cabang cerita, atau posisi OVA/film terlihat salah, buat laporan di [GitHub Issues Yoru](https://github.com/rzqllh/Yoru/issues/new). Agar dapat diverifikasi, sertakan:

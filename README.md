@@ -45,6 +45,7 @@ Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan
 | Filter genre, jenis, skor, tahun, dan urutan | Tersedia melalui katalog; muat lebih banyak untuk halaman berikutnya | Internet untuk katalog |
 | Subtitle SRT/VTT lokal, preferensi bahasa dan tampilan | Font, ukuran, opasitas teks/latar, outline, dan posisi WebVTT bila browser mendukung | Tidak berlaku untuk hardsub/iframe; Sub Indo tidak otomatis tersedia |
 | Panduan urutan anime dan pilihan rute editorial | Graph AniList maksimal 2 tingkat + rute editorial terbatas dan bersumber (contoh Fate, Monogatari); **bukan urutan canon lengkap semua anime** | Internet untuk AniList; rute editorial tersedia lokal |
+| Progres manual per rute menonton | Tandai/batalkan langkah, tampilkan judul berikutnya; tersimpan dalam preferensi lokal dan ikut backup | Tidak; playback aktual tetap memerlukan sumber |
 | Mesin torrent/magnet, debrid bawaan, urutan kronologi terkurasi, cloud sync | Belum tersedia | — |
 | Installer Windows / APK / IPA | Belum tersedia | — |
 
