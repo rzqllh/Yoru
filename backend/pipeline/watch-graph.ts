@@ -110,7 +110,7 @@ async function load(malId:number):Promise<WatchGraphResult>{
   const text=await response.text()
   if(text.length>350000)return normalizeWatchGraph(guide,null,'limited')
   const raw=JSON.parse(text)
-  if(!Array.isArray(obj(obj(raw).data).Page&&obj(obj(obj(raw).data).Page).media))
+  if(!Array.isArray(obj(obj(obj(raw).data).Page).media))
    return normalizeWatchGraph(guide,null,'upstream-unavailable')
   return normalizeWatchGraph(guide,raw)
  }catch{
