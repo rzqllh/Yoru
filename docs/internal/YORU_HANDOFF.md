@@ -1,84 +1,80 @@
-# Yoru — Durable cross-model handoff
-Last updated: 2026-10-30, Asia/Jakarta. Source of truth: **GitHub**, not remembered conversational output.
+# Yoru — Always-current cross-model handoff
 
-## First actions for any new model/agent
-1. Fetch https://github.com/rzqllh/Yoru/issues/44 and https://github.com/rzqllh/Yoru/issues/20.
-2. Fetch `docs/internal/YORU_TASK_TRACKER.md` and THIS file from latest `deploy/vercel-preview-20261029`. If not yet merged, use the currently open continuity-tracker PR.
-3. Inspect exact preview HEAD, latest 10 commits, open PRs, CI+Browser E2E on matching SHA, and Vercel preview status.
-4. Resume the highest priority unblocked task. Never repeat code already merged. Change only isolated feature branch. Never assume a preview deploy is healthy merely because status=READY.
-5. Before ending any coding segment: update tracker statuses, this handoff, epic issue #44; include PR URL, SHA, tests **actually run**, blockers, next resume step. Complete documentation changes **after** feature work, not in early slices.
+**Snapshot:** 2026-10-30, Asia/Jakarta. **Authority:** current GitHub code, PR checks, [epic #44](https://github.com/rzqllh/Yoru/issues/44), [tracker](YORU_TASK_TRACKER.md), and [release gate #20](https://github.com/rzqllh/Yoru/issues/20). This document records a verified checkpoint, not a promise to do background work.
 
-## Owner decisions (APPROVED)
-- Yoru: anime-focused, glass-premium but restrained mobile-first PWA, local-only library/progress; accounts/cloud explicitly deferred.
-- Top 10: AniList daily activity with source attribution, safe catalog popularity fallback (PR #43 merged on preview).
-- Hero: rotates every 8 seconds with manual previous/next/pause; respects reduced motion.
-- Sub Indo: real Stremio subtitle candidates first, Indonesian alternatives, English fallback when appropriate; manual user preference must be respected.
-- Watch guide: detail-page connections between TV/OVA/Special/Movie; order modes **recommended for new viewers**, **in-universe chronology**, **release order**.
-- Fate-like franchises: **branching paths**, not one linear false chronology; spoiler-safe, owner-curated or verifiably sourced, optional vs required labels, no invented canonical sequence.
-- Discover: standalone secondary guide `/jelajahi/panduan-urutan` without disrupting season/popular/upcoming primary browse.
-- Subtitle customization: typography, size, position, text/background opacity, stroke/backdrop and preview; control only if supported by native subtitle pipeline; iframe/hardsub controls must clearly be unavailable.
-- Source fallback: **Torrentio/YTS-style Stremio addon ecosystem**, **not a separate download-manager UX**. Distinguish direct playable HTTPS streams from torrent hashes; feature-gate opt-in engine/resolver. Do not invent torrent playback in iOS Safari.
-- Quality/controls: unsupported choices hidden or disabled; do NOT display clickable 1080p absent a valid representation. Auto ABR default when available.
-- Parallel work allowed in isolated nonoverlapping branches; user requested subagents if available. This session has no independent coding subagent invoker; parallel GitHub reads and nonconflicting PR branches are possible.
-- No main/prod/release promotion before #20 release gates; update public docs at END.
+## New model: resume protocol
 
-## Current checked facts (2026-10-30)
-- Repo: `rzqllh/Yoru`; `main` was `8200bf235c56c866e30b2012d3b683b63dc7803e`.
-- Preview integration branch `deploy/vercel-preview-20261029` was `c80150ddfed5e82a86791cbf582157a06ad5f169`; #43 merged into preview and its CI+Browser E2E completed successfully at feature SHA `54c51e8`.
-- Vercel project `yoru` connected; preview build of `c80150d` READY but SSO-protected. /api/health, real source+subtitle downloads and physical iPhone **not freshly verified**.
-- #33 hosting adapter PR is draft and targets `main`; do not merge by accident.
-- Backend `stremio-core.ts` currently rejects `infoHash`-only streams and only admits direct .m3u8/.mp4 HTTPS. `stremio.ts` requires explicit MAL-to-Stremio season/episode mapping; do not infer arbitrary IDs.
-- UI current `Continue Watching` card opens anime detail rather than episode+resume.
-- CSS tokens in `DESIGN.md` and late `styles.css` overrides drift; fix carefully.
-- The tracker documents tasks, not completed promises. Expect changes since this timestamp; VERIFY repo HEAD first.
+1. Inspect repository `rzqllh/Yoru`, latest preview ref `deploy/vercel-preview-20261029`, `main`, all open PRs, CI and Browser E2E checks for **exact HEAD**, plus epic #44 and release gate #20.
+2. Read [YORU_TASK_TRACKER.md](YORU_TASK_TRACKER.md) and this handoff from the latest preview ref. If a PR is open and not merged, inspect that PR's updated copies instead of assuming these are the final state.
+3. Pick the highest-priority **unblocked** task from the tracker; assess overlapping code paths before branch creation.
+4. Implement on an independent feature branch targeting preview, add tests, ensure Linux/Windows CI and Chromium/WebKit E2E succeed on the **exact PR head**. A previous feature head's tests are **not** valid after rebasing.
+5. After each meaningful PR/progress milestone, update BOTH internal files, epic #44, and a handoff checkpoint. Report verified CODED/TESTED/LIVE_VERIFIED independently. Public docs are updated once actual implementation evidence exists; don't promote to main/production.
+6. At handoff, specify one exact next action and owner-controlled external blockers. Do not invent source availability, subtitle tracks, media rights, live view counts, release readiness, or test results.
 
-## In-progress changes
-- Adaptive quality branch rebased onto actual preview after tracker #45 squash. Prior #46 had clean source CI (64263345b) but could not merge due base history conflict; replacement PR is tracked separately. Do not claim rebased head verified until its own exact-SHA checks pass.
+## Explicit approved owner product decisions
 
-## Latest verified integration checkpoint
-- PR #48 quality: CI+E2E passed at b7219869 and merged preview 8b82c1fd (not live playback proof).
-- Original watch-guide PR #47 was CI+E2E green at 58303a16 but required clean rebase after #45 squash. Replacement branch: feat/yoru-watch-guide-rebased-20261030; exact new head must pass tests before merge.
-- Watch Guide currently surfaces ONLY direct AniList links and release dates; curated Recommended/Chronology modes disabled. Fate/Slime/SAO full routes unimplemented.
-- Torrentio classification PR #49 is separate and does NOT provide a live torrent resolver.
+- Anime-first, restrained glass-premium PWA, accessible mobile navigation, honest copy, local-first IndexedDB library/progress. Account/cloud sync deferred.
+- Top 10: daily AniList activity with timestamp and source label; fallback clearly marked as catalog popularity, never fake watch counts.
+- Hero auto-cycle every **8 seconds**, manual previous/next/pause, hidden-tab and reduced-motion respect.
+- Indonesian subtitle: validated Stremio addon candidates first; then provider options, English only by allowed fallback preference. Manual Off/language overrides. Do not fabricate subtitles or translate automatically.
+- Watch Guide: discover link in a **secondary** `/jelajahi/panduan-urutan` page and an anime-detail link. Modes: recommended newcomer route, chronological story, release date. Fate-style franchises branch; don't impose linear canon or expose spoiler traps.
+- Full franchise routes across TV/OVA/special/movie and path progress are approved but **not fully implemented**; current app offers direct AniList relations and dated release ordering only. Recommended/Chronology are intentionally disabled.
+- Subtitle font/size/text-background opacity/outline/position preview; only native WebVTT supports controls, native cue positioning conditional, hardsub/iframe unaffected. Safari device sign-off still pending.
+- Quality = default adaptive HLS Auto. Only manifest-declared resolutions active, not fake 1080p labels; unsupported browser options disabled.
+- Torrentio/YTS-style addon streaming UX was clarified: user wants addon-integrated source choices, not a separate torrent download-manager UI. Current implementation classifies `url` vs `infoHash/fileIdx` vs `externalUrl`; hash-only candidates visible **disabled** until an explicitly approved verified resolver/engine can provide playable media. No silent torrenting/seeding, no arbitrary proxy or guessed codecs.
+- Workstreams may run parallel on independent files/branches; integrate to preview serially. This session did not have a real coding subagent invocation facility.
+- **No merge to `main`, public deploy, final GitHub release or lowered protection until #20 and final owner approval.**
 
-## Integration checkpoint
-- PR #50 anime guide merged `0a184799` after CI/Browser E2E green on `ad000df`. This is **first-degree AniList relations only**, recommended/chronology still disabled and curated paths absent.
-- Torrentio capability PR #49 was green at `5520993` but conflicted after #50 squash; transferred source+tests into `feat/yoru-torrentio-rebased-20261030`. Await exact new head checks; no torrent resolver or playback proof.
+## Verified code checkpoint
 
-## Current milestone
-- Source parser #51 merged preview `a7cacfe9`, CI+Browser E2E PASS at `3c2d711`. Torrent-only hashes still not playable.
-- One-tap resume branch `feat/yoru-one-tap-resume-20261030` implements last-episode source verification then direct player, progress cutoff relative to duration (short clips now resume), library/home buttons and honest metadata candidate labels. **CI pending, not merged**.
-- YX-02 full source lifecycle and Torrentio UI disabled candidate are not complete; #20 release gates untouched.
+- GitHub repo: `https://github.com/rzqllh/Yoru`.
+- Preview ref before documentation alignment: `ea4c9b457443002d7145abd37e5d9977fe62dd6d`.
+- `main` observed `8200bf235c56c866e30b2012d3b683b63dc7803e`; never infer unchanged after this date.
+- PR #45 (`fbc7bf6b`), #48 (`8b82c1fd`), #50 (`0a184799`), #51 (`a7cacfe9`), #52 (`4e482f07`), #55 (`3bbc1437`), #56 (`ea4c9b45`) **merged to preview**, not `main`.
+- Exact tested feature heads: #48 `b7219869`, #50 `ad000df0`, #51 `3c2d7115`, #52 `330b7abc`, #55 `40a2bb88`, #56 `d4aa24d7` (GitHub Linux/Windows CI and Chromium/WebKit Browser E2E PASS). Check current branch HEAD independently.
+- Earlier conflicting PRs #46/#47/#49/#53/#54 were closed as superseded after tracker/feature squash rebases, not force-merged.
+- Vercel project `yoru` had an SSO-protected preview deployment READY; that is **not** a passing HTTP smoke, subtitle live matrix, physical iPhone, or production acceptance.
+- Public release issue #20 remains **BLOCKED**.
 
-## Latest verified UX checkpoint
-- YX-01 one-tap resume PR #52 merged preview `4e482f0` after CI+Browser E2E PASS at head `330b7ab`.
-- YX-04 caption appearance original PR #53 head `34299fee` CI+E2E PASS, but it was based on an older preview and PR52 squash created ancestry conflict; replacement branch `feat/yoru-caption-appearance-rebased-20261030` preserves PR52 browser regression and awaits its own exact head CI.
-- Caption appearance covers native WebVTT controls only, not hardcoded/iframe text or fully verified Safari caption geometry.
+## Architecture & files
 
-## Latest preview milestones
-- YX-01 #52 merged preview `4e482f0753d4e90450366fa091bc92d748dbd7dd`, exact head `330b7ab` CI+E2E PASS.
-- YX-04 #55 native caption appearance merged preview `3bbc14374970e1c19571f3002cd8db85f33a81a4`, head `40a2bb8` CI+E2E PASS. VTTCue position is conditional and requires physical Safari proof; hardsub/iframe not restyled.
-- YX-18 source-picker disabled Torrentio candidate branch `feat/yoru-torrentio-visible-rebased-20261030`: source/parser UI from prior #54 tests (`f0bb016` CI+E2E PASS), rebased onto preview after #55. Exact new head verification pending. No real torrent/debrid engine or auto-download.
+- `frontend/src/App.tsx`: Home/Browse/Library/Detail, candidate-source selection, direct resume.
+- `frontend/src/components/Player.tsx`: HLS/MP4 + embed player, subtitle view/preferences, quality and recovery.
+- `frontend/src/components/WatchGuide.tsx`: separate franchise discovery, dated AniList direct links.
+- `frontend/src/lib/quality-options.ts`, `caption-appearance.ts`, `resume.ts`: verified-only quality levels, bounded subtitle style, resumable progress.
+- `frontend/src/lib/db.ts`: IndexedDB + backup compatibility; use **versioned schema migrations** for new franchise progress.
+- `backend/pipeline/watch-guide.ts`: fixed AniList GraphQL direct-relations explorer, strict MAL ID mapping. No complete franchise graph/curated path.
+- `backend/providers/stremio-core.ts`, `stremio.ts`: allowlisted addon requests; direct HLS/MP4 entries vs torrent-only disabled metadata, explicit MAL-to-Stremio/IMDb mapping.
+- `backend/api/app.ts`: `/api/anime/:id/watch-guide`, `/api/streams` with possible addon `unavailable` entries. Avoid server-side open proxy.
+- `tests/*.test.mjs`, `tests/browser/*`, `.github/workflows/ci.yml`, `browser-e2e.yml`: test contracts and current CI evidence.
+- Public docs: `README.md`, `DESIGN.md`, `docs/public/*`. Keep visitor language direct and state limitations accurately.
 
-## Architecture boundaries
-- `frontend/src/App.tsx`: UI state, home, browse, library, detail. `frontend/src/components/Player.tsx`: direct media player and subtitle controls.
-- `backend/pipeline/jikan.ts`: Jikan/Tenrai catalog API; separate AniList relations may need new fixed-host API with strict timeouts.
-- `backend/providers/stremio-core.ts` and `stremio.ts`: allowlisted addon parsing/HTTPS fetching with SSRF protection.
-- `frontend/src/lib/db.ts`: versioned IndexedDB; exported backup schema is user data, must preserve compatibility on migration.
-- `.github/workflows/ci.yml` + `browser-e2e.yml`: Linux/Windows/Chromium/WebKit; verify exact PR head.
-- User-facing docs live in `README.md`, `docs/public/*`, `DESIGN.md`; update them only as last completed phase.
+## Hard blockers
 
-## Status protocol / handoff template to append at each milestone
+- **G1–G3 (#20):** real authorized source-provider endpoints with live video, strict season/episode mapping and actual subtitle credentials/download proof. Mocked provider fixtures are not live tests.
+- **G4:** physical iPhone Safari playback, HLS fullscreen/PiP, WebVTT style/position and PWA installation/upgrade evidence.
+- **G5:** hosted API and frontend over HTTPS, accessible health routes with protection respected, production secrets, ingress rate limiting, observability/rollback.
+- **G6:** exact final commit acceptance, no open P0/P1, quantitative source coverage matrix, explicit owner go/no-go.
+- **YX-09/10:** curated branching franchise paths + persisted path progress are independent non-secret engineering/editorial work and can be started without waiting for physical/production inputs.
+- **YX-19:** no torrent/debrid resolver yet; first agree threat model and provider contract. Never route unknown magnet/hash into iframe or native video URL.
+
+## Copyable handoff checkpoint template
+
 ```text
-CHECKPOINT DATE/TZ:
-INTEGRATION BRANCH + EXACT SHA:
-WORKING BRANCH / PR URL / EXACT HEAD:
-TASK IDS: [PLANNED/CODED/TESTED/LIVE_VERIFIED/BLOCKED]
-CHANGES: concise file-level summary
-EVIDENCE: tests/CI/deployment, exact links + PASS/FAIL/NOT RUN; distinguish mocked from live
-BLOCKERS: internal vs owner-provided, no secrets
-DECISIONS: approved vs still undecided
-CONFLICT CHECK: pending overlapping PRs/shared paths
-NEXT ACTION: one exact resumable step
-DO NOT DO: merge main, prod deploy, live claims without #20 go
+PROJECT: rzqllh/Yoru
+TIME / TIMEZONE:
+PREVIEW INTEGRATION HEAD (EXACT SHA):
+MAIN HEAD (EXACT SHA; no write):
+ACTIVE BRANCH + PR URL + HEAD SHA:
+TASK IDS + STATUS (PLANNED/CODED/TESTED/LIVE_VERIFIED/BLOCKED):
+WHAT CHANGED (files + visible behavior):
+EXACT TEST EVIDENCE (CI/Browser E2E URLs and PASS/FAIL/NOT RUN):
+LIVE PROVIDER / SAFARI EVIDENCE (or NOT VERIFIED):
+BLOCKERS / OWNER INPUT NEEDED (never paste secrets):
+OPEN PR CONFLICT CHECK:
+PUBLIC DOCS STATUS:
+NEXT ACTION (one exact next step):
+DO NOT: merge main, promote production, invent provider/Subtitle Indonesia/release proof.
 ```
+
+**Resume suggestion after current public-docs alignment:** begin YX-09 verified editorial guide for Fate/Slime/SAO, keeping chronology and newcomer modes disabled until the curated data and its citations are ready. In parallel, the unrelated YX-02 complete source state model and YX-12 browse URL persistence can be scoped into separate PRs.

@@ -1,65 +1,61 @@
-# Yoru — Task tracker (recoverable state)
-Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Release gate: https://github.com/rzqllh/Yoru/issues/20.
+# Yoru — Authoritative task tracker
 
-## Authoritative state
-- Integration branch: `deploy/vercel-preview-20261029`; starting SHA `c80150ddfed5e82a86791cbf582157a06ad5f169`.
-- `main` is NOT approved for the new UX scope. Preview only until real-source, device, security and owner release gates pass.
-- No account/cloud change, fabricated ratings/view counts, presumed Sub Indo or false playback readiness.
-- Status vocabulary: `PLANNED` (design only), `CODED` (code exists), `TESTED` (exact CI SHA verified), `LIVE_VERIFIED` (real upstream/device proof), `BLOCKED` (external dependency).
-- "CI PASS" does not imply "LIVE_VERIFIED".
-- Changes to this file and `YORU_HANDOFF.md` are REQUIRED in each implementation PR, at every PR merge, and before a model handoff.
-- Independent PR branches may progress in parallel. Do not edit the same shared files concurrently; integrate one PR at a time against the latest preview HEAD.
+Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rzqllh/Yoru/issues/44); strict public release gate [#20](https://github.com/rzqllh/Yoru/issues/20); handoff [YORU_HANDOFF.md](YORU_HANDOFF.md).
+
+## Current integration state
+
+- Repository: `rzqllh/Yoru`.
+- Preview integration: `deploy/vercel-preview-20261029`, verified pre-docs head `ea4c9b457443002d7145abd37e5d9977fe62dd6d`. **Fetch latest head before working.**
+- Production branch `main`: `8200bf235c56c866e30b2012d3b683b63dc7803e` at last check. **No merge/release to main authorized.**
+- Public docs alignment is the *final task of this implementation wave*; do not treat other unimplemented epic items as shipped.
+- Status semantics: `PLANNED` = design backlog; `CODED` = implementation exists but acceptance incomplete; `TESTED` = exact-code CI/Browser E2E evidence; `LIVE_VERIFIED` = real upstream/device test; `BLOCKED` = real dependency. Tests with mocked provider metadata do not prove live source coverage.
 
 ## Delivery matrix
 
-| ID | Priority | Feature / outcome | State | Acceptance / dependency |
+| ID | Priority | Scope | Current state | Evidence / remaining acceptance |
 |---|---|---|---|---|
-| YX-01 | P0 | One-tap continue playback | TESTED (PR #52 head 330b7ab; preview merged 4e482f0) | Correct episode + resume; verified native source; graceful source-choice fallback |
-| YX-02 | P0 | Episode availability and source truth | CODED (candidate label only; needs full state model) | Metadata candidate/verified/failed states never conflated |
-| YX-03 | P0 | Honest adaptive quality controls | TESTED (CI+Browser E2E PR #48 head b7219869; merged) | Auto as initial choice; no phantom 1080p; unsupported disabled |
-| YX-04 | P0 | Subtitle appearance and placement | TESTED (native controls; PR #55 head 40a2bb8; Safari physical pending) | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
-| YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
-| YX-06 | P0 | Source memory/recovery and smart next | PLANNED | Verified source remembering; bounded recovery; manual consent |
-| YX-07 | P0 | Franchise relations on detail | TESTED (direct links only; #50 head ad000df; not curated) | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
-| YX-08 | P1 | Discovery watch-guide subpage | TESTED (#50 head ad000df CI + E2E) | `/jelajahi/panduan-urutan`; no extra primary category tab |
-| YX-09 | P1 | Branching franchise curated paths | PLANNED | Fate etc branching, optionality, spoiler protection; no guessed chronology |
-| YX-10 | P1 | Franchise progress/next-in-path | PLANNED | Local-first versioned migration + backup compatibility |
-| YX-11 | P1 | Search suggestions + aliases | PLANNED | Truthful supported metadata, accessible keyboard navigation |
-| YX-12 | P1 | Browse filter URL and controls | PLANNED | Chips, persisted URL, correct counts and complete year ranges |
-| YX-13 | P1 | Personalized home + library | PLANNED | Local-only suggestions, list sort/history/status |
-| YX-14 | P1 | Anime detail and deep links | PLANNED | Shareable route and trailer only when verified metadata exists |
-| YX-15 | P1 | UI design system + microcopy | PLANNED | Canonical CSS tokens, coherent radius/space/color, WCAG/HIG, no marketing fluff |
-| YX-16 | P1 | Visual load and performance | PLANNED | Lazy poster loading, correct sizing, measured CWV |
-| YX-17 | P1 | First-run and recovery UX | PLANNED | Actionable error states; transparent setup; backup reassurance |
-| YX-18 | P0 | Stremio/Torrentio response parity | CODED (parser + disabled source UI; exact CI pending) | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
-| YX-19 | P0 | Opt-in torrent-capable playback path | BLOCKED | Explicit verified playback engine/resolver; browser/platform limitations and secure config |
-| YX-20 | P0 | Real video/subtitle compatibility matrix | BLOCKED | Independent real examples, codecs, source access, safe URL checks, user approval and device proof |
-| YX-21 | P0 | QA and release gates | BLOCKED | Exact-SHA CI+E2E, physical iPhone, no unresolved P0/P1, release issue #20 |
-| YX-22 | FINAL | Update public docs and release decision | PLANNED | Only after code checks; never imply live coverage without evidence |
+| YX-01 | P0 | One-tap resume | **TESTED code** | PR [#52](https://github.com/rzqllh/Yoru/pull/52), exact head `330b7abc` CI/E2E PASS; native source rechecked, saved episode position |
+| YX-02 | P0 | Honest episode/source lifecycle | **CODED partial** | Candidate vs playable label and disabled torrent metadata; full loaded/verified/failed lifecycle UX pending |
+| YX-03 | P0 | Verified HLS quality choices | **TESTED code** | PR [#48](https://github.com/rzqllh/Yoru/pull/48), head `b7219869` CI/E2E PASS; Auto default, manifest-backed options |
+| YX-04 | P0 | Native subtitle styling | **TESTED code, live device pending** | PR [#55](https://github.com/rzqllh/Yoru/pull/55), head `40a2bb88` CI/E2E PASS; font, size, opacities, outline, conditional VTTCue position, preview |
+| YX-05 | P0 | iPhone Safari physical acceptance | **BLOCKED** | Real iPhone OS/model and playback/fullscreen/PiP/subtitle/PWA validation |
+| YX-06 | P0 | Source memory, recovery and smart next | **PLANNED** | Prior auto-next/recovery exists; new persisted source preference/enhancement not implemented |
+| YX-07 | P0 | Franchise links from anime detail | **TESTED partial** | PR [#50](https://github.com/rzqllh/Yoru/pull/50), head `ad000df0` CI/E2E PASS; **first-degree AniList relationships only** |
+| YX-08 | P1 | Secondary Watch Guide in Jelajahi | **TESTED partial** | PR #50, `/jelajahi/panduan-urutan` route/search, source attribution |
+| YX-09 | P1 | Curated branching Fate/SAO/Slime paths | **PLANNED** | No invented canon; Recommended/Chronology disabled; independent source-backed editorial work required |
+| YX-10 | P1 | Franchise-path progress & next entry | **PLANNED** | IndexedDB schema and backup migration not yet implemented |
+| YX-11 | P1 | Search suggestions/aliases | **PLANNED** | Need verified alias data and keyboard UX |
+| YX-12 | P1 | Browse filter state in URL, chips and range | **PLANNED** | Existing filters work; refinement pending |
+| YX-13 | P1 | Local personalized home/library enhancement | **PLANNED** | Existing watchlist/resume only; new product UX pending |
+| YX-14 | P1 | Shareable anime detail/trailers | **PLANNED** | Respect available catalog metadata |
+| YX-15 | P1 | Unified CSS tokens, antislop UX, accessibility | **CODED docs only** | `DESIGN.md` aligns effective token values; source CSS consolidation and full audit pending |
+| YX-16 | P1 | Image/performance improvement | **PLANNED** | Responsive images, lazy load, LCP/INP/CLS real measurement pending |
+| YX-17 | P1 | First-run, errors, backup reassurance | **PLANNED** | Current error UX exists but enhancement incomplete |
+| YX-18 | P0 | Torrentio/Stremio source classification & UI | **TESTED partial** | PR [#51](https://github.com/rzqllh/Yoru/pull/51) head `3c2d7115` and [#56](https://github.com/rzqllh/Yoru/pull/56) head `d4aa24d7`; CI/E2E PASS; torrent-only **disabled**, not playable |
+| YX-19 | P0 | Opt-in playable torrent resolver | **BLOCKED** | Requires trusted, explicit engine/resolver, credentials/security/rights review, browser/device verification |
+| YX-20 | P0 | Live video/subtitle matrix | **BLOCKED** | Real source/episode coverage, subtitle provider keys, signed download, codecs, host authorization |
+| YX-21 | P0 | Full release sign-off | **BLOCKED** | Issue #20 G1–G6; production must not be promoted |
+| YX-22 | FINAL WAVE | Sync public docs and delivery status | **CODED (documentation PR)** | README, DESIGN, public guides updated truthfully; verify exact PR checks before integration |
 
-## Current focus / safe parallel lanes
-- Lane A (watch guide): relation-data architecture, route and detail integration. Own files `backend/pipeline/*`, new `frontend/src/components/WatchGuide*`, plus a **serialized** App integration commit.
-- Lane B (player + source honesty): player controls and Stremio response classification; source tests; coordinate on `Player.tsx`.
-- Lane C (product polish): pure CSS token refactor / browse/library components, after avoiding shared `App.tsx` conflicts.
-- Integration lane: merge tested PRs sequentially to preview; refresh this tracker, handoff and issue #44 at every merge.
-- Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
+## Successfully integrated on preview (not main)
 
-## Progress ledger
-- PR #55 subtitle appearance merged preview `3bbc14374970e1c19571f3002cd8db85f33a81a4` with exact head `40a2bb8` CI + Browser E2E PASS. Native WebVTT only; real Safari still unverified.
-- Disabled Torrentio source UI previous PR #54 head `f0bb016` passed CI/E2E but conflicted after #55 merge; clean rebase `feat/yoru-torrentio-visible-rebased-20261030` awaits new exact-SHA CI.
-- YX-04 original feature branch `34299fee` passed CI+Browser E2E with native caption style presets/preview and guarded cue placement; rebased onto preview with #52 regressions preserved. New exact head needs testing before merge.
-- Torrentio mapping/classification PR #51 merged preview `a7cacfe9` with exact-SHA CI+Browser E2E green at `3c2d711`; no torrent engine or browser playback.
-- YX-01 one-tap resume on `feat/yoru-one-tap-resume-20261030`: verified-source-first route, fallback to detail if source unavailable, short-clip progress fix, browser regression. CI pending.
-- Watch Guide PR #50 merged preview as `0a184799` after exact head `ad000df` CI+Browser E2E PASS. Only first-degree relations; full curated franchise order still pending.
-- Torrentio parser original branch `5520993` CI+E2E PASS; ancestry conflict after #50 squash required clean rebase to `feat/yoru-torrentio-rebased-20261030` (new exact-SHA verification pending). No torrent playback capability yet.
-- PR #48 merged quality after CI+Browser E2E success on b7219869; preview merge 8b82c1fd.
-- Watch Guide PR #47 tested green at 58303a16 but ancestry conflict after tracker squash; clean rebase `feat/yoru-watch-guide-rebased-20261030` awaiting new exact-SHA CI. Direct relations only, chronology/recommended remain gated.
-- Rebased Lane B: previous feature SHA `64263345b` passed CI+Browser E2E, but #46 conflicted after #45 squash. New clean branch `feat/yoru-honest-quality-rebased-20261030` needs new exact-SHA checks before merge.
-| Date | PR / exact commit | Done | Evidence | Next |
-|---|---|---|---|---|
-| 2026-10-30 | Planning checkpoint, preview `c80150d` | Owner approved UX improvements, branching watch guide, subtitle controls and Torrentio-style source path; epic #44 created | GitHub repository inspected; no new feature tests run | Tracking/handoff PR, then isolated vertical slices |
+| PR | Preview merge SHA | Verified PR head | Evidence scope |
+| --- | --- | --- | --- |
+| #45 tracker/handoff | `fbc7bf6b` | CI + Browser E2E PASS | Durable issue/backlog and model transfer contract |
+| #48 HLS quality | `8b82c1fd` | `b7219869` | Linux/Windows CI + Chromium/WebKit |
+| #50 Watch Guide | `0a184799` | `ad000df0` | Linux/Windows CI + Chromium/WebKit |
+| #51 Stremio/Torrentio metadata | `a7cacfe9` | `3c2d7115` | Linux/Windows CI + Chromium/WebKit |
+| #52 one-tap resume | `4e482f07` | `330b7abc` | Linux/Windows CI + Chromium/WebKit |
+| #55 native caption appearance | `3bbc1437` | `40a2bb88` | Linux/Windows CI + Chromium/WebKit |
+| #56 disabled torrent source choices | `ea4c9b45` | `d4aa24d7` | Linux/Windows CI + Chromium/WebKit |
 
-## External blockers
-- Secrets/API configuration for real subtitle services and authorized source providers; never commit credentials.
-- Real iPhone Safari acceptance evidence and a secure playback path for torrent-only Stremio candidates.
-- Vercel deployment READY is not a full /api health+live video test. Preview SSO remains enabled.
+These are code acceptance results. **None** are evidence that real torrent streaming works, an AniList franchise guide is complete, or Safari physical/prod is signed off.
+
+## Next independently resumable lanes
+
+1. **Guide editorial/data lane:** YX-09, then YX-10. Source-backed branching paths with spoiler safeguards, distinction between recommended release viewing and in-universe chronology. Preserve disabled unsupported modes.
+2. **Playback lane:** YX-02/YX-06, then YX-19 only after approved resolver architecture. Never treat `infoHash` as an HTTPS URL.
+3. **Browse/library lane:** YX-11/12/13/14. Local-only preferences; minimal unnecessary API requests.
+4. **Visual/reliability lane:** YX-05/15/16/17/20/21. Exact-SHA tests and real device/provider evidence.
+
+Do not edit `App.tsx`, `Player.tsx`, or shared `styles.css` in competing PRs simultaneously. Parallel feature development uses isolated branches; integration is serialized into preview. Every PR updates this tracker and `YORU_HANDOFF.md`, with exact tests and next action. No more unverified claims or owner-signoff shortcuts.

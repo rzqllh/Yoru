@@ -43,7 +43,7 @@ A configured source, provider episode mapping, metadata listing, or constructed 
 
 The fixed AnimeEmbed route is an **explicit, unverified external fallback**, not a verified catalogue provider. It requires a deliberate user action; native HLS/MP4 candidates may fail the probe because of codec, origin policy, networking, or availability. A pending or failed probe must never become a green availability badge. Strict verification for external embeds is still an unsolved release blocker unless a trustworthy playback confirmation protocol is established.
 
-**Not release-ready until**: a verified multi-adapter native provider roster, dedicated OpenSubtitles/SubSource/SubDL subtitle discovery and rendering, source/quality/episode recovery, Q6–Q11 player controls, real iPhone Safari sign-off, configured HTTPS hosting, and repeatable provider/availability measurements. The above Q12 UI fix does not satisfy those gates independently.
+**Not release-ready until**: independently verified live video coverage and subtitle-provider search/download evidence; strict cross-season episode identity; physical iPhone Safari sign-off; secured HTTPS hosting with operational controls; zero unresolved P0/P1 and owner approval. Provider adapters, quality controls, subtitle styling, Watch Guide UI, and Torrentio metadata classification are implemented code paths, but deterministic CI does not establish live coverage. Track the current gates in [#20](https://github.com/rzqllh/Yoru/issues/20) and the product backlog in [#44](https://github.com/rzqllh/Yoru/issues/44).
 
 ## Subtitle integration verification
 
@@ -71,3 +71,13 @@ The project now provides an **opt-in live test**, deliberately separate from moc
 ```
 
 Each test searches the actual provider, validates episode/language identity, verifies the signed download grant, downloads a bounded native subtitle file using the backend credentials, and checks a WebVTT cue. It prints only provider/status codes, never credentials, full subtitle text, or temporary download URLs. **Passing the script is evidence only for the exact three fixtures**; it does not certify coverage for every anime, native video playability, physical iPhone Safari, or a production deployment. Secrets stay in environment variables, not committed JSON files.
+
+## Current preview-only product capability and unresolved gaps (30 October 2026)
+
+- Native HLS quality starts at **Auto**; only actual parsed representations are selectable, otherwise controls are disabled. A reported source label is not evidence of 1080p playback.
+- Anime Watch Guide currently surfaces direct AniList relations and release order only. Full branching Fate/SAO/Slime chronology remains a curated product task, **not** a release capability.
+- Subtitle appearance customization is implemented for compatible WebVTT cues. Hardcoded/iframe captions are outside control; Safari iPhone positioning has not received physical sign-off.
+- Stremio/Torrentio-style `infoHash/fileIdx` descriptions are classified and displayed disabled in the source picker. They are not streamed or resolved; there is no native torrent engine or debrid implementation.
+- One-tap Continue Watching preserves local progress and checks the native stream again before opening playback, with fallback to detail if no source passes.
+
+Preview Vercel READY and CI PASS are separate from endpoint uptime and real playback validation. Do not promote the branch to `main`, tag a final public release, or relax deployment protection based on these states.

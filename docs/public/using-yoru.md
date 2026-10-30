@@ -1,39 +1,45 @@
-# Cara menggunakan Yoru
+# Menggunakan Yoru
+
+Yoru adalah PWA untuk mencari anime, melihat hubungan cerita, menyimpan koleksi, dan menonton dari sumber video kompatibel yang kamu pilih. Katalog anime tidak selalu berarti sebuah episode punya video siap putar.
 
 ## Beranda dan Jelajahi
 
-- **Beranda** menampilkan rekomendasi dan kategori anime dari katalog Tenrai.
-- **Jelajahi** memuat daftar berdasarkan kategori/halaman.
-- **Cari** berdasarkan judul; pilih kartu untuk membuka detail, sinopsis dan daftar episode.
-- Gambar, metadata, dan hasil pencarian membutuhkan koneksi. Jika Tenrai sedang terbatas, coba beberapa saat lagi.
+**Beranda** menampilkan anime musim ini, tren harian AniList jika datanya lengkap, serta daftar tontonan yang bisa dilanjutkan. Jika tren harian tidak tersedia, labelnya berubah menjadi popularitas katalog; Yoru tidak menampilkan angka penonton yang tidak ada.
 
-## Koleksi dan progress
+Di **Jelajahi**, pilih Musim ini, Populer atau Akan datang. Gunakan pencarian, genre, jenis anime, skor, tahun, dan urutan hasil. Hasil membutuhkan koneksi ke layanan katalog.
 
-Dari detail anime, tambahkan ke **Koleksi**. Yoru menyimpan status seperti **Ingin Ditonton**, **Sedang Ditonton**, atau **Selesai**. Setelah playback berjalan, progress episode dapat disimpan secara lokal dan tersedia untuk **lanjut menonton**.
+## Urutan season, OVA dan movie
 
-**Data tidak berpindah otomatis** ke perangkat/browser lain. Browser menyimpan library dan watch progress menggunakan IndexedDB; membersihkan site data dapat menghapusnya.
+Buka **Jelajahi → Panduan urutan anime** atau **Urutan cerita** di detail anime.
 
-## Menonton video
+Yoru mengambil hubungan **langsung** dari AniList dan dapat menampilkan prekuel, sekuel, side story, alternatif, movie, atau OVA sesuai metadata. Tombol **Urutan rilis** menyusun berdasarkan tanggal yang tersedia. Ini **bukan** kronologi cerita atau urutan lengkap semua judul dalam satu franchise. Untuk Fate dan franchise bercabang, mode **Disarankan** dan **Kronologi** belum aktif karena memerlukan kurasi terverifikasi. Judul tanpa pemetaan MyAnimeList tidak dapat dibuka sebagai detail.
 
-1. Jika belum punya sumber anime, buka **Pengaturan → Test player**.
-2. Jika sudah punya sumber, ikuti [Panduan provider](providers.md), kemudian buka anime dengan MAL ID yang sesuai.
-3. Pilih episode yang tersedia. Bila ada lebih dari satu sumber, pilih sumbernya.
-4. Saat video memuat, gunakan kontrol player. Subtitle hanya ditampilkan sebagai Indonesia jika sumber memang menyediakan track `lang: "id"` atau hardsub yang benar.
+## Memulai video dan melanjutkan tontonan
 
-**Yang belum tersedia:** pencarian sumber anime otomatis, download offline media, torrent, cloud sync, serta subtitling AI. PWA offline hanya mempertahankan shell aplikasi dan data lokal.
+1. Buka detail anime lalu pilih episode. Pilihan sumber video yang belum diperiksa bukan jaminan video dapat diputar.
+2. Untuk video native HLS/MP4, Yoru mencoba memeriksa dekode video dalam browser sebelum membuka pemutar.
+3. Jika sudah pernah menonton, tekan kartu **Lanjut menonton** di Beranda atau Koleksi. Yoru akan memeriksa ulang sumber episode terakhir dan mencoba membuka pemutar langsung di posisi tersimpan. Jika pemeriksaan gagal, detail anime terbuka agar kamu dapat memilih sumber lain.
+4. Pilih **Kualitas Auto** untuk adaptasi kualitas HLS. Opsi resolusi hanya tersedia jika manifest media benar-benar mencantumkannya; pada beberapa browser pengaturan manual tidak tersedia.
+5. Jika tidak ada video native, player embed eksternal dapat dicoba secara sadar. Yoru tidak mengendalikan codec, kualitas, maupun subtitle di dalam iframe tersebut.
 
-## Ekspor/impor data
+Untuk mencoba kontrol tanpa sumber anime, buka **Pengaturan → Coba pemutar**. Demo HLS dengan WebVTT lokal tidak membuktikan kompatibilitas provider live.
 
-Buka **Pengaturan** dan gunakan tombol ekspor untuk menyimpan backup koleksi/progress. Simpan file di tempat yang aman. Untuk mengembalikannya, pilih impor backup yang valid. Proses impor menggunakan schema ber-versi dan validasi; jangan mengubah isi JSON secara manual.
+## Subtitle
 
-## Beda PWA dan aplikasi native
+Di player native, menu **Subtitle** memprioritaskan kandidat Indonesia dari addon Stremio yang terkonfigurasi, lalu sumber subtitle lain yang tersedia; pilihan manual pengguna tetap dihormati. Ketersediaan Sub Indo, kualitas terjemahan, dan sinkronisasi harus diperiksa pada episode dan sumber aktual. Kamu juga dapat menambahkan file SRT/VTT dari perangkat.
 
-PWA dapat dipasang dari browser yang mendukung, tetapi **bukan** APK/IPA/EXE. Browser masih memiliki batasan codec, CORS, fullscreen dan storage masing-masing platform. Lihat [Status distribusi](releases.md) sebelum mencari installer.
+Pilihan tampilannya mencakup jenis dan ukuran huruf, opasitas teks, opasitas latar, tebal outline, serta posisi atas/bawah/bawaan jika browser menyediakan `VTTCue` yang dapat diatur. Ada pratinjau tampilan. Preferensi dapat disimpan untuk seluruh Yoru atau anime tertentu. Dukungan `::cue` dan posisi antar-browser bisa berbeda; hardcoded subtitle dan iframe tidak dapat diubah dari Yoru.
 
-## Akses cepat
+## Torrentio dan sumber lain
 
-**Anime musim ini** membuka tab Musim ini di Jelajahi. **Lanjut menonton** membuka daftar khusus episode dengan progress HLS/MP4 tersimpan; berbeda dari menu Koleksi yang menampilkan watchlist. Jika belum ada tontonan, halaman Lanjut menonton menjelaskan kenapa masih kosong.
+Yoru mengenali deskriptor `infoHash` dari respons stream addon Stremio dan menampilkan kandidat torrent sebagai **belum bisa diputar** dengan alasan yang jelas. Itu bukan fitur streaming torrent aktif: browser tidak otomatis memutar magnet, dan Yoru saat ini tidak memiliki engine, debrid, atau resolver torrent bawaan. Sumber HLS/MP4 HTTPS tetap bisa diperiksa secara terpisah. Lihat [Panduan provider](providers.md) untuk konfigurasi.
 
-## Coba sumber anime eksternal
+## Koleksi, cadangan dan privasi
 
-Dari detail anime, klik episode untuk mencoba embed player berbasis MAL ID. Player embed AnimeEmbed menangkap event `postMessage` (`channel: 'animeembed'`) untuk menyimpan progres tontonan ke IndexedDB lokal dan menyematkan parameter `?start=<detik>` saat kamu melanjutkan pemutaran. Subtitle bawaan AnimeEmbed umumnya berbahasa Inggris (English). Untuk subtitle WebVTT Indonesia dan pemutaran HLS/MP4 langsung yang dapat disesuaikan, gunakan sumber HLS/MP4 melalui konfigurasi lokal.
+Simpan anime sebagai Ingin ditonton, Sedang ditonton, atau Selesai. Koleksi, progres, preferensi subtitle, dan pengaturan playback berada di **IndexedDB browser setempat**. Tidak ada akun atau sinkronisasi cloud.
+
+Di **Pengaturan**, gunakan ekspor untuk membuat backup sebelum menghapus data browser atau berpindah perangkat; impor untuk memulihkan backup yang valid. Menghapus data situs dapat menghilangkan riwayat lokal jika tidak dicadangkan.
+
+## Batasan aplikasi
+
+PWA dapat di-install melalui browser yang mendukung, tetapi bukan IPA, APK, atau EXE. Offline shell tidak berarti episode video bisa ditonton offline. Hasil CI Chromium/WebKit belum menggantikan pengujian Safari di iPhone fisik. Status validasi publik dan pekerjaan yang masih terbuka ada di [release gate](https://github.com/rzqllh/Yoru/issues/20) serta [roadmap UX](https://github.com/rzqllh/Yoru/issues/44).

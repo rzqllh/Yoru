@@ -37,17 +37,22 @@ Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan
 | Beranda, seasonal/top/upcoming, cari dan detail anime Jepang | Tersedia | Internet untuk Tenrai |
 | Daftar episode, pemilihan source dan opsi player embed eksternal | Tersedia; external player bergantung layanan pihak ketiga dan belum teruji playback-nya | Ya, internet dan source |
 | Pemutar HLS/MP4 + track subtitle WebVTT | Tersedia; contoh lokal sudah diuji Chromium | Contoh lokal: tidak; media nyata: ya |
-| Watchlist, progress dan resume | Tersedia di IndexedDB browser | Tidak untuk data tersimpan |
+| Watchlist, progress, dan lanjut menonton satu ketukan | Tersedia di IndexedDB; sumber episode diperiksa sebelum diputar ulang | Tidak untuk data tersimpan; playback butuh sumber |
 | Backup ekspor/impor data pribadi | Tersedia | Tidak |
 | Install PWA dan shell offline | Tersedia di build produksi | Katalog baru tetap membutuhkan internet |
 | Provider lokal HTTPS dengan file JSON | Tersedia | Konfigurasi manual |
-| Addon Stremio: video HLS/MP4 dan subtitle episode | Opt-in, dengan pemeriksaan URL dan pemetaan episode | Addon HTTPS dan konfigurasi manual; kualitas nyata belum dijamin |
+| Addon Stremio: HLS/MP4, subtitle, dan metadata sumber Torrentio | Opt-in; torrent berbasis hash ditampilkan **tidak dapat diputar**, bukan video siap tonton | Addon HTTPS dan mapping manual; tidak ada mesin torrent/debrid |
 | Filter genre, jenis, skor, tahun, dan urutan | Tersedia melalui katalog; muat lebih banyak untuk halaman berikutnya | Internet untuk katalog |
-| Subtitle lokal SRT/VTT, pengaturan tampilan/waktu, dan Sub Indo pilihan | Tersedia untuk video langsung; file addon memerlukan konfigurasi | Subtitle pilihan tidak otomatis berarti tersedia |
-| Rule scraper arbitrer, torrent/magnet, cloud sync | Belum tersedia | — |
+| Subtitle SRT/VTT lokal, preferensi bahasa dan tampilan | Font, ukuran, opasitas teks/latar, outline, dan posisi WebVTT bila browser mendukung | Tidak berlaku untuk hardsub/iframe; Sub Indo tidak otomatis tersedia |
+| Panduan hubungan season, OVA, movie dan spin-off | Halaman khusus dan tautan dari detail; **baru relasi langsung AniList + urutan rilis**, bukan urutan lengkap franchise | Internet untuk AniList |
+| Mesin torrent/magnet, debrid bawaan, urutan kronologi terkurasi, cloud sync | Belum tersedia | — |
 | Installer Windows / APK / IPA | Belum tersedia | — |
 
 **Privasi:** data koleksi/progress disimpan di browser melalui IndexedDB; tidak ada akun atau cloud sync. Data browser dapat terhapus bila storage dibersihkan, jadi ekspor backup jika datanya penting.
+
+## Menemukan urutan anime
+
+Buka **Jelajahi → Panduan urutan anime**, atau pilih **Urutan cerita** pada detail anime. Yoru memperlihatkan relasi langsung dari AniList, termasuk prekuel, sekuel, spin-off, OVA, dan movie jika metadata tersedia. Urutan yang dapat dilihat saat ini adalah **urutan rilis berdasarkan tanggal metadata**; bukan jaminan urutan menonton terbaik maupun kronologi canon. Mode **Disarankan** dan **Kronologi** dinonaktifkan sampai tersedia panduan terkurasi yang dapat dipertanggungjawabkan untuk franchise bercabang seperti Fate.
 
 ## Ingin menonton episode anime?
 
@@ -86,7 +91,7 @@ npm run check
 npm run dev
 ```
 
-Backend Hono: http://127.0.0.1:8787 · Frontend Vite: http://127.0.0.1:5173 · CI: lint, typecheck, unit test, build, Chromium E2E. Ketersediaan katalog menggunakan Tenrai v1 untuk MyAnimeList. **Jangan menyamakan tes video contoh dengan tes streaming provider nyata.**
+Backend Hono: http://127.0.0.1:8787 · Frontend Vite: http://127.0.0.1:5173 · CI: lint, typecheck, unit test, build, Chromium dan WebKit E2E. Ketersediaan katalog menggunakan Tenrai v1 untuk MyAnimeList. **Jangan menyamakan tes video contoh dengan tes streaming provider nyata.** Track status fitur dan keputusan yang masih terbuka di [roadmap pengalaman pengguna](https://github.com/rzqllh/Yoru/issues/44), sedangkan [release gate publik](https://github.com/rzqllh/Yoru/issues/20) tetap BLOCKED.
 
 ## Inspirasi dan penghargaan
 
@@ -97,7 +102,8 @@ Yoru adalah implementasi tersendiri. Proyek berikut dipelajari sebagai **referen
 - [CloudStream](https://github.com/recloudstream/cloudstream) dan [Aniyomi](https://github.com/aniyomiorg/aniyomi) — pola ekosistem extension dan library.
 - [Nuvio Mobile](https://github.com/NuvioMedia/NuvioMobile) — UI media multi-platform dan bring-your-own-sources.
 - [AIOStreams](https://github.com/Viren070/AIOStreams) — gagasan seleksi/penyatuan sumber; **bukan** dependency di Yoru.
-- [AnimeEmbed](https://www.animeembed.com/) — kontrak embed berdasarkan MAL ID (pemutaran belum terverifikasi, bukan dependency runtime).\n- [Stremio Addon SDK](https://github.com/Stremio/stremio-addon-sdk) — kontrak addon manifest dan stream HTTP/JSON.
+- [AnimeEmbed](https://www.animeembed.com/) — kontrak embed berdasarkan MAL ID (tersedia sebagai fallback eksternal, bukan dependency runtime).
+- [Stremio Addon SDK](https://github.com/Stremio/stremio-addon-sdk) — kontrak addon manifest dan stream HTTP/JSON.
 - [anime-sdk](https://github.com/hexxt-git/anime-sdk) — pendekatan normalisasi metadata dan provider; **tidak** dibundel.
 - [Wajik Anime API](https://github.com/wajik45/wajik-anime-api), [Nonton Indo](https://github.com/ExtremeBoyGG/nonton-indo) — referensi variasi sumber Sub Indo; adapter mereka **tidak** dibundel.
 - [Magnetio](https://github.com/peterdsp/Magnetio) — referensi arsitektur torrent/indexer untuk kemungkinan tahap mendatang; torrent **belum** didukung.

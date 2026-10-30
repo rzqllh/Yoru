@@ -22,7 +22,7 @@ npm run dev
 | `npm start` | Menjalankan hasil build di port 8787 |
 | `npm run check` | Lint + types + unit + build |
 
-Browser E2E menggunakan workflow **Browser E2E** GitHub Actions dengan Chromium, termasuk viewport mobile dan PWA offline. Rujuk hasil run terbaru; jangan menganggap tes ini sama dengan Safari/iPhone fisik.
+Browser E2E menggunakan workflow **Browser E2E** GitHub Actions dengan Chromium dan WebKit (Safari-family), termasuk viewport mobile dan PWA offline. Rujuk hasil run terbaru; jangan menganggap tes ini sama dengan Safari/iPhone fisik.
 
 ## Struktur dan aliran data
 
@@ -48,12 +48,15 @@ Katalog dari Tenrai menghasilkan MAL ID; provider lokal/addon menghubungkan MAL 
 - `GET /api/anime/search?q=judul&page=1`
 - `GET /api/anime/:id`
 - `GET /api/anime/:id/episodes`
+- `GET /api/anime/:id/watch-guide` (relasi langsung AniList, bukan kronologi yang dikurasi)
 - `GET /api/providers`
 - `GET /api/anime/:id/provider-episodes`
-- `GET /api/streams?episodeRef=...`
+- `GET /api/streams?episodeRef=...` (stream HTTPS `items`; addon Stremio juga dapat mengembalikan `unavailable` untuk deskriptor torrent/external yang belum playable)
 
 ## Prinsip kontribusi
 
-Gunakan branch dan PR. Sertakan tes saat mengubah perilaku, pastikan `npm run check` lulus, dan beri langkah reproduksi untuk bug. Jangan menambahkan kode dari proyek GPL/AGPL atau tanpa lisensi. Jika memakai dependency permissive, penuhi atribusi/lisensi yang diwajibkan. Penghargaan terhadap karya referensi ditulis **hanya dalam bagian penghargaan README utama**; komentar kode dan UI tidak perlu menampilkan daftar parity.
+Gunakan branch dan PR ke `deploy/vercel-preview-20261029` untuk pekerjaan UX yang belum dirilis. Sertakan tes saat mengubah perilaku, pastikan `npm run check` lulus, dan beri langkah reproduksi untuk bug. Gunakan [epic #44](https://github.com/rzqllh/Yoru/issues/44) serta `docs/internal/YORU_TASK_TRACKER.md` dan `docs/internal/YORU_HANDOFF.md` sebagai checkpoint lintas model: catat exact commit, URL PR, status CODED/TESTED/LIVE_VERIFIED, blocker dan next action sebelum PR digabung. Jangan menambahkan kode dari proyek GPL/AGPL atau tanpa lisensi. Jika memakai dependency permissive, penuhi atribusi/lisensi yang diwajibkan. Penghargaan terhadap karya referensi ditulis **hanya dalam bagian penghargaan README utama**; komentar kode dan UI tidak perlu menampilkan daftar parity.
 
 Jangan commit credential, `configs/*.local.json`, aset/media yang tidak boleh didistribusikan atau file build `dist/`. Lihat [Panduan provider](providers.md) dan [Status rilis](releases.md).
+
+**Release:** CI/Chromium/WebKit di branch preview tidak mengesahkan pengujian provider live atau perangkat Safari fisik. `main`/production tetap diblokir oleh [issue #20](https://github.com/rzqllh/Yoru/issues/20). Dokumentasi publik hanya diperbarui setelah fitur terkait diverifikasi, bukan saat masih sekadar rancangan.
