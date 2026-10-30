@@ -77,11 +77,11 @@
 - No real iPhone or live provider test. Local preferences and v1 backup path are covered by current compatibility design; unit and browser reload/independent-route acceptance PASS. Public user docs updated in separate final docs PR.
 - Owner tasks OPEN: extensive sourced watch paths for community-reported franchises, episode insertion, YX-10 automatic player integration ONLY with verified session data, physical Safari and #20 public release gate.
 
-## Active source-lifecycle checkpoint (2026-10-30)
-- Preview base `c09d333042b5bc0981c14d86e145aa67a6991dd5`; branch `feat/yoru-source-lifecycle-20261030`.
-- YX-02 CODED: isolated pure provider-summary module in `frontend/src/lib/source-lifecycle.ts`, separate outcomes for candidate metadata, no direct sources, provider errors, partial failure. Detail source picker shows search/check/verified/failed and preserves opt-in embed fallback after a single native candidate fails. Stale response guard per request.
-- Added Node and deterministic browser tests (provider outage and partial source failure); **exact CI/Browser E2E PENDING**. No live media/provider availability, no physical iPhone sign-off.
-- Next action: create PR against preview, run exact SHA Linux/Windows CI + Chromium/WebKit E2E; fix if needed; merge preview only on green and update public docs after. Do not touch `main`/production or change #20.
+## Verified source-lifecycle checkpoint (2026-10-30, merged #66)
+- PR #66 preview merge `5460bec489e04399fad8b2fa6ab08a969d28d82f`; exact tested head `30184179cfb765eac6b8fb5a6de3b85e002e09d1`. Linux/Windows CI and Chromium/WebKit Browser E2E PASS.
+- YX-02 TESTED code: isolated pure provider-summary module in `frontend/src/lib/source-lifecycle.ts`, separate outcomes for candidate metadata, no direct sources, provider errors, partial failure. Detail source picker shows search/check/verified/failed and preserves opt-in embed fallback after a single native candidate fails. Stale response guard per request.
+- Node and deterministic browser tests for provider outage, healthy-but-empty and partial source failure PASS on exact head. No live media/provider availability, no physical iPhone sign-off.
+- Next action: continue independent YX-06 persisted source-memory/recovery (after architecture review) or YX-09 wider source-backed editorial editions, then YX-12 browse URL state. Do not touch `main`/production or relax #20.
 
 ## Hard blockers
 
@@ -111,4 +111,4 @@ NEXT ACTION (one exact next step):
 DO NOT: merge main, promote production, invent provider/Subtitle Indonesia/release proof.
 ```
 
-**Resume suggestion:** extend curated path evidence by verified franchise/edition, episode ranges, optionality, prerequisite relationships and public correction process; pilot Haruhi broadcast order, Re:Zero OVA placement, Gundam continuities. Local manual path-progress storage is already implemented (#64), but playback-linked automatic progress is NOT. Fate/Monogatari options already live in preview code but not production. In parallel, independent YX-02 source lifecycle and YX-12 browse state tasks remain open. In parallel, the unrelated YX-02 complete source state model and YX-12 browse URL persistence can be scoped into separate PRs.
+**Resume suggestion:** extend curated path evidence by verified franchise/edition, episode ranges, optionality, prerequisite relationships and public correction process; pilot Haruhi broadcast order, Re:Zero OVA placement, Gundam continuities. Local manual path-progress storage is already implemented (#64), but playback-linked automatic progress is NOT. Fate/Monogatari options already live in preview code but not production. In parallel, YX-12 browse URL-state task remains open, whereas YX-02 deterministic code acceptance is now tested. In parallel, YX-06 enhanced source memory and YX-12 browse URL persistence can be scoped into independent PRs.
