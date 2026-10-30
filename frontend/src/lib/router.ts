@@ -1,4 +1,4 @@
-export type Page = 'home' | 'browse' | 'library' | 'settings'
+export type Page = 'home' | 'browse' | 'guide' | 'library' | 'settings'
 export type BrowseKind = 'season' | 'top' | 'upcoming'
 export type LibraryView = 'all' | 'continue'
 
@@ -7,6 +7,7 @@ export type RouteState = {
   browseKind: BrowseKind
   libraryView: LibraryView
   searchQuery: string
+  guideMalId?: number
   shortcut?: 'season' | 'continue'
 }
 
@@ -22,6 +23,12 @@ export function parseRoute(pathname: string, search: string): RouteState {
       libraryView: 'all',
       searchQuery: '',
     }
+  }
+
+  if (cleanPath === '/jelajahi/panduan-urutan') {
+    const raw=Number(params.get('anime'))
+    const guideMalId=Number.isSafeInteger(raw)&&raw>0&&raw<=999999999?raw:undefined
+    return {page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId}
   }
 
   if (cleanPath === '/jelajahi/musim-ini') {
@@ -99,6 +106,7 @@ export function parseRoute(pathname: string, search: string): RouteState {
 
 export function routeToPath(state: RouteState): string {
   if (state.page === 'home') return '/'
+  if (state.page === 'guide') return '/jelajahi/panduan-urutan'+(state.guideMalId?`?anime=${state.guideMalId}`:'')
 
   if (state.page === 'browse') {
     let base = '/jelajahi'
@@ -124,6 +132,7 @@ export function routeToPath(state: RouteState): string {
 
 export function getBreadcrumbs(state: RouteState): string[] {
   if (state.page === 'home') return ['Yoru', 'Beranda']
+  if (state.page === 'guide') return ['Yoru', 'Jelajahi', 'Panduan urutan']
 
   if (state.page === 'browse') {
     if (state.searchQuery) {
