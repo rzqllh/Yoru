@@ -12,7 +12,7 @@ const GENRES=new Set(['Action','Adventure','Comedy','Drama','Fantasy','Horror','
 const FORMATS=new Set(['TV','Movie','OVA','ONA','Special','Music'])
 export function sanitizeBrowseFilters(candidate:Partial<BrowseFilters>):BrowseFilters{
  const year=Number(candidate.year)
- const yearValid=typeof candidate.year==='string'&&/^\\d{4}$/.test(candidate.year)&&
+ const yearValid=typeof candidate.year==='string'&&/^\d{4}$/.test(candidate.year)&&
   Number.isSafeInteger(year)&&year>=1950&&year<=new Date().getFullYear()+2
  return {
   genre:typeof candidate.genre==='string'&&GENRES.has(candidate.genre)?candidate.genre:'',
