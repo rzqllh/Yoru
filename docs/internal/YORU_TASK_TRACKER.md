@@ -20,8 +20,8 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 | YX-04 | P0 | Subtitle appearance and placement | PLANNED | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
 | YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
 | YX-06 | P0 | Source memory/recovery and smart next | PLANNED | Verified source remembering; bounded recovery; manual consent |
-| YX-07 | P0 | Franchise relations on detail | CODED (direct links only; rebased CI pending) | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
-| YX-08 | P1 | Discovery watch-guide subpage | CODED (rebased CI pending) | `/jelajahi/panduan-urutan`; no extra primary category tab |
+| YX-07 | P0 | Franchise relations on detail | TESTED (direct links only; #50 head ad000df; not curated) | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
+| YX-08 | P1 | Discovery watch-guide subpage | TESTED (#50 head ad000df CI + E2E) | `/jelajahi/panduan-urutan`; no extra primary category tab |
 | YX-09 | P1 | Branching franchise curated paths | PLANNED | Fate etc branching, optionality, spoiler protection; no guessed chronology |
 | YX-10 | P1 | Franchise progress/next-in-path | PLANNED | Local-first versioned migration + backup compatibility |
 | YX-11 | P1 | Search suggestions + aliases | PLANNED | Truthful supported metadata, accessible keyboard navigation |
@@ -31,7 +31,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 | YX-15 | P1 | UI design system + microcopy | PLANNED | Canonical CSS tokens, coherent radius/space/color, WCAG/HIG, no marketing fluff |
 | YX-16 | P1 | Visual load and performance | PLANNED | Lazy poster loading, correct sizing, measured CWV |
 | YX-17 | P1 | First-run and recovery UX | PLANNED | Actionable error states; transparent setup; backup reassurance |
-| YX-18 | P0 | Stremio/Torrentio response parity | PLANNED | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
+| YX-18 | P0 | Stremio/Torrentio response parity | CODED (parser only; rebased CI pending) | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
 | YX-19 | P0 | Opt-in torrent-capable playback path | BLOCKED | Explicit verified playback engine/resolver; browser/platform limitations and secure config |
 | YX-20 | P0 | Real video/subtitle compatibility matrix | BLOCKED | Independent real examples, codecs, source access, safe URL checks, user approval and device proof |
 | YX-21 | P0 | QA and release gates | BLOCKED | Exact-SHA CI+E2E, physical iPhone, no unresolved P0/P1, release issue #20 |
@@ -45,6 +45,8 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- Watch Guide PR #50 merged preview as `0a184799` after exact head `ad000df` CI+Browser E2E PASS. Only first-degree relations; full curated franchise order still pending.
+- Torrentio parser original branch `5520993` CI+E2E PASS; ancestry conflict after #50 squash required clean rebase to `feat/yoru-torrentio-rebased-20261030` (new exact-SHA verification pending). No torrent playback capability yet.
 - PR #48 merged quality after CI+Browser E2E success on b7219869; preview merge 8b82c1fd.
 - Watch Guide PR #47 tested green at 58303a16 but ancestry conflict after tracker squash; clean rebase `feat/yoru-watch-guide-rebased-20261030` awaiting new exact-SHA CI. Direct relations only, chronology/recommended remain gated.
 - Rebased Lane B: previous feature SHA `64263345b` passed CI+Browser E2E, but #46 conflicted after #45 squash. New clean branch `feat/yoru-honest-quality-rebased-20261030` needs new exact-SHA checks before merge.
