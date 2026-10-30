@@ -45,6 +45,9 @@ Last updated: 2026-10-30, Asia/Jakarta. Source of truth: **GitHub**, not remembe
 - PR #50 anime guide merged `0a184799` after CI/Browser E2E green on `ad000df`. This is **first-degree AniList relations only**, recommended/chronology still disabled and curated paths absent.
 - Torrentio capability PR #49 was green at `5520993` but conflicted after #50 squash; transferred source+tests into `feat/yoru-torrentio-rebased-20261030`. Await exact new head checks; no torrent resolver or playback proof.
 
+## Active caption experience work
+- YX-04 branch `feat/yoru-caption-appearance-20261030`: native WebVTT text/background opacity, outline, position where VTTCue is supported, preserved font/size preferences and browser/unit regression. Still **CODED**, not tested/merged; do not pretend it can reposition hardcoded subtitles or iframe subtitles. Native Safari CSS cue compatibility needs physical verification.
+
 ## Architecture boundaries
 - `frontend/src/App.tsx`: UI state, home, browse, library, detail. `frontend/src/components/Player.tsx`: direct media player and subtitle controls.
 - `backend/pipeline/jikan.ts`: Jikan/Tenrai catalog API; separate AniList relations may need new fixed-host API with strict timeouts.
