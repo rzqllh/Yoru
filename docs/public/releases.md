@@ -15,7 +15,7 @@ ZIP source atau hasil build bukan installer. Arsip ZIP web build versi lama `v0.
 
 ## Fitur pada branch preview
 
-Yoru menyediakan katalog anime, pencarian dan filter, hero tren harian AniList dengan label sumber, watchlist/progres lokal, resume satu ketukan setelah memeriksa sumber, player native HLS/MP4, mode embed eksternal, serta kontrol subtitle WebVTT. Detail anime dan Jelajahi dapat membuka **Panduan urutan anime** berisi relasi langsung AniList dan susunan tanggal rilis yang tersedia.
+Yoru menyediakan katalog anime, pencarian dan filter, hero tren harian AniList dengan label sumber, watchlist/progres lokal, resume satu ketukan setelah memeriksa sumber, player native HLS/MP4, mode embed eksternal, serta kontrol subtitle WebVTT. Detail anime dan Jelajahi dapat membuka **Panduan urutan anime** untuk judul apa pun dengan mapping katalog. Relasi langsung AniList tersedia secara default; perluasan dua tingkat tersedia opt-in dengan batas fan-out, cache, label hasil parsial dan kategori TV/film/OVA/cabang/rangkuman. Urutannya **tetap tanggal rilis**, bukan kronologi canon.
 
 Untuk HLS yang terpapar ke hls.js, kualitas **Auto** menjadi default dan hanya representasi yang benar-benar ditemukan pada manifest yang dapat dipilih. Penyesuaian caption native mencakup font, ukuran, opasitas teks/latar, outline, dan posisi saat browser mengizinkannya. Semua kontrol ini memiliki batasan per browser dan tidak memodifikasi subtitle permanen/iframe.
 
@@ -24,3 +24,5 @@ Addon Stremio opt-in dapat mengembalikan sumber HTTPS langsung atau metadata tor
 **Belum selesai**: panduan terkurasi kronologi bercabang Fate/SAO/Slime, progres per-jalur franchise, resolver torrent nyata, dukungan akun/cloud, verifikasi video/subtitle provider secara live, pengujian Safari iPhone fisik, dan pemeriksaan deployment publik end-to-end.
 
 Lihat [cara menggunakan Yoru](using-yoru.md), [konfigurasi provider](providers.md), [roadmap UX](https://github.com/rzqllh/Yoru/issues/44), dan [release gate](https://github.com/rzqllh/Yoru/issues/20). Tes CI Chromium/WebKit tidak menggantikan bukti pemutaran anime nyata atau pengujian perangkat fisik.
+
+Panduan penggunaan lebih lanjut: [menilai hubungan anime dan mengirim koreksi](watch-order.md). Tidak ada klaim bahwa komunitas telah memverifikasi seluruh franchise.
