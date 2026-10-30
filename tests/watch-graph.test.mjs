@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import {test} from 'node:test'
 import {normalizeWatchGuide} from '../backend/pipeline/watch-guide.ts'
-import {normalizeWatchGraph,graphFrontier} from '../backend/pipeline/watch-graph.ts'
+import {normalizeWatchGraph,graphFrontier} from '../backend/pipeline/watch-graph-core.ts'
 
 const media=(id,malId=id,format='TV',year=2024)=>({
  id,idMal:malId,type:'ANIME',format,startDate:{year,month:1},
