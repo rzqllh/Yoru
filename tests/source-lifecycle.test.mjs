@@ -9,7 +9,7 @@ test('partial provider failures remain visible alongside unverified candidate me
  assert.equal(s.items.length,1)
  assert.equal(s.failed,1)
  assert.match(s.message,/Sebagian penyedia gagal/)
- assert.match(s.message,/belum/)
+ assert.match(s.message,/perlu diperiksa/)
 })
 test('all failures are distinguishable from empty successful provider results',()=>{
  const down=summarizeSourceSearch([{status:'rejected',reason:new Error('503')}])
