@@ -127,7 +127,7 @@ export type UnavailableStremioSource={
  kind:'torrent'|'external'|'unsupported';label:string;reason:string
 }
 const safeLabel=(value:unknown):string=>typeof value==='string'?
- value.replace(/[\\u0000-\\u001f\\u007f<>]/g,'').trim().slice(0,80):''
+ Array.from(value).filter(ch=>ch.charCodeAt(0)>=32&&ch.charCodeAt(0)!==127&&ch!=='<'&&ch!=='>').join('').trim().slice(0,80):''
 const validInfoHash=(value:unknown):boolean=>typeof value==='string'&&
  /^(?:[a-fA-F0-9]{40}|[a-fA-F0-9]{64}|[A-Z2-7a-z2-7]{32})$/.test(value)
 export function classifyStremioUnplayable(payload:unknown,providerId:string):UnavailableStremioSource[]{
