@@ -595,3 +595,19 @@ test('continue watching verifies a source then resumes the same episode without 
  await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toHaveCount(0)
  await expect(page.getByRole('main',{name:'Layar tonton'}).getByText(/Episode 1/)).toBeVisible()
 })
+
+
+test('Torrentio hash-only video is clearly disabled while verified-source fallback stays selectable',async({page})=>{
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{
+  items:[],unavailable:[{kind:'torrent',label:'Torrentio 1080p',reason:'Torrent membutuhkan mesin streaming/resolver yang terhubung; belum bisa diputar langsung.'}]
+ }}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ const disabled=dialog.getByRole('button',{name:'Torrentio 1080p · Belum bisa diputar'})
+ await expect(disabled).toBeDisabled()
+ await expect(dialog.getByText('Torrent membutuhkan mesin streaming/resolver yang terhubung; belum bisa diputar langsung.')).toBeVisible()
+ await expect(dialog.getByRole('button',{name:/Coba video alternatif/})).toBeEnabled()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
+})
