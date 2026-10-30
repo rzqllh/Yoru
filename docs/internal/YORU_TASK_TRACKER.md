@@ -23,7 +23,7 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | YX-07 | P0 | Franchise links from anime detail | **TESTED expanded metadata** | PR [#50](https://github.com/rzqllh/Yoru/pull/50) first-degree + [#58](https://github.com/rzqllh/Yoru/pull/58) two-hop, exact head `c5d94c7` CI/E2E PASS; not canon chronology |
 | YX-08 | P1 | Secondary Watch Guide in Jelajahi | **TESTED expanded metadata** | PR #58, search plus opt-in two-hop graph and type filters, source and incomplete-result notices |
 | YX-09 | P1 | Universal watch-order research, graph + curated pathways | **TESTED partial (#58 + #62)** | Generic 2-hop source graph; verified-source editorial options for Fate/Monogatari in PR #62 head `ff104181` CI+Browser E2E PASS; remaining franchise/edition/episode-level coverage OPEN |
-| YX-10 | P1 | Franchise-path progress & next entry | **PLANNED** | IndexedDB schema and backup migration not yet implemented |
+| YX-10 | P1 | Franchise-path progress & next entry | **CODED partial (exact CI pending)** | Manual per-route step checklist and next-step hint via existing IndexedDB preferences/backup. Automatic playback linking and full season/episode progress pending |
 | YX-11 | P1 | Search suggestions/aliases | **PLANNED** | Need verified alias data and keyboard UX |
 | YX-12 | P1 | Browse filter state in URL, chips and range | **PLANNED** | Existing filters work; refinement pending |
 | YX-13 | P1 | Local personalized home/library enhancement | **PLANNED** | Existing watchlist/resume only; new product UX pending |
@@ -65,6 +65,13 @@ These are code acceptance results. **None** are evidence that real torrent strea
 - UI shows routes only for verified ID intersections in AniList metadata; if a step cannot map to a MAL detail it links to AniList or displays unavailable instead of pretending playback is ready. General two-hop graph still works for other anime.
 - Open: comprehensive franchise coverage and edition-specific episode insertion; community correction submissions remain manual and need review; real upstream stream availability, Safari and production release remain unverified.
 - Public docs updated in final documentation PR following #62 integration.
+
+## 2026-10-30 — manual watch-path progress checkpoint
+- Branch `feat/yoru-manual-watch-path-progress-20261030` on preview after PR #63 merge `6967cd0db1e64005510a0ed47a00769c0b298fcf`.
+- YX-10 CODED PARTIAL: manual step progress per curated `pathId`, label of next step, undo control, progress isolation across alternative routes, existing `preferences` store + v1 backup export/import (no IndexedDB schema migration).
+- Does NOT assert any video has been played. No automatic mark-watched based on provider state. Existing library and episode progress remain untouched.
+- New Node unit + browser persistence tests; CI/Browser E2E pending exact PR SHA.
+- Next: verify, merge tested PR preview only; then update public documentation and issue #44. Remaining YX-10 advanced episode-level progress is open.
 
 ## Next independently resumable lanes
 
