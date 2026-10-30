@@ -1,131 +1,89 @@
-# Panduan Desain & Antarmuka Yoru (DESIGN.md)
+# Yoru — Panduan Desain dan Pengalaman Pengguna
 
-Dokumen ini mendefinisikan sistem desain, arsitektur informasi, spesifikasi token, dan konvensi penulisan antarmuka (*copywriting*) untuk aplikasi Yoru.
+Dokumen ini menjelaskan antarmuka **web preview** Yoru dan batasan kemampuan yang terlihat oleh penonton. Acuan implementasi aktual saat ini adalah `frontend/src/styles.css`. Konsolidasi CSS menjadi satu kumpulan token yang tidak bertumpuk masih menjadi pekerjaan [YX-15](https://github.com/rzqllh/Yoru/issues/44), sehingga tabel di bawah menjelaskan nilai **efektif**, bukan klaim bahwa refactor sudah selesai.
 
----
+## Prinsip pengalaman
 
-## 1. Prinsip Desain
+1. **Anime lebih penting daripada dekorasi.** Prioritaskan poster, judul, episode, posisi tontonan, dan status sumber dibanding panel glass bertingkat.
+2. **Informasi yang jujur.** Metadata episode, kandidat stream, dan hasil media yang benar-benar lolos pemeriksaan merupakan tiga status berbeda. Jangan gunakan angka penonton, label Sub Indo, 1080p, atau tombol Play yang tidak didukung data aktual.
+3. **Watch-first, local-first.** Pengguna dapat meneruskan episode tanpa membuka detail ulang jika sumber native lolos pemeriksaan; progres disimpan di IndexedDB. Tidak ada akun/cloud.
+4. **Aksesibilitas lebih dulu.** Target sentuhan iOS minimal 44pt, fokus keyboard jelas, reduced-motion dihormati, kontras teks diuji, dan hover bukan satu-satunya penanda keadaan.
+5. **UI tidak mengendalikan sumber pihak ketiga.** Tidak semua player iframe bisa menggunakan kontrol kualitas/subtitle Yoru. Torrent berbasis `infoHash` hanya ditampilkan sebagai kandidat disabled sampai resolver nyata tersedia.
 
-1. **Fokus pada Anime, Bukan SaaS Dashboard**
-   Yoru dirancang khusus untuk penikmat anime. Hirarki visual memprioritaskan poster, judul, metadata relevan (musim, episode, skor), dan pemutaran media tanpa ornamen dekoratif yang mengganggu.
-2. **Anti-Slop & Kejujuran Fungsional**
-   Hindari jargon pemasaran kecerdasan buatan, teks klise, dan metrik palsu (seperti kartu kosong bertuliskan "00"). Status ketersediaan subtitle dan sumber pemutaran harus dinyatakan apa adanya tanpa klaim berlebihan.
-3. **Local-First & Transparan**
-   Riwayat tontonan, progres tontonan, dan anime favorit disimpan secara lokal di peramban (IndexedDB). UI secara konsisten menampilkan status penyimpanan dan opsi ekspor/impor cadangan.
-4. **Konsistensi Visual & Ergonomi Kontras**
-   Tema gelap terkalibrasi dengan kontras rasio minimal WCAG AA (teks `#f5f6f8` di atas latar `#0e1014`, aksen lime-green `#c6f56a` untuk elemen aksi utama).
+## Sistem visual efektif
 
----
+### Palet dasar
 
-## 2. Desain Token
+| Token | Nilai efektif preview | Fungsi |
+| --- | --- | --- |
+| `--canvas` | `#090e16` | Latar utama |
+| `--surface` | `rgba(24,32,46,.82)` | Panel glass utama |
+| `--surface-2` | `rgba(38,47,64,.88)` | Panel/input sekunder |
+| `--surface-hover` | `rgba(52,67,83,.89)` | Hover |
+| `--line` | `rgba(200,215,235,.15)` | Border halus |
+| `--line-strong` | `rgba(200,215,235,.27)` | Border kontrol |
+| `--text` | `#f6f9fc` | Teks utama |
+| `--soft` | `#ced9e5` | Teks pendukung |
+| `--muted` | `#a3b0c1` | Metadata dan label sekunder |
+| `--accent` | `#c7f68c` | Aksi/seleksi penting |
+| `--accent-hover` | `#dcffa7` | Hover aksi |
 
-### A. Palet Warna
+Komposisi visual yang dituju adalah **60/30/10**: sekitar 60% kanvas/ruang negatif, 30% permukaan konten, dan maksimal 10% aksen/sinyal interaktif. Ini prinsip desain, bukan klaim hasil pengukuran piksel pada seluruh halaman. Nilai 60/20/10 tanpa kategori tambahan hanya berjumlah 90%, sehingga bukan pembagian lengkap.
 
-| Token | Nilai Hex | Penggunaan |
-| :--- | :--- | :--- |
-| `--canvas` | `#0e1014` | Latar belakang dasar aplikasi |
-| `--surface` | `#14171d` | Latar kartu, sidebar, dan header panel |
-| `--surface-2` | `#1b1f26` | Latar elemen sekunder, tag/badge, form input |
-| `--surface-hover` | `#222731` | Status hover pada baris daftar dan item menu |
-| `--line` | `#252932` | Garis batas (*border*) halus antarelemen |
-| `--line-strong` | `#333844` | Garis batas aktif atau penekanan fokus |
-| `--muted` | `#8d939e` | Teks sekunder, label pembantu, caption waktu |
-| `--soft` | `#b6bbc4` | Teks pendukung dengan kontras menengah |
-| `--text` | `#f5f6f8` | Teks primer berdaya baca tinggi |
-| `--accent` | `#c6f56a` | Aksen warna lime-green untuk status aktif dan tombol aksi utama |
-| `--accent-hover` | `#d7ff7d` | Status hover elemen aksen |
-| `--accent-dark` | `#1e2813` | Latar badge penanda aktif dan tag terpilih |
-| `--danger` | `#e8867a` | Warna peringatan kesalahan dan tombol destruktif |
-| `--danger-bg` | `#2d1e1e` | Latar penampung pesan kesalahan |
+### Radius, spasi dan tipografi
 
-### B. Tipografi
+| Token | Efektif |
+| --- | --- |
+| `--radius-sm` | 10px |
+| `--radius-md` | 15px |
+| `--radius-lg` | 22px |
+| `--radius-xl` | 26px |
+| Skala spasi | 4 / 8 / 16 / 24 / 32 / 48px |
+| Headline | Manrope, ukuran responsif |
+| UI/body | DM Sans, dengan fallback font sistem |
 
-- **Display & Judul**: `Manrope`, sans-serif (bobot 600, 700, 800) untuk judul hero, heading halaman, dan angka metrik.
-- **Teks Utama & Antarmuka**: `DM Sans`, Inter, ui-sans-serif, system-ui, sans-serif (bobot 400, 500, 700) untuk label menu, deskripsi anime, dan elemen interaktif.
-- **Skala Ukuran Teks**:
-  - Judul Hero: `clamp(1.75rem, 3.5vw, 2.4rem)`
-  - Judul Halaman: `1.4rem` – `1.6rem` (Manrope 700)
-  - Judul Bagian: `1.05rem` – `1.2rem` (Manrope 700)
-  - Judul Kartu: `0.92rem` (Manrope 600, 2 baris batas elipsis)
-  - Teks Body / UI: `0.85rem` – `0.9rem` (DM Sans 400/500)
-  - Metadata / Tag: `0.75rem` – `0.78rem` (DM Sans 500)
+Jangan menggunakan radius besar dan backdrop blur untuk setiap elemen. Kontrol, navigasi, kartu anime, dan modal harus memiliki hierarki visual yang terbaca di layar kecil. Blur sebaiknya dikurangi ketika performa GPU atau kontras teks memburuk; pengukuran perangkat nyata masih diperlukan.
 
-### C. Skala Spasi (*Spacing*) & Radius
+## Arsitektur informasi
 
-- **Spasi**:
-  - `--space-xs`: `4px`
-  - `--space-sm`: `8px`
-  - `--space-md`: `16px`
-  - `--space-lg`: `24px`
-  - `--space-xl`: `32px`
-  - `--space-2xl`: `48px`
-- **Border Radius**:
-  - `--radius-sm`: `6px` (badge kecil, tag)
-  - `--radius-md`: `10px` (tombol, input form, pill filter)
-  - `--radius-lg`: `14px` (poster kartu anime, panel modal)
-  - `--radius-xl`: `18px` (container hero, banner player)
+| Lokasi | Fungsi |
+| --- | --- |
+| `/` | Beranda, hero Top 10 yang diberi label sumber, lanjut menonton, seasonal/populer |
+| `/jelajahi` | Pencarian serta kategori Musim ini, Populer, Akan datang |
+| `/jelajahi/musim-ini`, `/jelajahi/populer`, `/jelajahi/akan-datang` | Shortcut kategori |
+| `/jelajahi/panduan-urutan` | Subpage sekunder relasi anime, tidak menggantikan tab utama |
+| `/jelajahi/panduan-urutan?anime=ID` | Panduan relasi langsung untuk MAL ID tertentu |
+| `/koleksi`, `/koleksi/lanjut-menonton` | Watchlist dan resume |
+| `/pengaturan` | Playback, sumber, subtitle, backup dan informasi aplikasi |
 
----
+Panduan urutan hanya menampilkan **relasi langsung AniList** dan urutan tanggal rilis. Mode rekomendasi dan kronologi bercabang harus disabled sampai franchise yang relevan memiliki urutan terkurasi dan dapat diperiksa. Hubungan prekuel/sekuel, side story, spin-off, dan alternate route tidak boleh secara otomatis diklaim membentuk satu canon linear.
 
-## 3. Arsitektur Informasi & Navigasi Kanonikal
+## Komponen dan interaction contract
 
-Sistem navigasi Yoru menggunakan pemetaan URL kanonikal peramban yang mendukung tombol Back/Forward dan penyimpanan status saat penyegaran halaman:
+### Anime card, katalog dan hero
 
-| Rute URL | Halaman | Deskripsi & Filter Aktif |
-| :--- | :--- | :--- |
-| `/` | Beranda | Hero unggulan, anime tren musim ini, dan rilisan populer |
-| `/jelajahi` | Jelajahi | Katalog eksplorasi umum dengan bilah pencarian tersinkronisasi |
-| `/jelajahi/musim-ini` | Jelajahi (*Shortcut*) | Katalog tersaring otomatis: Musim Ini |
-| `/jelajahi/populer` | Jelajahi (*Shortcut*) | Katalog tersaring otomatis: Populer Sepanjang Masa |
-| `/jelajahi/akan-datang` | Jelajahi (*Shortcut*) | Katalog tersaring otomatis: Segera Tayang |
-| `/koleksi` | Koleksi | Daftar tontonan tersimpan, favorit, dan riwayat |
-| `/koleksi/lanjut-menonton` | Koleksi (*Shortcut*) | Sub-tampilan terfokus untuk anime dengan progres tontonan aktif |
-| `/pengaturan` | Pengaturan | Konfigurasi pemutaran, sumber video, cadangan data, dan informasi aplikasi |
+Poster memakai proporsi konsisten dan fallback jika artwork tidak ada. Skor ditandai sebagai skor katalog, bukan rating penonton Yoru. Judul panjang dapat dibungkus atau dipotong pada batas yang konsisten. Hero berotasi tiap 8 detik dengan kontrol manual serta penghentian saat tab tersembunyi atau reduced motion. Tren harian AniList hanya dipakai jika data lengkap; fallback diberi label popularitas katalog.
 
-### Hirarki Breadcrumbs
+### Detail anime dan pemilihan episode
 
-Setiap tampilan utama menyajikan penunjuk lokasi hirarkis dinamis:
-- `Yoru > Beranda`
-- `Yoru > Jelajahi > Musim ini`
-- `Yoru > Jelajahi > Cari: "[kata kunci]"`
-- `Yoru > Koleksi > Lanjut menonton`
-- `Yoru > Pengaturan`
+Detail memuat judul, metadata, sinopsis, daftar episode, pilihan sumber dan akses **Urutan cerita**. Label `Ada kandidat sumber · belum diperiksa` berarti **bukan** video siap diputar. Ketika pemeriksaan media gagal, berikan pilihan mencoba lagi atau memilih sumber lain. Kandidat infoHash Torrentio ditampilkan disabled beserta alasan, bukan 1080p palsu.
 
-### Pembedaan Status Pintasan (*Shortcut*)
+### Layar tonton
 
-Pintasan pada bilah samping (*Sidebar*) ditandai dengan dot aksen lime dan latar bernuansa lembut, sembari mempertahankan asosiasi visual menu induk (`Jelajahi` atau `Koleksi`) agar pengguna memahami konteks hirarki secara intuitif.
+Player native merupakan layar tersendiri, bukan modal yang mengunci scroll halaman lain. Default kualitas HLS ialah **Auto**; opsi manual hanya muncul jika representasi aktual tersedia. Di browser yang tidak mengizinkan pemilihan representasi manual, pilihannya disabled.
 
----
+Resume dari Beranda/Koleksi harus membuka episode/posisi tersimpan **setelah** pemeriksaan sumber native. Jika tidak tersedia, kembali ke detail anime untuk memilih alternatif tanpa menghapus progres.
 
-## 4. Spesifikasi Komponen
+Subtitle native WebVTT menyediakan bahasa, impor SRT/VTT, offset, font, ukuran, opasitas teks/latar, outline, posisi cue yang didukung browser, dan pratinjau. Ketersediaan subtitle bergantung pada file dan sumber yang benar-benar ada. Hardsub dan iframe eksternal tidak bisa dijanjikan mengikuti styling Yoru.
 
-### A. Poster & Kartu Anime (`AnimeCard`)
-- Rasio aspek gambar 3:4.5 dengan pemotongan rapi (`object-fit: cover`).
-- Penanda skor di pojok kiri atas poster dengan latar semi-transparan bergradien gelap.
-- Judul anime dibatasi maksimal 2 baris elipsis untuk mencegah pergeseran tata letak grid.
-- Metadata baris kedua menampilkan format dan jumlah episode yang ringkas (contoh: `TV • 24 ep`).
+### Empty, loading dan failure states
 
-### B. Hero Unggulan (`Hero Section`)
-- Judul panjang dibatasi dengan pembungkus teks yang fleksibel (`overflow-wrap: break-word`) sehingga tidak terpotong pada berbagai resolusi viewport.
-- Lapisan gradien multi-stop melindungi keterbacaan teks di atas gambar latar belakang beresolusi tinggi.
+Berikan alasan dan satu aksi yang relevan: `Coba lagi`, `Pilih sumber lain`, atau `Jelajahi anime`. Jangan menggunakan kartu statistik palsu `00`, CTA kosong, placeholder sumber yang seolah clickable, atau menampilkan error backend mentah pada antarmuka penonton.
 
-### C. Pemutar Media (`Player Modal`)
-- **Penanganan Frame Iframe**: Menerima pesan antarmuka `postMessage` (`channel: 'animeembed'`) dari domain terverifikasi untuk mencatat `currentTime` dan durasi ke IndexedDB secara real-time.
-- **Melanjutkan Tontonan**: Menyisipkan parameter `?start=[detik]` ke iframe pemutar saat pengguna membuka kembali episode yang sedang berjalan.
-- **Transparansi Subtitle**: Label informasi secara eksplisit menerangkan ketersediaan subtitle (contoh: `Subtitle: English (AnimeEmbed)` atau `Subtitle: Bahasa Indonesia (Tersedia)` pada stream demo/lokal).
+## Copywriting
 
-### D. Keadaan Kosong (*Empty States*)
-- Tampilan kosong menyajikan panduan tindakan langsung (misalnya tautan ke katalog Jelajahi) daripada menampilkan angka statistik kosong seperti `00`.
+Gunakan bahasa Indonesia alami: `Beranda`, `Jelajahi`, `Koleksi`, `Lanjut menonton`, `Periksa sumber episode`, `Belum bisa diputar`. Hindari slogan generik, klaim `semua anime lengkap`, atau daftar kemampuan yang belum diujikan. Label sumber eksternal, trailer, subtitle, dan kualitas harus menggambarkan kemampuan aktual serta keterbatasannya.
 
----
+## Pengujian yang masih wajib
 
-## 5. Panduan Copywriting
-
-1. **Gunakan Bahasa Indonesia Baku yang Alami**
-   - Gunakan `Beranda`, `Jelajahi`, `Koleksi`, `Pengaturan`.
-   - Gunakan istilah media yang umum dipahami: `Episode`, `Tonton sekarang`, `Lanjut menonton`, `Favorit`.
-2. **Hindari Jargon Berlebihan dan Tanda Baca Dekoratif**
-   - Hindari tanda titik dekoratif di akhir judul hero atau tajuk bagian (contoh: tulis `Koleksi Pribadi`, bukan `Koleksi Pribadi.`).
-   - Hindari istilah pemasaran otomatis seperti *"Platform anime berbasis AI terlengkap"*. Tuliskan fitur secara konkret: *"Aplikasi anime PWA lokal dengan riwayat tontonan tersimpan di peramban"*.
-3. **Pesan Kesalahan yang Memberikan Solusi**
-   - Saat sumber video tidak dapat dimuat, sertakan saran langkah perbaikan yang jelas: *"Sumber video eksternal sedang tidak dapat dihubungi. Periksa koneksi internet atau gunakan konfigurasi provider lokal di menu Pengaturan."*
+CI Linux/Windows dan Chromium/WebKit browser test tidak menggantikan audit visual aksesibilitas lengkap, Core Web Vitals pada koneksi nyata, uji iPhone Safari fisik, serta playback live berbagai sumber. Catat bukti pengujian di [roadmap UX](https://github.com/rzqllh/Yoru/issues/44) dan [release gate](https://github.com/rzqllh/Yoru/issues/20). Tidak ada promotion ke `main` atau production tanpa persetujuan release eksplisit.
