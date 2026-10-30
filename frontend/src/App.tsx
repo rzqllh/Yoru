@@ -38,7 +38,7 @@ import type {Anime,Episode,LibraryEntry,LibraryStatus,ProgressEntry,Stream} from
 import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered,dailyTrends,type DailyTrendResponse,type UnavailableStream} from './lib/api'
 import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime,getPreference,setPreference} from './lib/db'
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
-import {getBreadcrumbs,parseRoute,routeToPath,type RouteState} from './lib/router'
+import {EMPTY_BROWSE_FILTERS,getBreadcrumbs,parseRoute,routeToPath,type BrowseFilters,type RouteState} from './lib/router'
 import Player from './components/Player'
 import WatchGuide from './components/WatchGuide'
 import {verifyNativeSource} from './lib/source-readiness'
@@ -192,7 +192,7 @@ function App(){
   return true
  },[playback])
 
- const navigateState=useCallback((next:RouteState,replace=false)=>{
+ const navigateState=useCallback((next:RouteState,replace=false,preserveScroll=false)=>{
   resumeAttempt.current++
   setResumingAnimeId(null)
   setRoute(next)
@@ -203,7 +203,7 @@ function App(){
    window.history.pushState(null,'',path)
   }
   setMobileNav(false)
-  if(!replace)window.scrollTo({top:0,behavior:'instant'})
+  if(!replace&&!preserveScroll)window.scrollTo({top:0,behavior:'instant'})
  },[])
 
  useEffect(()=>{
@@ -486,8 +486,10 @@ function App(){
      searchInputRef={searchInputRef}
      kind={route.browseKind}
      query={route.searchQuery}
-     onTabChange={kind=>navigateState({page:'browse',browseKind:kind,libraryView:'all',searchQuery:''})}
-     onQueryChange={q=>navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:q},true)}
+     filters={route.browseFilters??EMPTY_BROWSE_FILTERS}
+     onTabChange={kind=>navigateState({...route,page:'browse',browseKind:kind,searchQuery:'',shortcut:undefined})}
+     onQueryChange={q=>navigateState({...route,page:'browse',searchQuery:q},true)}
+     onFiltersChange={filters=>navigateState({...route,page:'browse',browseFilters:filters},false,true)}
      onOpen={setSelected}
     />}
 
@@ -561,16 +563,20 @@ function Browse({
  searchInputRef,
  kind,
  query,
+ filters,
  onTabChange,
  onQueryChange,
+ onFiltersChange,
  onOpen,
 }:{
  onGuide:()=>void
  searchInputRef:React.Ref<HTMLInputElement>
  kind:'season'|'top'|'upcoming'
  query:string
+ filters:BrowseFilters
  onTabChange:(k:'season'|'top'|'upcoming')=>void
  onQueryChange:(q:string)=>void
+ onFiltersChange:(f:BrowseFilters)=>void
  onOpen:(anime:Anime)=>void
 }){
  const [items,setItems]=useState<Anime[]>([])
@@ -579,13 +585,10 @@ function Browse({
  const [next,setNext]=useState(false)
  const [page,setPage]=useState(1)
  const [retry,setRetry]=useState(0)
- const [genre,setGenre]=useState('')
- const [format,setFormat]=useState('')
- const [minimumScore,setMinimumScore]=useState(0)
- const [year,setYear]=useState('')
- const [order,setOrder]=useState('default')
+ const {genre,format,minimumScore,year,order}=filters
+ const activeFilters=Boolean(genre||format||minimumScore||year||order!=='default')
  const value=query.trim()
- const usesServerFilters=Boolean(genre||format||minimumScore||year||order!=='default')
+ const usesServerFilters=activeFilters
 
  // biome-ignore lint/correctness/useExhaustiveDependencies: normalized query and kind changes reset page.
  useEffect(()=>{
@@ -634,7 +637,7 @@ function Browse({
  },[items])
 
  const filteredItems=uniqueItems
- const years=Array.from({length:new Date().getFullYear()-1989},(_,index)=>new Date().getFullYear()-index)
+ const years=Array.from({length:new Date().getFullYear()+2-1950+1},(_,index)=>new Date().getFullYear()+2-index)
 
  return <div className="page-body">
   <div className="page-intro">
@@ -667,15 +670,29 @@ function Browse({
      {([['season','Musim ini'],['top','Populer'],['upcoming','Akan datang']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
     </fieldset>
    </div>
-   <label>Genre<select aria-label="Genre" value={genre} onChange={e=>setGenre(e.target.value)}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
-   <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>setFormat(e.target.value)}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
-   <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>setMinimumScore(Number(e.target.value))}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
-   <label>Tahun<select aria-label="Tahun rilis" value={year} onChange={e=>setYear(e.target.value)}><option value="">Semua tahun</option>{years.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-   <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>setOrder(e.target.value)}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
-   {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>{setGenre('');setFormat('');setMinimumScore(0);setYear('');setOrder('default')}}>Reset filter</button>}
+   <label>Genre<select aria-label="Genre" value={genre} onChange={e=>onFiltersChange({...filters,genre:e.target.value})}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
+   <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>onFiltersChange({...filters,format:e.target.value})}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
+   <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>onFiltersChange({...filters,minimumScore:Number(e.target.value)})}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
+   <label>Tahun<select aria-label="Tahun rilis" value={year} onChange={e=>onFiltersChange({...filters,year:e.target.value})}><option value="">Semua tahun</option>{years.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
+   <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>onFiltersChange({...filters,order:e.target.value as BrowseFilters['order']})}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
+   {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>onFiltersChange(EMPTY_BROWSE_FILTERS)}>Reset filter</button>}
   </fieldset>
   </div>
-  {(genre||format||minimumScore||year||order!=='default')&&<p className="browse-filter-note">Filter aktif · Berlaku untuk seluruh katalog.</p>}
+  {activeFilters&&<div className="browse-active-chips" role="group" aria-label="Filter aktif">
+   <span>Filter aktif:</span>
+   {([
+    ['genre',genre,'Genre'],
+    ['format',format,'Jenis'],
+    ['minimumScore',minimumScore?String(minimumScore)+'+':'','Skor'],
+    ['year',year,'Tahun'],
+    ['order',order==='default'?'':order==='rating'?'Skor tertinggi':'Tahun terbaru','Urutkan']
+   ] as const).filter(([,value])=>Boolean(value)).map(([key,value,label])=>
+    <button type="button" key={key} aria-label={`Hapus filter ${label}: ${value}`}
+     onClick={()=>onFiltersChange({...filters,[key]:key==='minimumScore'?0:key==='order'?'default':''})}>
+     {label}: {value} <X size={13}/>
+    </button>
+   )}
+  </div>}
 
   <div className="browse-results-header">
    <div>
