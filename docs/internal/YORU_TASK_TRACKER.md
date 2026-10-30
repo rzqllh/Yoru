@@ -49,7 +49,6 @@ Updated: **2026-10-30 (Asia/Jakarta)**. Product epic [#44](https://github.com/rz
 | #55 native caption appearance | `3bbc1437` | `40a2bb88` | Linux/Windows CI + Chromium/WebKit |
 | #56 disabled torrent source choices | `ea4c9b45` | `d4aa24d7` | Linux/Windows CI + Chromium/WebKit |
 | #62 sourced editorial route options | `d5651b1a` | `ff104181` | Linux/Windows CI + Chromium/WebKit; editorial scope limited to pilot sources |
-
 | #64 manual path progress | `27e87bdb` | `5f7c373e` | Linux/Windows CI + Chromium/WebKit; manual data and backup-compatible preferences |
 
 These are code acceptance results. **None** are evidence that real torrent streaming works, an AniList franchise guide is complete, or Safari physical/prod is signed off.
