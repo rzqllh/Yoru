@@ -16,7 +16,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 |---|---|---|---|---|
 | YX-01 | P0 | One-tap continue playback | PLANNED | Correct episode + resume; verified native source; graceful source-choice fallback |
 | YX-02 | P0 | Episode availability and source truth | PLANNED | Metadata candidate/verified/failed states never conflated |
-| YX-03 | P0 | Honest adaptive quality controls | PLANNED | Auto as initial choice; no phantom 1080p; unsupported disabled |
+| YX-03 | P0 | Honest adaptive quality controls | CODED (rebased; exact CI pending) | Auto as initial choice; no phantom 1080p; unsupported disabled |
 | YX-04 | P0 | Subtitle appearance and placement | PLANNED | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
 | YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
 | YX-06 | P0 | Source memory/recovery and smart next | PLANNED | Verified source remembering; bounded recovery; manual consent |
@@ -45,6 +45,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- Rebased Lane B: previous feature SHA `64263345b` passed CI+Browser E2E, but #46 conflicted after #45 squash. New clean branch `feat/yoru-honest-quality-rebased-20261030` needs new exact-SHA checks before merge.
 | Date | PR / exact commit | Done | Evidence | Next |
 |---|---|---|---|---|
 | 2026-10-30 | Planning checkpoint, preview `c80150d` | Owner approved UX improvements, branching watch guide, subtitle controls and Torrentio-style source path; epic #44 created | GitHub repository inspected; no new feature tests run | Tracking/handoff PR, then isolated vertical slices |
