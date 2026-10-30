@@ -60,6 +60,12 @@
 - **NOT COMPLETED:** all-series forum review or automatically reliable chronology; curated Fate/Monogatari/Gundam/Haruhi/OVA episode insertion routes; human-reviewed and cited `pathId` steps/optionality, rewatch/spoiler classifications, local path progress; real AniList queries and physical Safari. Keep Recommended/Chronology disabled pending editorial proof.
 - **NEXT RESUME STEP:** read current preview HEAD and open PRs; implement generic **curated watch-path data schema** with source/edition/episode range/branch/spoiler verification and pilot across different forum issue categories. Keep unsupported Recommended/Chronology modes disabled. YX-02 honest source lifecycle and YX-12 browse URL persist remain independent lanes. No main/production promotion. No main/production promotion.
 
+## Curated watch paths (2026-10-30, unmerged branch)
+- Working branch `feat/yoru-curated-watch-paths-rebased-20261030` based on current preview containing #58/#59/#60. Original #61 conflicts after parallel documentation merge; do not force-merge.
+- Added bounded, audited source registry in `frontend/src/lib/curated-watch-paths.ts` and adapted WatchGuide UI with editorial citations/dates, two Fate alternatives (newcomer and prequel-first) plus Monogatari starter route. Features are source-dependent suggestions **not universal chronological truth**.
+- Entry cards use exact verified AniList IDs as anchors; show local details only if MAL ID from graph is available, otherwise AniList link. Every other franchise retains universal 2-hop metadata explorer; no fictitious canon.
+- Unit and browser tests added; CI/E2E still pending for this rebased branch. Public docs LAST after tests+merge, #20 remains BLOCKED. Next action: create rebase PR, test exact head and merge preview only.
+
 ## Hard blockers
 
 - **G1–G3 (#20):** real authorized source-provider endpoints with live video, strict season/episode mapping and actual subtitle credentials/download proof. Mocked provider fixtures are not live tests.
