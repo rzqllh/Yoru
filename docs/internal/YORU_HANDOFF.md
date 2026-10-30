@@ -50,6 +50,11 @@ Last updated: 2026-10-30, Asia/Jakarta. Source of truth: **GitHub**, not remembe
 - One-tap resume branch `feat/yoru-one-tap-resume-20261030` implements last-episode source verification then direct player, progress cutoff relative to duration (short clips now resume), library/home buttons and honest metadata candidate labels. **CI pending, not merged**.
 - YX-02 full source lifecycle and Torrentio UI disabled candidate are not complete; #20 release gates untouched.
 
+## Latest verified UX checkpoint
+- YX-01 one-tap resume PR #52 merged preview `4e482f0` after CI+Browser E2E PASS at head `330b7ab`.
+- YX-04 caption appearance original PR #53 head `34299fee` CI+E2E PASS, but it was based on an older preview and PR52 squash created ancestry conflict; replacement branch `feat/yoru-caption-appearance-rebased-20261030` preserves PR52 browser regression and awaits its own exact head CI.
+- Caption appearance covers native WebVTT controls only, not hardcoded/iframe text or fully verified Safari caption geometry.
+
 ## Architecture boundaries
 - `frontend/src/App.tsx`: UI state, home, browse, library, detail. `frontend/src/components/Player.tsx`: direct media player and subtitle controls.
 - `backend/pipeline/jikan.ts`: Jikan/Tenrai catalog API; separate AniList relations may need new fixed-host API with strict timeouts.
