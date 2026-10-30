@@ -40,6 +40,7 @@ import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,li
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {getBreadcrumbs,parseRoute,routeToPath,type RouteState} from './lib/router'
 import Player from './components/Player'
+import WatchGuide from './components/WatchGuide'
 import {verifyNativeSource} from './lib/source-readiness'
 import {rankNativeStreams} from './lib/source-ranking'
 import {useDialogFocus} from './lib/useDialogFocus'
@@ -311,7 +312,7 @@ function App(){
    <div className="sidebar-caption">NAVIGASI</div>
    <nav className="main-nav" aria-label="Menu utama">
     {navItems.map(([pageKey,label,Icon])=>{
-     const isActive=route.page===pageKey
+     const isActive=route.page===pageKey||(pageKey==='browse'&&route.page==='guide')
      const hasActiveChild=(pageKey==='browse'&&route.shortcut==='season')||(pageKey==='library'&&route.shortcut==='continue')
      return <button
       type="button"
@@ -455,12 +456,20 @@ function App(){
     </>}
 
     {route.page==='browse'&&<Browse
+     onGuide={()=>navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:''})}
      searchInputRef={searchInputRef}
      kind={route.browseKind}
      query={route.searchQuery}
      onTabChange={kind=>navigateState({page:'browse',browseKind:kind,libraryView:'all',searchQuery:''})}
      onQueryChange={q=>navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:q},true)}
      onOpen={setSelected}
+    />}
+
+    {route.page==='guide'&&<WatchGuide
+     malId={route.guideMalId??null}
+     onPick={malId=>navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId:malId})}
+     onBack={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''})}
+     onOpenAnime={malId=>{void detail(malId).then(setSelected).catch(()=>setToast('Detail anime belum bisa dimuat'))}}
     />}
 
     {route.page==='library'&&<LibraryPage
@@ -497,7 +506,7 @@ function App(){
   <nav className="mobile-bottom" aria-label="Navigasi layar sentuh">
    {navItems.map(([pageKey,label,Icon])=><button
     type="button"
-    className={route.page===pageKey?'active':''}
+    className={route.page===pageKey||(pageKey==='browse'&&route.page==='guide')?'active':''}
     key={pageKey}
     onClick={()=>navigateState({page:pageKey,browseKind:pageKey==='browse'?'season':route.browseKind,libraryView:'all',searchQuery:''})}
    >
@@ -512,6 +521,7 @@ function App(){
    onClose={()=>setSelected(null)}
    onToggleSave={()=>void toggleSave(selected)}
    onWatch={value=>{setPlayback(value);setSelected(null)}}
+   onOpenGuide={()=>{const malId=selected.malId;setSelected(null);navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId:malId})}}
   />}
 
   {toast&&<div role="status" className="toast"><Check size={16}/>{toast}</div>}
@@ -519,6 +529,7 @@ function App(){
 }
 
 function Browse({
+ onGuide,
  searchInputRef,
  kind,
  query,
@@ -526,6 +537,7 @@ function Browse({
  onQueryChange,
  onOpen,
 }:{
+ onGuide:()=>void
  searchInputRef:React.Ref<HTMLInputElement>
  kind:'season'|'top'|'upcoming'
  query:string
@@ -602,6 +614,7 @@ function Browse({
     <h1>Jelajahi</h1>
     <p>Cari judul favoritmu, pilih genre, atau urutkan sesuai selera.</p>
    </div>
+   <button type="button" className="btn btn-outline" onClick={onGuide}><Layers3 size={16}/> Panduan urutan anime</button>
   </div>
 
   <div className="browse-controls">
@@ -782,12 +795,14 @@ function DetailDialog({
  onClose,
  onToggleSave,
  onWatch,
+ onOpenGuide,
 }:{
  anime:Anime
  isSaved:boolean
  onClose:()=>void
  onToggleSave:()=>void
  onWatch:(p:Playback)=>void
+ onOpenGuide:()=>void
 }){
  const dialogRef=useDialogFocus()
  const pickerRef=useRef<HTMLDivElement>(null)
@@ -938,6 +953,7 @@ function DetailDialog({
       <button type="button" className="btn btn-outline" onClick={onToggleSave}>
        {isSaved?<Check size={16}/>:<Plus size={16}/>} {isSaved?'Tersimpan':'Koleksiku'}
       </button>
+      <button type="button" className="btn btn-outline" onClick={onOpenGuide}><Layers3 size={16}/> Urutan cerita</button>
      </div>
     </div>
    </div>
