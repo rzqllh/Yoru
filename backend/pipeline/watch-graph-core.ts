@@ -41,7 +41,7 @@ function normalizeEntry(raw:unknown,relation:WatchRelation):WatchGuideEntry|null
 
 export function normalizeWatchGraph(guide:WatchGuidePayload,raw:unknown,status:'expanded'|'limited'|'upstream-unavailable'='expanded'):WatchGraphResult{
  const root=guide.items[0]
- if(!root||root.relation!=='CURRENT')throw new Error('INVALID_WATCH_GRAPH_ROOT')
+ if(root?.relation!=='CURRENT')throw new Error('INVALID_WATCH_GRAPH_ROOT')
  const nodes=new Map<number,WatchGraphNode>()
  for(const item of guide.items){
   nodes.set(item.aniListId,{...item,distance:item.aniListId===root.aniListId?0:1,
