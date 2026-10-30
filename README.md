@@ -39,6 +39,10 @@ Buka http://127.0.0.1:8787. Gunakan menu pemasangan aplikasi di browser yang men
 
 Yoru belum menyediakan akun, sinkronisasi cloud, torrent, atau installer Windows/APK/IPA. Pengujian Safari pada iPhone fisik masih diperlukan. [Status rilis](docs/public/releases.md) menjelaskan batas dukungan dan unduhan yang tersedia.
 
+## Status rilis dan blocker
+
+Yoru masih merupakan web preview, bukan layanan streaming publik yang sudah tervalidasi. Sebelum menyatakan siap rilis, selesaikan dan lampirkan bukti untuk provider video nyata, validasi availability lintas anime/episode, integrasi subtitle live, pengujian pada iPhone Safari fisik, hosting HTTPS beserta kontrol keamanan/rollback, serta persetujuan akhir. Rincian dan status setiap gate ada di [Public release gate](https://github.com/rzqllh/Yoru/issues/20) dan [Action items rilis](docs/public/releases.md#action-to-be-taken-before-public-release).
+
 ## Menambahkan sumber dan menjaga data
 
 Ikuti [panduan sumber video](docs/public/providers.md) untuk media HTTPS milikmu atau addon yang kompatibel. Hanya gunakan media yang berhak kamu akses. Ketersediaan, kualitas, dan subtitle dari pihak lain dapat berubah.
