@@ -35,9 +35,14 @@ export const dailyTrends=(signal?:AbortSignal)=>api<DailyTrendResponse>('/api/an
 
 export type WatchGuideEntry={
  aniListId:number;malId:number|null;title:string;format:string;year:number|null;month:number|null;
- relation:'CURRENT'|'PREQUEL'|'SEQUEL'|'SIDE_STORY'|'ALTERNATIVE'|'SPIN_OFF'|'PARENT'|'SUMMARY'|'OTHER';image:string|null
+ relation:'CURRENT'|'PREQUEL'|'SEQUEL'|'SIDE_STORY'|'ALTERNATIVE'|'SPIN_OFF'|'PARENT'|'SUMMARY'|'OTHER'|'COMPILATION'|'CONTAINS'|'SAME_UNIVERSE';image:string|null
 }
+export type WatchGraphNode=WatchGuideEntry&{distance:0|1|2;viaAniListId:number|null}
+export type WatchGraphEdge={from:number;to:number;relation:WatchGuideEntry['relation']}
 export type WatchGuideResponse={
- source:'AniList';sourceUrl:string;scope:'direct-relations';animeMalId:number;items:WatchGuideEntry[]
+ source:'AniList';sourceUrl:string;scope:'direct-relations';animeMalId:number;items:WatchGuideEntry[];
+ graph?:{nodes:WatchGraphNode[];edges:WatchGraphEdge[];status:'expanded'|'limited'|'upstream-unavailable';
+ scannedDirect:number;directTotal:number;truncated:boolean;note:string}
 }
-export const watchGuide=(malId:number,signal?:AbortSignal)=>api<WatchGuideResponse>(`/api/anime/${malId}/watch-guide`,signal)
+export const watchGuide=(malId:number,signal?:AbortSignal,depth:1|2=1)=>api<WatchGuideResponse>(
+ `/api/anime/${malId}/watch-guide${depth===2?'?depth=2':''}`,signal)
