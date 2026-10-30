@@ -14,8 +14,8 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 
 | ID | Priority | Feature / outcome | State | Acceptance / dependency |
 |---|---|---|---|---|
-| YX-01 | P0 | One-tap continue playback | PLANNED | Correct episode + resume; verified native source; graceful source-choice fallback |
-| YX-02 | P0 | Episode availability and source truth | PLANNED | Metadata candidate/verified/failed states never conflated |
+| YX-01 | P0 | One-tap continue playback | CODED (CI pending) | Correct episode + resume; verified native source; graceful source-choice fallback |
+| YX-02 | P0 | Episode availability and source truth | CODED (candidate label only; needs full state model) | Metadata candidate/verified/failed states never conflated |
 | YX-03 | P0 | Honest adaptive quality controls | TESTED (CI+Browser E2E PR #48 head b7219869; merged) | Auto as initial choice; no phantom 1080p; unsupported disabled |
 | YX-04 | P0 | Subtitle appearance and placement | PLANNED | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
 | YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
@@ -31,7 +31,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 | YX-15 | P1 | UI design system + microcopy | PLANNED | Canonical CSS tokens, coherent radius/space/color, WCAG/HIG, no marketing fluff |
 | YX-16 | P1 | Visual load and performance | PLANNED | Lazy poster loading, correct sizing, measured CWV |
 | YX-17 | P1 | First-run and recovery UX | PLANNED | Actionable error states; transparent setup; backup reassurance |
-| YX-18 | P0 | Stremio/Torrentio response parity | CODED (parser only; rebased CI pending) | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
+| YX-18 | P0 | Stremio/Torrentio response parity | TESTED (parser/ID only; PR #51 head 3c2d711; no resolver) | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
 | YX-19 | P0 | Opt-in torrent-capable playback path | BLOCKED | Explicit verified playback engine/resolver; browser/platform limitations and secure config |
 | YX-20 | P0 | Real video/subtitle compatibility matrix | BLOCKED | Independent real examples, codecs, source access, safe URL checks, user approval and device proof |
 | YX-21 | P0 | QA and release gates | BLOCKED | Exact-SHA CI+E2E, physical iPhone, no unresolved P0/P1, release issue #20 |
@@ -45,6 +45,8 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- Torrentio mapping/classification PR #51 merged preview `a7cacfe9` with exact-SHA CI+Browser E2E green at `3c2d711`; no torrent engine or browser playback.
+- YX-01 one-tap resume on `feat/yoru-one-tap-resume-20261030`: verified-source-first route, fallback to detail if source unavailable, short-clip progress fix, browser regression. CI pending.
 - Watch Guide PR #50 merged preview as `0a184799` after exact head `ad000df` CI+Browser E2E PASS. Only first-degree relations; full curated franchise order still pending.
 - Torrentio parser original branch `5520993` CI+E2E PASS; ancestry conflict after #50 squash required clean rebase to `feat/yoru-torrentio-rebased-20261030` (new exact-SHA verification pending). No torrent playback capability yet.
 - PR #48 merged quality after CI+Browser E2E success on b7219869; preview merge 8b82c1fd.
