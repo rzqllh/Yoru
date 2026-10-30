@@ -5,6 +5,7 @@ Mulai dari **[Panduan mulai](getting-started.md)** jika ini pertama kali menjala
 | Dokumen | Tujuan |
 | --- | --- |
 | [Mulai di komputer](getting-started.md) | Install Node, unduh source, jalankan demo dan PWA |
+| [Panduan urutan anime](watch-order.md) | Cara memahami relasi dua tingkat, film/OVA, jalur bercabang, dan koreksi berbasis bukti |
 | [Menggunakan Yoru](using-yoru.md) | Cari anime, panduan urutan, episode, resume, subtitle, backup |
 | [Panduan desain](../../DESIGN.md) | Sistem token, arsitektur navigasi kanonikal, dan copywriting |
 | [Menambahkan sumber video](providers.md) | File provider lokal, Stremio/Torrentio, Sub Indo dan batasan pemutaran |

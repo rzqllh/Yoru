@@ -87,3 +87,9 @@ Gunakan bahasa Indonesia alami: `Beranda`, `Jelajahi`, `Koleksi`, `Lanjut menont
 ## Pengujian yang masih wajib
 
 CI Linux/Windows dan Chromium/WebKit browser test tidak menggantikan audit visual aksesibilitas lengkap, Core Web Vitals pada koneksi nyata, uji iPhone Safari fisik, serta playback live berbagai sumber. Catat bukti pengujian di [roadmap UX](https://github.com/rzqllh/Yoru/issues/44) dan [release gate](https://github.com/rzqllh/Yoru/issues/20). Tidak ada promotion ke `main` atau production tanpa persetujuan release eksplisit.
+
+## Panduan urutan multi-franchise — interaksi dan kejujuran
+
+Di `/jelajahi/panduan-urutan`, penelusuran berlaku untuk semua judul berkode MAL yang tersedia, bukan pilihan khusus Fate/SAO/Slime. Relasi AniList langsung tampil lebih dulu; tombol **Perluas hubungan (2 tingkat)** menjalankan satu perluasan terbatas (maksimal 10 tetangga langsung / 75 node), lengkap dengan status hasil parsial. Pengguna dapat memfilter TV, film, OVA/special/ONA, cabang cerita, rangkuman, dan lainnya. Gunakan `fieldset`/label yang mudah diakses dan ukuran target sentuh 44px.
+
+Jangan menampilkan hasil network sebagai **timeline canon**; kategori `PREQUEL`, `ALTERNATIVE`, `SUMMARY`, `SAME_UNIVERSE` dan format film hanya menjelaskan relasi metadata. Urutan rilis berarti *tanggal anime*, bukan urutan novel, broadcast episode, atau posisi OVA setelah episode tertentu. Mode Disarankan dan Kronologi tetap disabled hingga ada sumber kurasi yang layak. Lihat [panduan publik](docs/public/watch-order.md) dan [riset kasus](docs/internal/WATCH_ORDER_RESEARCH_2026-10-30.md).

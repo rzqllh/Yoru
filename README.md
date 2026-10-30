@@ -52,7 +52,10 @@ Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan
 
 ## Menemukan urutan anime
 
-Buka **Jelajahi → Panduan urutan anime**, atau pilih **Urutan cerita** pada detail anime. Yoru memperlihatkan relasi langsung dari AniList, termasuk prekuel, sekuel, spin-off, OVA, dan movie jika metadata tersedia. Urutan yang dapat dilihat saat ini adalah **urutan rilis berdasarkan tanggal metadata**; bukan jaminan urutan menonton terbaik maupun kronologi canon. Mode **Disarankan** dan **Kronologi** dinonaktifkan sampai tersedia panduan terkurasi yang dapat dipertanggungjawabkan untuk franchise bercabang seperti Fate.
+Buka **Jelajahi → Panduan urutan anime**, atau pilih **Urutan cerita** pada detail anime. Pencarian ini berlaku untuk judul anime apa pun yang punya identitas katalog; pilih **Perluas hubungan (2 tingkat)** untuk menelusuri keterkaitan tambahan secara terbatas. Yoru memperlihatkan relasi langsung dari AniList, termasuk prekuel, sekuel, spin-off, OVA, dan movie jika metadata tersedia. Urutan yang dapat dilihat saat ini adalah **urutan rilis berdasarkan tanggal metadata**; bukan jaminan urutan menonton terbaik maupun kronologi canon. Mode **Disarankan** dan **Kronologi** dinonaktifkan sampai tersedia panduan terkurasi yang dapat dipertanggungjawabkan untuk franchise bercabang seperti Fate.
+
+
+**Riset urutan lintas-franchise:** Yoru memisahkan film, OVA/special, cabang cerita, dan rangkuman agar tidak mengarang satu garis canon. Baca [Panduan urutan anime](docs/public/watch-order.md) untuk batasan dan cara mengirim koreksi berreferensi.
 
 ## Ingin menonton episode anime?
 
