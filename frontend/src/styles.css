@@ -2616,3 +2616,24 @@ body {
 .hero-navigation-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:1px solid var(--line-strong);border-radius:12px;background:#182332;color:var(--soft)}
 .hero-navigation-actions button:hover,.hero-navigation-actions button:focus-visible{border-color:var(--accent);color:var(--accent)}
 @media(max-width:600px){.hero-navigation{align-items:stretch}.hero-navigation .hero-top-ten{width:100%;flex-basis:100%}.hero-navigation-actions{margin-left:auto}.hero-source{line-height:1.5}}
+
+/* Secondary watch guide: restrained content-first layout, no new primary browse tab. */
+.yoru-watch-guide{display:flex;flex-direction:column;gap:18px}
+.guide-search,.guide-information,.guide-entry{border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface);padding:16px}
+.guide-search label{display:flex;align-items:center;gap:8px;font-weight:650;margin-bottom:10px}
+.guide-search input{width:100%;min-height:44px;background:var(--canvas);border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text)}
+.guide-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.guide-chips button,.guide-mode button{min-height:44px;border-radius:var(--radius-sm);border:1px solid var(--line-strong);padding:8px 12px;background:var(--surface-2);color:var(--text)}
+.guide-mode{display:flex;flex-wrap:wrap;gap:8px}.guide-mode button.active{border-color:var(--accent);color:var(--accent)}.guide-mode button:disabled{opacity:.5;cursor:not-allowed}
+.guide-results{display:flex;flex-direction:column;margin-top:12px;gap:6px}
+.guide-results button{min-height:54px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);color:var(--text);display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;padding:10px 12px}
+.guide-results button span{display:flex;flex-direction:column;gap:4px}.guide-results small,.guide-heading p,.guide-entry small{color:var(--muted)}
+.guide-information{display:flex;align-items:flex-start;gap:12px;color:var(--soft);line-height:1.5}.guide-information p{margin:0}
+.guide-heading{display:flex;justify-content:space-between;align-items:start;gap:12px;flex-wrap:wrap}.guide-heading h2{margin:0 0 6px}.guide-heading p{margin:0}
+.guide-heading a{color:var(--accent);font-size:13px}
+.guide-entries{display:flex;flex-direction:column;gap:10px}
+.guide-entry{display:flex;align-items:center;gap:12px}
+.guide-order{color:var(--accent);font-weight:750;min-width:24px;font-variant-numeric:tabular-nums}
+.guide-entry-body{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}.guide-entry-body strong{overflow-wrap:anywhere}
+.guide-alt{display:inline-flex;align-items:center;gap:4px;color:var(--soft);font-size:12px}
+@media(max-width:600px){.guide-entry{flex-wrap:wrap}.guide-entry>.btn{margin-left:36px}.guide-search,.guide-information,.guide-entry{padding:12px}}
