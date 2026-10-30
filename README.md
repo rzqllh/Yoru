@@ -44,7 +44,7 @@ Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan
 | Addon Stremio: HLS/MP4, subtitle, dan metadata sumber Torrentio | Opt-in; torrent berbasis hash ditampilkan **tidak dapat diputar**, bukan video siap tonton | Addon HTTPS dan mapping manual; tidak ada mesin torrent/debrid |
 | Filter genre, jenis, skor, tahun, dan urutan | Tersedia melalui katalog; muat lebih banyak untuk halaman berikutnya | Internet untuk katalog |
 | Subtitle SRT/VTT lokal, preferensi bahasa dan tampilan | Font, ukuran, opasitas teks/latar, outline, dan posisi WebVTT bila browser mendukung | Tidak berlaku untuk hardsub/iframe; Sub Indo tidak otomatis tersedia |
-| Panduan hubungan season, OVA, movie dan spin-off | Halaman khusus dan tautan dari detail; **baru relasi langsung AniList + urutan rilis**, bukan urutan lengkap franchise | Internet untuk AniList |
+| Panduan urutan anime dan pilihan rute editorial | Graph AniList maksimal 2 tingkat + rute editorial terbatas dan bersumber (contoh Fate, Monogatari); **bukan urutan canon lengkap semua anime** | Internet untuk AniList; rute editorial tersedia lokal |
 | Mesin torrent/magnet, debrid bawaan, urutan kronologi terkurasi, cloud sync | Belum tersedia | — |
 | Installer Windows / APK / IPA | Belum tersedia | — |
 
@@ -54,6 +54,8 @@ Buka **http://127.0.0.1:8787**. Di browser yang mendukung instalasi PWA, gunakan
 
 Buka **Jelajahi → Panduan urutan anime**, atau pilih **Urutan cerita** pada detail anime. Pencarian ini berlaku untuk judul anime apa pun yang punya identitas katalog; pilih **Perluas hubungan (2 tingkat)** untuk menelusuri keterkaitan tambahan secara terbatas. Yoru memperlihatkan relasi langsung dari AniList, termasuk prekuel, sekuel, spin-off, OVA, dan movie jika metadata tersedia. Urutan yang dapat dilihat saat ini adalah **urutan rilis berdasarkan tanggal metadata**; bukan jaminan urutan menonton terbaik maupun kronologi canon. Mode **Disarankan** dan **Kronologi** dinonaktifkan sampai tersedia panduan terkurasi yang dapat dipertanggungjawabkan untuk franchise bercabang seperti Fate.
 
+
+**Rute editorial dari sumber:** beberapa franchise memiliki pilihan menonton yang menjelaskan jalur alternatif, posisi film, dan risiko spoiler. Baca [Panduan urutan anime](docs/public/watch-order.md) untuk cakupan serta daftar sumber; mode kronologi canon umum masih disabled.
 
 **Riset urutan lintas-franchise:** Yoru memisahkan film, OVA/special, cabang cerita, dan rangkuman agar tidak mengarang satu garis canon. Baca [Panduan urutan anime](docs/public/watch-order.md) untuk batasan dan cara mengirim koreksi berreferensi.
 

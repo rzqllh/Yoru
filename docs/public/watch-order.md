@@ -9,9 +9,22 @@ Yoru menyediakan **Panduan urutan anime** untuk berbagai judul, bukan daftar khu
 - **Perluas hubungan (2 tingkat)**: tindakan opsional untuk mengambil hubungan dari sebagian judul terkait. Perluasan dibatasi untuk menjaga API: maksimal 10 judul langsung yang dipindai dan sekitar 75 judul dalam hasil, sehingga **bukan** katalog seluruh franchise. Status parsial/gagal API ditampilkan apa adanya.
 - **Filter jenis judul**: TV/season, film, OVA/special/ONA, cabang cerita, rangkuman, dan lainnya. Filter bukan keputusan tentang canon.
 - **Jalur alternatif / spin-off / semesta sama**: hubungan antarjudul, bukan perintah untuk menontonnya dalam satu urutan. **Rangkuman/kompilasi** juga tidak otomatis berarti aman dilewati.
-- **Disarankan** dan **Kronologi** masih dinonaktifkan sampai ada urutan editorial per-franchise/episode dengan alasan dan referensi yang dapat diperiksa.
+- **Disarankan** dan **Kronologi** pada pengurutan metadata tetap dinonaktifkan. Rute yang sudah memiliki sumber editorial ditampilkan dalam bagian **Panduan menonton dari sumber** yang terpisah; ini bukan berarti setiap franchise sudah punya kronologi canon.
 
 Sebuah anime boleh memiliki lebih dari satu cara menonton yang sah: misalnya urutan anime rilis, urutan penerbitan novel, susunan broadcast original, kronologi dalam cerita, jalur pemula tanpa spoiler, serta jalur rewatch. Keberadaannya harus ditandai jelas, bukan digabung menjadi satu angka.
+
+## Panduan editorial dengan sumber
+
+Untuk sebagian judul yang sudah ditinjau, Yoru juga menampilkan **rute editorial** dengan sumber yang dapat dibuka, tanggal peninjauan, alasan penempatan setiap film/season dan peringatan apabila rute berpotensi mengungkap latar cerita lebih awal.
+
+Pilihan awal yang sudah dimasukkan:
+
+- **Fate/stay night**: rute anime-modern untuk penonton baru dan alternatif memulai dari Fate/Zero. Unlimited Blade Works dan Heaven's Feel tetap merupakan **jalur cerita berbeda**, bukan satu season beruntun. Sumber: [Anime Meridian](https://animemeridian.com/guide/2026-09-20/how-to-watch-fate-in-order/), [Popverse](https://www.thepopverse.com/fate-anime-watch-order-how-to-stay-night-grand-order-chronological-release), dan identitas judul [AniList](https://anilist.co/anime/19603).
+- **Monogatari**: panduan awal berbasis artikel [Crunchyroll](https://www.crunchyroll.com/hi/news/guides/2024/3/10/a-guide-to-all-monogatari-arcs-in-order), bukan kronologi penuh atau jaminan daftar instalmen terbaru. Urutan novel dan broadcast anime dapat berbeda.
+
+Panduan muncul hanya jika anime yang dipilih memiliki hubungan identitas AniList dengan rute tersebut. **Buka detail** hanya tersedia bila pemetaan MyAnimeList yang tepat ada. Jika belum, Yoru menampilkan tautan AniList atau label belum terhubung, bukan tombol Play palsu.
+
+Rute editorial bukan urutan canon tunggal. Cakupannya masih terbatas, tetapi kerangka pencatatan sumber berlaku untuk franchise lain: rekomendasi pemula, urutan siaran, episode yang disisipkan, film/OVA opsional, spin-off, recap, remake, dan jalur alternatif. Setiap penambahan harus diverifikasi dan diuji tersendiri.
 
 ## Kenapa tidak selalu cukup mengurutkan season?
 
