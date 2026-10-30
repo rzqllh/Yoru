@@ -43,6 +43,7 @@ import Player from './components/Player'
 import WatchGuide from './components/WatchGuide'
 import {verifyNativeSource} from './lib/source-readiness'
 import {rankNativeStreams} from './lib/source-ranking'
+import {summarizeSourceSearch} from './lib/source-lifecycle'
 import {isResumableProgress} from './lib/resume'
 import {useDialogFocus} from './lib/useDialogFocus'
 
@@ -844,6 +845,8 @@ function DetailDialog({
  const [playing,setPlaying]=useState('')
  const [error,setError]=useState('')
  const [choices,setChoices]=useState<{episode:number;items:Stream[];unavailable?:UnavailableStream[]}|null>(null)
+ const [sourceFeedback,setSourceFeedback]=useState<{episode:number;phase:'searching'|'checking'|'candidates'|'degraded'|'no-direct'|'failed'|'verified';message:string}|null>(null)
+ const sourceRequest=useRef(0)
  useEffect(()=>{
   if(!choices)return
   const frame=requestAnimationFrame(()=>pickerRef.current?.scrollIntoView({block:'nearest',behavior:'auto'}))
@@ -860,7 +863,9 @@ function DetailDialog({
   setPage(1)
   setListed([])
   setAvailable([])
+  sourceRequest.current++
   setChoices(null)
+  setSourceFeedback(null)
   setInfo(anime)
 
   void Promise.allSettled([
@@ -916,48 +921,72 @@ function DetailDialog({
   url:`https://www.animeembed.com/embed/mal/${info.malId}/${ep}`,
   subtitleMode:'unknown',tracks:[],
  })
- async function checkAndWatch(stream:Stream,ep:number,manual=false){
+ async function checkAndWatch(stream:Stream,ep:number,manual=false,requestId=++sourceRequest.current){
+  if(requestId!==sourceRequest.current)return
   if(stream.format==='embed'){
-   // Deliberate selection here is the user consent to leave native playback.
+   // Explicit external iframe selection is not a native playback verification.
    onWatch({anime:info,episode:ep,stream,manualSource:manual})
    return
   }
   setPlaying(String(ep))
   setError('')
+  setSourceFeedback({episode:ep,phase:'checking',message:'Memeriksa apakah video ini benar-benar dapat diputar…'})
   try{
    await verifyNativeSource(stream)
+   if(requestId!==sourceRequest.current)return
+   setSourceFeedback({episode:ep,phase:'verified',message:'Video native lolos pemeriksaan browser.'})
    onWatch({anime:info,episode:ep,stream,manualSource:manual})
   }catch{
-   setError('Video belum bisa diputar. Coba pilihan lain atau ulangi.')
-  }finally{setPlaying('')}
+   if(requestId!==sourceRequest.current)return
+   setError('Sumber ini gagal diperiksa. Pilih sumber lain atau coba kembali.')
+   setSourceFeedback({episode:ep,phase:'failed',message:'Kandidat ini belum bisa diputar. Pemeriksaan gagal; kualitas atau subtitle tidak dapat dijamin.'})
+   setChoices(current=>{
+    if(current?.episode!==ep)return current
+    if(current.items.some(candidate=>candidate.format==='embed'))return current
+    return {...current,items:[...current.items,embedCandidate(ep)]}
+   })
+  }finally{
+   if(requestId===sourceRequest.current)setPlaying('')
+  }
  }
  async function play(ep:Episode){
+  const requestId=++sourceRequest.current
   const sources=(availableMap.get(ep.number)||[]).filter(source=>source.providerId!=='public-embed')
-  setPlaying(String(ep))
+  setPlaying(String(ep.number))
   setError('')
+  setChoices(null)
+  setSourceFeedback({episode:ep.number,phase:'searching',message:'Mencari sumber untuk episode ini…'})
   try{
    if(!sources.length){
+    if(requestId!==sourceRequest.current)return
     setChoices({episode:ep.number,items:[embedCandidate(ep.number)]})
+    setSourceFeedback({episode:ep.number,phase:'no-direct',message:'Belum ada kandidat sumber langsung. Video alternatif belum diverifikasi.'})
     return
    }
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
-   const availableResponses=results.flatMap(result=>result.status==='fulfilled'?[result.value]:[])
-   const items=availableResponses.flatMap(result=>result.items)
-   const unavailable=Array.from(new Map(availableResponses.flatMap(result=>result.unavailable??[])
-    .map(item=>[`${item.kind}:${item.label}:${item.reason}`,item] as const)).values()).slice(0,20)
-   const native=rankNativeStreams(items)
+   if(requestId!==sourceRequest.current)return
+   const summary=summarizeSourceSearch(results)
+   const native=rankNativeStreams(summary.items)
    if(!native.length){
-    setChoices({episode:ep.number,items:[embedCandidate(ep.number)],unavailable})
+    setChoices({episode:ep.number,items:[embedCandidate(ep.number)],unavailable:summary.unavailable})
+    setSourceFeedback({episode:ep.number,phase:summary.state,message:summary.message})
     return
    }
    if(native.length===1){
-    await checkAndWatch(native[0],ep.number)
+    // Preserve picker if the sole candidate fails browser verification.
+    setChoices({episode:ep.number,items:native,unavailable:summary.unavailable})
+    await checkAndWatch(native[0],ep.number,false,requestId)
    }else{
-    setChoices({episode:ep.number,items:native,unavailable})
+    setChoices({episode:ep.number,items:native,unavailable:summary.unavailable})
+    setSourceFeedback({episode:ep.number,phase:summary.state,message:summary.message})
    }
   }catch{
-   setError('Belum bisa menyiapkan video. Coba lagi.')
-  }finally{setPlaying('')}
+   if(requestId!==sourceRequest.current)return
+   setError('Layanan sumber gagal diperiksa. Coba lagi.')
+   setSourceFeedback({episode:ep.number,phase:'failed',message:'Tidak dapat mengetahui ketersediaan video dari penyedia saat ini.'})
+  }finally{
+   if(requestId===sourceRequest.current)setPlaying('')
+  }
  }
 
  return <div className="modal-backdrop">
@@ -1002,11 +1031,14 @@ function DetailDialog({
      </span>
     </div>
     {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
+    {sourceFeedback&&<p className={`source-feedback source-feedback-${sourceFeedback.phase}`} role="status">
+     <Info size={15}/>{sourceFeedback.message}
+    </p>
 
     {choices&&<div className="source-picker" ref={pickerRef}>
      <div className="source-title">
       <strong>Pilih video · Episode {choices.episode}</strong>
-      <button type="button" className="icon-button" onClick={()=>setChoices(null)} aria-label="Tutup pilihan sumber"><X size={15}/></button>
+      <button type="button" className="icon-button" onClick={()=>{sourceRequest.current++;setChoices(null);setSourceFeedback(null);setPlaying('')}} aria-label="Tutup pilihan sumber"><X size={15}/></button>
      </div>
      <div className="source-options">
       {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
