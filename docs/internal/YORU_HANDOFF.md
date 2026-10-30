@@ -55,6 +55,11 @@ Last updated: 2026-10-30, Asia/Jakarta. Source of truth: **GitHub**, not remembe
 - YX-04 caption appearance original PR #53 head `34299fee` CI+E2E PASS, but it was based on an older preview and PR52 squash created ancestry conflict; replacement branch `feat/yoru-caption-appearance-rebased-20261030` preserves PR52 browser regression and awaits its own exact head CI.
 - Caption appearance covers native WebVTT controls only, not hardcoded/iframe text or fully verified Safari caption geometry.
 
+## Latest preview milestones
+- YX-01 #52 merged preview `4e482f0753d4e90450366fa091bc92d748dbd7dd`, exact head `330b7ab` CI+E2E PASS.
+- YX-04 #55 native caption appearance merged preview `3bbc14374970e1c19571f3002cd8db85f33a81a4`, head `40a2bb8` CI+E2E PASS. VTTCue position is conditional and requires physical Safari proof; hardsub/iframe not restyled.
+- YX-18 source-picker disabled Torrentio candidate branch `feat/yoru-torrentio-visible-rebased-20261030`: source/parser UI from prior #54 tests (`f0bb016` CI+E2E PASS), rebased onto preview after #55. Exact new head verification pending. No real torrent/debrid engine or auto-download.
+
 ## Architecture boundaries
 - `frontend/src/App.tsx`: UI state, home, browse, library, detail. `frontend/src/components/Player.tsx`: direct media player and subtitle controls.
 - `backend/pipeline/jikan.ts`: Jikan/Tenrai catalog API; separate AniList relations may need new fixed-host API with strict timeouts.
