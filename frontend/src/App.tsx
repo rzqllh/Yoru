@@ -1033,7 +1033,7 @@ function DetailDialog({
     {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
     {sourceFeedback&&<p className={`source-feedback source-feedback-${sourceFeedback.phase}`} role="status">
      <Info size={15}/>{sourceFeedback.message}
-    </p>
+    </p>}
 
     {choices&&<div className="source-picker" ref={pickerRef}>
      <div className="source-title">
