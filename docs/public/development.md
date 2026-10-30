@@ -1,58 +1,44 @@
-# Developer & kontribusi
+# Development and Contribution Guide
 
-Yoru terdiri dari dua workspace Node/TypeScript: `frontend/` (React/Vite) dan `backend/` (Hono). Repository menggunakan lisensi MIT.
+**Purpose:** reproducible local engineering, focused pull requests and evidence-backed promotion. Default-branch integration is not proof that a public streaming release is approved.
 
-## Setup
+## Repository layout
 
-```sh
-git clone https://github.com/rzqllh/Yoru.git
-cd Yoru
+- `frontend/`: React/Vite PWA, player, Watch Guide and IndexedDB helpers.
+- `backend/api/`: Hono API, HTTP safeguards and budgets.
+- `backend/pipeline/`: metadata/catalogue normalization and Watch Guide graph.
+- `backend/providers/`: local, external embed, Miruro-compatible, Stremio and subtitle adapters.
+- `configs/`: tracked examples only; private local configurations are ignored.
+- `tests/` and `tests/browser/`: unit, contract and Playwright tests.
+- `scripts/`: dev/build/start and opt-in verification utilities.
+- `docs/public/`: supported public guidance; private handoff notes are not part of the public documentation contract.
+
+## Reproduce locally
+
+```bash
 npm ci
+npm run lint
+npm run typecheck
+npm test
+npm run build
 npm run check
-npm run dev
 ```
 
-| Perintah | Fungsi |
-| --- | --- |
-| `npm run dev` | Menjalankan frontend dan backend untuk development |
-| `npm run lint` | Pemeriksaan aturan Biome |
-| `npm run typecheck` | Pemeriksaan TypeScript |
-| `npm test` | Unit test Node |
-| `npm run build` | Bundle frontend dan kompilasi backend |
-| `npm start` | Menjalankan hasil build di port 8787 |
-| `npm run check` | Lint + types + unit + build |
+The supported runtime is Node 22.12+. Do not upgrade dependencies or rewrite the lockfile incidentally to an unrelated feature. CI also runs Linux/Windows validation and Chromium/WebKit-family browser tests; physical Safari is a separate release gate.
 
-Browser E2E menggunakan workflow **Browser E2E** GitHub Actions dengan Chromium, termasuk viewport mobile dan PWA offline. Rujuk hasil run terbaru; jangan menganggap tes ini sama dengan Safari/iPhone fisik.
+## Pull-request contract
 
-## Struktur dan aliran data
+1. Branch from current canonical base and document the **exact base and head SHAs**.
+2. Describe user-observable behaviour, scope, risks and fallback. Keep changes small enough to review; avoid simultaneous divergent edits to `App.tsx`, `Player.tsx` and global CSS.
+3. Add deterministic unit/contract tests plus browser tests for stateful UX. Tests using fixtures are explicitly **not** live provider or real-device evidence.
+4. Report command results and link exact-head GitHub Actions runs. Do not state PASS while jobs are queued, skipped, failed or cancelled.
+5. Update public docs for changed capabilities, and release gate notes when a deployment-facing behaviour changes.
+6. Review security, accessibility, privacy and backwards compatibility; never relax source-verification rules to make tests easier.
 
-```text
-backend/api/       Endpoint REST Hono
-backend/pipeline/  Metadata Tenrai, normalisasi dan validasi
-backend/providers/ Adapter provider lokal dan jembatan addon
-frontend/src/      Halaman UI, player, library IndexedDB
-frontend/public/   PWA manifest, service worker, demo HLS dan WebVTT
-configs/           Contoh konfigurasi; *.local.json tidak di-commit
-scripts/           Menjalankan mode dev dan produksi
-tests/             Test logic/API dan browser
-docs/public/       Panduan pengguna dan kontributor
-```
+## Code and dependency discipline
 
-Katalog dari Tenrai menghasilkan MAL ID; provider lokal/addon menghubungkan MAL ID ke daftar episode. Player hanya menerima URL/track yang lolos validasi. Progress/library adalah data browser (IndexedDB). Hasil pencarian tidak menjamin tersedia sumber video.
+Prefer typed pure functions, conservative URL/ID validation, timeout and cancellation of network work, explicit error states, independent provider failures and bounded fan-out. Sanitize untrusted media/metadata. Store no credentials in browser bundles. Avoid copying third-party copyrighted source into this MIT project without compatible licensing.
 
-## API dasar
+## Release governance
 
-- `GET /api/health`
-- `GET /api/anime/discover?kind=season&page=1` (`season`, `top`, `upcoming`)
-- `GET /api/anime/search?q=judul&page=1`
-- `GET /api/anime/:id`
-- `GET /api/anime/:id/episodes`
-- `GET /api/providers`
-- `GET /api/anime/:id/provider-episodes`
-- `GET /api/streams?episodeRef=...`
-
-## Prinsip kontribusi
-
-Gunakan branch dan PR. Sertakan tes saat mengubah perilaku, pastikan `npm run check` lulus, dan beri langkah reproduksi untuk bug. Jangan menambahkan kode dari proyek GPL/AGPL atau tanpa lisensi. Jika memakai dependency permissive, penuhi atribusi/lisensi yang diwajibkan. Penghargaan terhadap karya referensi ditulis **hanya dalam bagian penghargaan README utama**; komentar kode dan UI tidak perlu menampilkan daftar parity.
-
-Jangan commit credential, `configs/*.local.json`, aset/media yang tidak boleh didistribusikan atau file build `dist/`. Lihat [Panduan provider](providers.md) dan [Status rilis](releases.md).
+Maintain a change log or PR summary, exact commit test evidence, data migration plan if needed, rollback path and [G1–G6 acceptance](production-readiness.md). Require human owner approval for production deployment and final public release. Consult [Architecture](architecture.md), [Security](security.md) and [Quality gates](quality-gates.md).

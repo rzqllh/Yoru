@@ -1,17 +1,26 @@
-# Dokumentasi Yoru
+# Yoru Documentation
 
-Mulai dari **[Panduan mulai](getting-started.md)** jika ini pertama kali menjalankan Yoru. Semua halaman ini menjelaskan **fitur yang sudah ada** pada web preview; bukan roadmap yang diperlakukan sebagai fitur aktif.
+**Audience:** end users, contributors, maintainers and prospective operators. **Product stage:** local-first web preview; not production-approved streaming infrastructure.
 
-| Dokumen | Tujuan |
-| --- | --- |
-| [Mulai di komputer](getting-started.md) | Install Node, unduh source, jalankan demo dan PWA |
-| [Menggunakan Yoru](using-yoru.md) | Cari anime, detail, episode, koleksi, progress, backup |
-| [Panduan desain](../../DESIGN.md) | Sistem token, arsitektur navigasi kanonikal, dan copywriting |
-| [Menambahkan sumber video](providers.md) | File provider lokal, addon Stremio dan Sub Indo |
-| [Troubleshooting](troubleshooting.md) | Diagnosis cepat jika halaman/video gagal |
-| [Untuk developer](development.md) | Repo, command, struktur kode, test |
-| [Status rilis & distribusi](releases.md) | Source vs hasil build vs installer native |
+| Start here | Audience | Purpose |
+| --- | --- | --- |
+| [Getting started](getting-started.md) | Users, developers | Node prerequisites, local demo, installable PWA |
+| [Using Yoru](using-yoru.md) | Users | Search, source states, player, progress, backup |
+| [Providers](providers.md) | Operators | Authorized HTTPS media, addon setup and subtitles |
+| [Watch Guide](watch-order.md) | Users, editors | Release-year vs verified chronology, route provenance |
+| [Troubleshooting](troubleshooting.md) | Everyone | Decision-tree diagnosis and safe data recovery |
+| [Development](development.md) | Contributors | Repository commands, review and testing |
+| [Architecture](architecture.md) | Engineers | Components, data flows, dependencies and trust boundaries |
+| [Security](security.md) | Maintainers, operators | Threat model, secrets, SSRF, abuse controls |
+| [Operations](operations.md) | Operators | Deployment, observability, incident and rollback runbooks |
+| [Quality gates](quality-gates.md) | Reviewers | Automated and real-world evidence requirements |
+| [Production readiness](production-readiness.md) | Release approvers | G1–G6 acceptance matrix and go/no-go |
+| [Releases](releases.md) | Everyone | Supported artifacts, versioning and distribution |
+| [Vercel preview](vercel-preview.md) | Operators | Preview-only deployment limitations |
+| [Design system](../../DESIGN.md) | Product, engineering | UX and accessibility principles |
 
-**Perlu diketahui:** Source video anime tidak otomatis tersedia. Demo video dan subtitle Indonesia dapat dicoba melalui **Pengaturan → Test player** setelah aplikasi berjalan. Lihat [README utama](../../README.md) untuk status fitur dan penghargaan kepada proyek referensi.
+## Source-of-truth hierarchy
 
-- [Persyaratan deployment dan rilis](production-readiness.md): HTTPS, pemeriksaan keamanan, dan batas dukungan.
+Runtime behaviour and CI logs establish implementation. [Issue #20](https://github.com/rzqllh/Yoru/issues/20) is the public release evidence gate; [Issue #44](https://github.com/rzqllh/Yoru/issues/44) tracks broader features. These documents describe verified implementation and known limitations; they do not elevate proposed features to shipped status.
+
+Keep credentials, private provider endpoints, personal data, incident secrets and working drafts outside public documentation. Public documentation describes **controls and responsibilities**, not unsupported claims of security certification, compliance, SLA or licensed catalogue access.

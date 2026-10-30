@@ -9,6 +9,13 @@ export function useDialogFocus(){
   const dialog=dialogRef.current
   if(!dialog)return
   const opener=document.activeElement instanceof HTMLElement?document.activeElement:null
+  const scrollX=window.scrollX,scrollY=window.scrollY
+  const previous={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,width:document.body.style.width,overflow:document.body.style.overflow}
+  document.body.style.position='fixed'
+  document.body.style.top=`-${scrollY}px`
+  document.body.style.left=`-${scrollX}px`
+  document.body.style.width='100%'
+  document.body.style.overflow='hidden'
   const controls=()=>Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE))
    .filter(item=>item.getClientRects().length>0&&getComputedStyle(item).visibility!=='hidden')
   const first=controls()[0]
@@ -31,6 +38,12 @@ export function useDialogFocus(){
   document.addEventListener('keydown',trap)
   return ()=>{
    document.removeEventListener('keydown',trap)
+   document.body.style.position=previous.position
+   document.body.style.top=previous.top
+   document.body.style.left=previous.left
+   document.body.style.width=previous.width
+   document.body.style.overflow=previous.overflow
+   window.scrollTo(scrollX,scrollY)
    if(opener?.isConnected)opener.focus({preventScroll:true})
   }
  },[])

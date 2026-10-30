@@ -42,3 +42,37 @@ export async function getAnimeEpisodes(id:number,page:number){
  const data=await request(`/anime/${id}/episodes?page=${page}`)
  return {items:(Array.isArray(data.data)?data.data:[]).map(x=>normalizeEpisode(`mal:${id}`,x as Record<string,unknown>)),page,hasNext:(data.pagination as {has_next_page?:boolean}|undefined)?.has_next_page??false}
 }
+
+
+export type BrowseFilters={kind:'season'|'top'|'upcoming';page:number;q?:string;genre?:string;type?:string;minScore?:number;year?:number;order?:'default'|'rating'|'newest'}
+const genreIds:Record<string,number>={
+ Action:1,Adventure:2,Comedy:4,Drama:8,Fantasy:10,Horror:14,
+ Mystery:7,Romance:22,'Sci-Fi':24,'Slice of Life':36,Sports:30,Supernatural:37
+}
+/** Jikan server-side filtering; unlike an in-browser slice it covers later pages too. */
+export async function browseAnime(input:BrowseFilters){
+ const {kind,page}=input
+ if(!Number.isInteger(page)||page<1||page>100)throw new Error('INVALID_PAGE')
+ const params=new URLSearchParams({page:String(page),limit:'24',sfw:'true'})
+ const query=(input.q||'').trim()
+ if(query)params.set('q',query.slice(0,120))
+ if(input.genre){
+  if(!Object.hasOwn(genreIds,input.genre))throw new Error('INVALID_GENRE')
+  params.set('genres',String(genreIds[input.genre]))
+ }
+ if(input.type)params.set('type',input.type.toLowerCase())
+ if(input.minScore)params.set('min_score',String(input.minScore))
+ if(input.year){
+  params.set('start_date',String(input.year)+'-01-01')
+  params.set('end_date',String(input.year)+'-12-31')
+ }
+ if(!query){
+  if(kind==='upcoming')params.set('status','upcoming')
+  else if(kind==='season')params.set('status','airing')
+ }
+ if(input.order==='rating'){params.set('order_by','score');params.set('sort','desc')}
+ else if(input.order==='newest'){params.set('order_by','start_date');params.set('sort','desc')}
+ else{params.set('order_by','popularity');params.set('sort','asc')}
+ const data=await request('/anime?'+params.toString())
+ return {items:normalizeList(data.data),page,hasNext:(data.pagination as {has_next_page?:boolean}|undefined)?.has_next_page??false}
+}

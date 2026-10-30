@@ -49,7 +49,7 @@ export function validateStremioConfig(value:unknown):StremioConfig{
    if(malIds.has(malId))throw new Error('Duplicate MAL id')
    malIds.add(malId)
    const stremioId=nonempty(item.stremioId,120)
-   if(!/^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$/.test(stremioId))throw new Error('Invalid Stremio ID')
+   if(!/^(?:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+|tt[1-9][0-9]{4,11})$/.test(stremioId))throw new Error('Invalid Stremio ID')
    const season=item.season===undefined?1:positive(item.season)
    if(!Array.isArray(item.episodes)||item.episodes.length>2000)throw new Error('Invalid episodes')
    const episodes=item.episodes.map(positive)
@@ -87,4 +87,68 @@ export function parseStremioStreams(payload:unknown,providerId:string):AddonStre
   if(result.length>=20)break
  }
  return result
+}
+
+
+/** Stremio /subtitles resource: only original language tracks; no translation/dubbing. */
+export type AddonSubtitle={id:string;lang:'id'|'en';label:string;url:string;providerId:string}
+export function stremioSubtitlePath(addon:StremioAddon,stremioId:string,season:number,episode:number):URL{
+ return new URL('subtitles/series/'+encodeURIComponent(stremioId+':'+season+':'+episode)+'.json',addon.manifestUrl)
+}
+export function normalizeStremioSubtitles(payload:unknown,providerId:string):AddonSubtitle[]{
+ const root=object(payload)
+ if(!Array.isArray(root.subtitles)||root.subtitles.length>50)throw new Error('Invalid subtitle response')
+ const results:AddonSubtitle[]=[]
+ const known=new Set<string>()
+ for(const row of root.subtitles){
+  try{
+   const sub=object(row)
+   const id=nonempty(sub.id,120),rawLang=nonempty(sub.lang,24).toLowerCase()
+   const lang:AddonSubtitle['lang']|null=['id','ind','indonesian'].includes(rawLang)?'id':['en','eng','english'].includes(rawLang)?'en':null
+   if(!lang)continue
+   const url=new URL(nonempty(sub.url,2048))
+   if(url.protocol!=='https:'||url.port||url.username||url.password||url.hash||!mediaHostAllowed(url.hostname)||
+    !(/\.(srt|vtt|ass|ssa)$/).test(url.pathname.toLowerCase()))continue
+   if(known.has(id))continue
+   known.add(id)
+   const label=typeof sub.label==='string'?sub.label.replace(/<[^>]*>/g,'').trim().slice(0,90):''
+   results.push({id,lang,label:label||(lang==='id'?'Bahasa Indonesia':'English'),url:url.toString(),providerId})
+  }catch{/* reject unsafe subtitle candidate without dropping others */}
+  if(results.length>=25)break
+ }
+ return results
+}
+
+/** Classification for Torrentio-style Stremio stream responses.
+ * A torrent hash is a source descriptor, never an HTTP video URL. Retain the
+ * disabled candidate for honest source UI; resolving it needs opt-in capability.
+ */
+export type UnavailableStremioSource={
+ kind:'torrent'|'external'|'unsupported';label:string;reason:string
+}
+const safeLabel=(value:unknown):string=>typeof value==='string'?
+ Array.from(value).filter(ch=>ch.charCodeAt(0)>=32&&ch.charCodeAt(0)!==127&&ch!=='<'&&ch!=='>').join('').trim().slice(0,80):''
+const validInfoHash=(value:unknown):boolean=>typeof value==='string'&&
+ /^(?:[a-fA-F0-9]{40}|[a-fA-F0-9]{64}|[A-Z2-7a-z2-7]{32})$/.test(value)
+export function classifyStremioUnplayable(payload:unknown,providerId:string):UnavailableStremioSource[]{
+ const raw=object(payload)
+ if(!Array.isArray(raw.streams)||raw.streams.length>50)throw new Error('Invalid stream response')
+ const unavailable:UnavailableStremioSource[]=[]
+ for(const rawItem of raw.streams){
+  try{
+   const item=object(rawItem)
+   if(parseStremioStreams({streams:[item]},providerId).length)continue
+   const label=safeLabel(item.name)||safeLabel(item.description)||'Sumber tambahan'
+   if(validInfoHash(item.infoHash)&&
+    (item.fileIdx===undefined||(Number.isSafeInteger(item.fileIdx)&&Number(item.fileIdx)>=0&&Number(item.fileIdx)<=10000))){
+    unavailable.push({kind:'torrent',label,reason:'Torrent membutuhkan mesin streaming/resolver yang terhubung; belum bisa diputar langsung.'})
+   }else if(typeof item.externalUrl==='string'){
+    unavailable.push({kind:'external',label,reason:'Tautan situs eksternal belum diverifikasi untuk pemutaran langsung.'})
+   }else if(typeof item.url==='string'){
+    unavailable.push({kind:'unsupported',label,reason:'Format atau URL belum didukung pemutar browser.'})
+   }
+  }catch{/* invalid provider candidate is ignored */}
+  if(unavailable.length>=20)break
+ }
+ return unavailable
 }

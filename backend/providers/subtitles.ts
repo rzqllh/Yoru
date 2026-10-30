@@ -2,7 +2,7 @@
  * Fixed-host subtitle adapters. Keep provider secrets server-side.
  * No arbitrary user-controlled outbound URLs or CDN proxying.
  */
-export type SubtitleProvider='opensubtitles'|'subdl'|'subsource'
+export type SubtitleProvider='opensubtitles'|'subdl'|'subsource'|'stremio'
 export type SubtitleCandidate={
  id:string;provider:SubtitleProvider;language:'id'|'en';label:string;
  release:string;episode:number;score:number;sourceUrl?:string;fileId?:number;
@@ -10,7 +10,7 @@ export type SubtitleCandidate={
 import {createHmac,randomBytes,timingSafeEqual} from 'node:crypto'
 const secret=process.env.YORU_SUBTITLE_SIGNING_SECRET||randomBytes(32).toString('hex')
 const ttlMs=10*60*1000
-const validProvider=(v:string)=>v==='subdl'||v==='subsource'||v==='opensubtitles'
+const validProvider=(v:string)=>v==='subdl'||v==='subsource'||v==='opensubtitles'||v==='stremio'
 function signature(provider:string,ref:string,expires:string){
  return createHmac('sha256',secret).update(JSON.stringify([provider,ref,expires])).digest('hex')
 }
@@ -107,12 +107,12 @@ export const subtitleStatus=()=>({
  subdl:Boolean(process.env.SUBDL_API_KEY),
  subsource:Boolean(process.env.SUBSOURCE_API_KEY),
 })
-const allowedOrigins:Record<SubtitleProvider,string>={
+const allowedOrigins:Record<Exclude<SubtitleProvider,'stremio'>,string>={
  opensubtitles:'https://api.opensubtitles.com',
  subdl:'https://api.subdl.com',
  subsource:'https://api.subsource.net',
 }
-async function fetchKnown(provider:SubtitleProvider,path:string,params:URLSearchParams,method='GET',body?:string){
+async function fetchKnown(provider:Exclude<SubtitleProvider,'stremio'>,path:string,params:URLSearchParams,method='GET',body?:string){
  const key=provider==='subdl'?process.env.SUBDL_API_KEY:provider==='subsource'?process.env.SUBSOURCE_API_KEY:process.env.OPENSUBTITLES_API_KEY
  if(!key)throw new Error('PROVIDER_NOT_CONFIGURED')
  // SubDL v1 explicitly requires api_key in its query (Bearer applies to v2, not v1).
@@ -138,8 +138,16 @@ async function fetchKnown(provider:SubtitleProvider,path:string,params:URLSearch
   return JSON.parse(data) as unknown
  }finally{clearTimeout(timer)}
 }
-export async function findSubtitles(input:{title:string;episode:number;type:string}){
- const {title,episode,type}=input
+/** Prefer actual Indonesian tracks, then verified mapped Stremio addons. */
+export function compareSubtitleCandidates(a:SubtitleCandidate,b:SubtitleCandidate):number{
+ const language=(a.language==='id'?0:1)-(b.language==='id'?0:1)
+ if(language)return language
+ const provider=(a.provider==='stremio'?0:1)-(b.provider==='stremio'?0:1)
+ if(provider)return provider
+ return b.score-a.score||a.id.localeCompare(b.id)
+}
+export async function findSubtitles(input:{title:string;episode:number;type:string;malId?:number}){
+ const {title,episode,type,malId}=input
  const query=title.trim().slice(0,120)
  if(!query||episode<1||!Number.isSafeInteger(episode))throw new Error('INVALID_SUBTITLE_QUERY')
  const jobs:[SubtitleProvider,Promise<SubtitleCandidate[]>][]=[
@@ -165,17 +173,25 @@ export async function findSubtitles(input:{title:string;episode:number;type:stri
    return normalizeSubSource(payload,episode)
   })()],
  ]
+ if(malId&&Number.isSafeInteger(malId)&&malId>0)jobs.push(['stremio',(async()=>{
+  const {getStremioAddonSubtitles}=await import('./stremio.js')
+  return getStremioAddonSubtitles(malId,episode)
+ })()])
  const settlements=await Promise.allSettled(jobs.map(([,job])=>job))
  const warnings:string[]=[],items:SubtitleCandidate[]=[]
  settlements.forEach((s,i)=>{
   if(s.status==='fulfilled')items.push(...s.value)
   else warnings.push(jobs[i][0]+': '+(s.reason instanceof Error?s.reason.message:'UNAVAILABLE'))
  })
- return {items:items.sort((a,b)=>b.score-a.score||(a.language==='id'?-1:1)).slice(0,45)
+ return {items:items.sort(compareSubtitleCandidates).slice(0,45)
   .map(item=>({...item,sourceUrl:item.sourceUrl?grantSubtitleUrl(item.sourceUrl):undefined})),warnings,configured:subtitleStatus()}
 }
 /** No upstream raw URL is accepted. Only bounded, provider-owned refs are fetched. */
 export async function downloadSubtitle(provider:SubtitleProvider,ref:string){
+ if(provider==='stremio'){
+  const {downloadStremioAddonSubtitle}=await import('./stremio.js')
+  return downloadStremioAddonSubtitle(ref)
+ }
  if(provider==='subdl'){
   if(!/^\/subtitle\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+$/.test(ref))throw new Error('BAD_SUBTITLE_REF')
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000)
