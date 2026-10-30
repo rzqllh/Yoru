@@ -81,3 +81,9 @@ Each test searches the actual provider, validates episode/language identity, ver
 - One-tap Continue Watching preserves local progress and checks the native stream again before opening playback, with fallback to detail if no source passes.
 
 Preview Vercel READY and CI PASS are separate from endpoint uptime and real playback validation. Do not promote the branch to `main`, tag a final public release, or relax deployment protection based on these states.
+
+## Generic watch graph acceptance (30 October 2026)
+
+Preview Yoru supports an opt-in second-hop AniList relation graph with an in-process conservative 12 expansions/minute budget, maximum 10 first-degree nodes scanned and maximum 75 graph nodes. This is **not** a complete franchise census or canonical timeline; cache and rate limits are per process, not shared among production replicas. AniList was documented as degraded to 30 API requests/minute when researched. A public deployment needs shared abuse controls and monitoring of 429/retry, and a separately reviewed editorial layer before enabling Recommended/Chronology.
+
+If graph expansion fails, retain the source-backed direct relationship view and show a partial-state notice; never silently display it as a complete watch guide. Live AniList coverage and any episode-level curated watch path still need independent verification and issue #20 approval.
