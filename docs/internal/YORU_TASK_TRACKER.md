@@ -107,3 +107,10 @@ These are code acceptance results. **None** are evidence that real torrent strea
 4. **Visual/reliability lane:** YX-05/15/16/17/20/21. Exact-SHA tests and real device/provider evidence.
 
 Do not edit `App.tsx`, `Player.tsx`, or shared `styles.css` in competing PRs simultaneously. Parallel feature development uses isolated branches; integration is serialized into preview. Every PR updates this tracker and `YORU_HANDOFF.md`, with exact tests and next action. No more unverified claims or owner-signoff shortcuts.
+
+## 2026-10-30 — two-mode timeline continuation (feature branch, not merged)
+- Branch: `feat/yoru-evidence-gated-timeline-20261030`, based on preview `6455a8a5ea1f50052820a10311b7a1755cf63914`.
+- Owner's latest Issue #44 directive: only **Tahun rilis** and **Kronologi**. Replaced three-mode UI; chronology requires a separately reviewed `pathType: 'chronology'` route passing curated path validation. Recommendations, broadcast editions and AniList graph alone do not qualify.
+- Current curated registry has **no verified in-story chronology route**, so the second mode correctly remains disabled; release-year listing remains available. No fabricated chronological episode order.
+- State: **CODED / NOT TESTED**. Tests added but CI/Chromium/WebKit and live devices not run at this checkpoint. No main merge or deployment; #20 remains BLOCKED.
+- Next: run exact feature-head CI and browser E2E; review PR and merge to preview only if PASS, then refresh SHA and public docs as final alignment. Update Issue #44 with links/evidence.

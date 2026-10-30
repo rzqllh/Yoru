@@ -3,7 +3,7 @@ import {ArrowLeft,ArrowRight,BookOpen,GitBranch,Info,Search,Network} from 'lucid
 import {search,watchGuide,type WatchGuideEntry,type WatchGuideResponse} from '../lib/api'
 import {WATCH_GROUPS,filterWatchEntries,isExtendedNode,sortWatchEntries,type WatchGroup} from '../lib/watch-guide-view'
 import type {Anime} from '../types'
-import {discoverCuratedPaths} from '../lib/curated-watch-paths'
+import {discoverCuratedPaths,getStoryChronologyPath} from '../lib/curated-watch-paths'
 import {getPreference,setPreference} from '../lib/db'
 import {normalizeWatchPathProgress,updateWatchPathProgress,watchPathPreferenceKey,type WatchPathProgress} from '../lib/watch-path-progress'
 
@@ -25,6 +25,7 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
  const [searchLoading,setSearchLoading]=useState(false)
  const [depth,setDepth]=useState<1|2>(1)
  const [filter,setFilter]=useState<WatchGroup>('all')
+ const [timelineMode,setTimelineMode]=useState<'release'|'chronology'>('release')
  const [curatedId,setCuratedId]=useState<string|null>(null)
  const [manualProgress,setManualProgress]=useState<{id:string;data:WatchPathProgress}|null>(null)
  const [progressBusy,setProgressBusy]=useState(false)
@@ -56,7 +57,10 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
  const names=useMemo(()=>new Map(entries.map(e=>[e.aniListId,e.title])),[entries])
  const entryById=useMemo(()=>new Map(entries.map(e=>[e.aniListId,e])),[entries])
  const curated=useMemo(()=>discoverCuratedPaths(entries.map(e=>e.aniListId)),[entries])
- const selectedCurated=curated.find(path=>path.id===curatedId)??curated[0]
+ const chronologyPath=useMemo(()=>getStoryChronologyPath(curated),[curated])
+ const activeTimeline=timelineMode==='chronology'&&chronologyPath?'chronology':'release'
+ const availableRoutes=activeTimeline==='chronology'?curated.filter(path=>path.pathType==='chronology'):curated
+ const selectedCurated=activeTimeline==='chronology'?chronologyPath:(curated.find(path=>path.id===curatedId)??curated[0])
  const selectedId=selectedCurated?.id
  useEffect(()=>{
   if(!selectedId){setManualProgress(null);setProgressError('');return}
@@ -84,7 +88,7 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
    setProgressError('Progres gagal disimpan. Coba lagi atau periksa kapasitas penyimpanan.')
   }finally{setProgressBusy(false)}
  }
- const pick=(id:number)=>{setDepth(1);setFilter('all');setCuratedId(null);setData(null);setMatches([]);onPick(id)}
+ const pick=(id:number)=>{setDepth(1);setFilter('all');setCuratedId(null);setTimelineMode('release');setData(null);setMatches([]);onPick(id)}
  return <div className="page-body yoru-watch-guide">
   <div className="page-intro"><div>
    <span className="mini-label">PANDUAN CERITA</span>
@@ -111,15 +115,18 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
   {error&&<p role="alert" className="guide-information">{error}</p>}
   {data&&<>
    <div className="guide-heading"><div>
-    <h2>Jaringan judul yang berhubungan</h2>
-    <p>Urutan rilis berdasarkan bulan/tahun yang tersedia, bukan urutan canon atau rekomendasi menonton.</p>
+    <h2>{activeTimeline==='chronology'?'Kronologi cerita terkurasi':'Jaringan judul yang berhubungan'}</h2>
+    <p>{activeTimeline==='chronology'?'Hanya rute kronologi cerita dengan sumber editorial yang ditinjau; cakupannya terbatas.':'Urutan rilis berdasarkan bulan/tahun yang tersedia, bukan urutan canon atau rekomendasi menonton.'}</p>
    </div><a href={data.sourceUrl} target="_blank" rel="noopener noreferrer">Sumber: AniList</a></div>
-   <fieldset className="guide-mode"><legend className="sr-only">Jenis urutan anime</legend>
-    <button type="button" disabled title="Urutan rekomendasi belum dikurasi untuk franchise ini">Disarankan</button>
-    <button type="button" disabled title="Urutan kejadian/episode tidak tersedia dari relasi AniList">Kronologi</button>
-    <button type="button" aria-pressed="true" className="active">Urutan rilis</button>
+   <fieldset className="guide-mode"><legend className="sr-only">Pilihan timeline anime</legend>
+    <button type="button" aria-pressed={activeTimeline==='release'} className={activeTimeline==='release'?'active':''} onClick={()=>setTimelineMode('release')}>Tahun rilis</button>
+    <button type="button" aria-pressed={activeTimeline==='chronology'} className={activeTimeline==='chronology'?'active':''}
+     disabled={!chronologyPath} title={chronologyPath?'Kronologi cerita berdasarkan rute editorial yang diverifikasi':'Belum ada kronologi cerita terverifikasi untuk judul ini'}
+     onClick={()=>setTimelineMode('chronology')}>Kronologi</button>
    </fieldset>
-   <div className="guide-information"><Info size={18}/><p>Prekuel/sekuel adalah relasi judul, bukan bukti kapan OVA disisipkan di antara episode. Jalur alternatif, semesta sama, dan film rangkuman tidak otomatis menjadi bagian cerita utama. Judul tanpa tanggal berada di akhir daftar.</p></div>
+   {activeTimeline==='release'?<div className="guide-information"><Info size={18}/><p>Prekuel/sekuel adalah relasi judul, bukan bukti kapan OVA disisipkan di antara episode. Jalur alternatif, semesta sama, dan film rangkuman tidak otomatis menjadi bagian cerita utama. Judul tanpa tanggal berada di akhir daftar.</p></div>:
+    <div className="guide-information"><Info size={18}/><p>Rute kronologi berikut hanya berlaku untuk edisi dan langkah yang tercantum. Ini bukan klaim kronologi seluruh franchise atau ketersediaan pemutaran.</p></div>}
+   {!chronologyPath&&<p className="guide-information">Kronologi cerita belum tersedia untuk judul ini. Rute editorial menonton dan urutan siaran tidak otomatis membuktikan urutan kejadian.</p>}
    {selectedCurated&&<section className="guide-curated" aria-label="Panduan menonton dengan sumber">
     <div className="guide-curated-header">
      <div><span className="mini-label">RUTE EDITORIAL · BUKAN URUTAN CANON TUNGGAL</span>
@@ -130,7 +137,7 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
     </div>
     <fieldset className="guide-curated-choices">
      <legend>Pilih rute</legend>
-     {curated.map(path=><button type="button" key={path.id}
+     {availableRoutes.map(path=><button type="button" key={path.id}
       aria-pressed={selectedCurated.id===path.id} className={selectedCurated.id===path.id?'active':''}
       onClick={()=>setCuratedId(path.id)}>{path.title}</button>)}
     </fieldset>
@@ -177,6 +184,7 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
      <small>Nomor episode berlaku untuk edisi yang tertulis. Tombol Detail serial tidak membuka episode tertentu secara otomatis.</small>
     </div>
    </section>}
+   {activeTimeline==='release'&&<>
    <div className="guide-expand">
     <div><strong>{entries.length} judul terpetakan</strong><small>{data.graph?'Jaringan maksimal dua tingkat dari judul pilihan':'Baru hubungan langsung dari judul pilihan'}</small></div>
     {!data.graph&&<button type="button" className="btn btn-outline" disabled={loading||entries.length<2} onClick={()=>setDepth(2)}><Network size={16}/> Perluas hubungan (2 tingkat)</button>}
@@ -201,6 +209,7 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
     </button>
    </div>)}</div>}
    {entries.length===1&&<p className="guide-information">Belum ada hubungan judul lain dalam respons AniList untuk anime ini.</p>}
+   </>}
   </>}
  </div>
 }
