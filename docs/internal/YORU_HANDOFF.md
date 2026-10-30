@@ -70,6 +70,13 @@
 - Preview after #62 feature merge: `d5651b1a4c6e954a9326d56b56dbdaf9d60c0fdf`. Verify current HEAD, do not assume unchanged.
 - Published paths: Fate anime-modern newcomer; Fate prequel-first alternative; Monogatari introductory editorial. Source links, checked/reviewed date and explicit NOT-canon disclaimer. All other anime retain generic graph. Public documentation PR is **documentation-only** and must pass its own CI before merge.
 
+## Latest in-flight YX-10: manual progress per editorial watch path
+- Working branch: `feat/yoru-manual-watch-path-progress-20261030` from preview `6967cd0db1e64005510a0ed47a00769c0b298fcf`.
+- Local preference `watch-path:<id>` stores compact JSON completed-step count and updated timestamp; strict bounded parser clamps progress to path length. Existing IndexedDB `preferences` and v1 backup already include this key, **no schema migration**.
+- In WatchGuide, each curated path has explicit next-step and undo actions. Progress is **manual**, not inferred from media playback or streaming availability, and independent between alternative routes.
+- No real iPhone or backend provider test; new unit/browser tests must pass on exact head before merge. After merge update user public docs only at end.
+- Owner tasks still open: comprehensive sourced watch paths for community-reported franchises and episode insertions, YX-10 automatic player integration only with verified session data, #20 public release gate.
+
 ## Hard blockers
 
 - **G1–G3 (#20):** real authorized source-provider endpoints with live video, strict season/episode mapping and actual subtitle credentials/download proof. Mocked provider fixtures are not live tests.
