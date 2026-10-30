@@ -678,7 +678,7 @@ function Browse({
    {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>onFiltersChange(EMPTY_BROWSE_FILTERS)}>Reset filter</button>}
   </fieldset>
   </div>
-  {activeFilters&&<div className="browse-active-chips" role="group" aria-label="Filter aktif">
+  {activeFilters&&<fieldset className="browse-active-chips"><legend className="sr-only">Filter aktif</legend>
    <span>Filter aktif:</span>
    {([
     ['genre',genre,'Genre'],
@@ -692,7 +692,7 @@ function Browse({
      {label}: {value} <X size={13}/>
     </button>
    )}
-  </div>}
+  </fieldset>}
 
   <div className="browse-results-header">
    <div>
