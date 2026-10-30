@@ -46,4 +46,6 @@ Di **Pengaturan**, gunakan ekspor untuk membuat backup sebelum menghapus data br
 
 PWA dapat di-install melalui browser yang mendukung, tetapi bukan IPA, APK, atau EXE. Offline shell tidak berarti episode video bisa ditonton offline. Hasil CI Chromium/WebKit belum menggantikan pengujian Safari di iPhone fisik. Status validasi publik dan pekerjaan yang masih terbuka ada di [release gate](https://github.com/rzqllh/Yoru/issues/20) serta [roadmap UX](https://github.com/rzqllh/Yoru/issues/44).
 
-Jika judul terhubung dengan **rute editorial yang sudah ditinjau**, Yoru menampilkan opsi urutan dari sumber (misalnya pilihan Fate dan Monogatari) dengan tanggal, alasan, serta peringatan potensi spoiler. Pilihan ini bukan kronologi canon universal. Tombol menuju detail hanya aktif jika mapping judul terverifikasi; rute tidak menjamin video tersedia.\n\nBaca [penjelasan lengkap urutan dan laporan koreksi](watch-order.md) jika hubungan judul tidak lengkap, muncul hasil parsial, atau ada perdebatan urutan episode.
+Jika judul terhubung dengan **rute editorial yang sudah ditinjau**, Yoru menampilkan opsi urutan dari sumber (misalnya pilihan Fate dan Monogatari) dengan tanggal, alasan, serta peringatan potensi spoiler. Pilihan ini bukan kronologi canon universal. Tombol menuju detail hanya aktif jika mapping judul terverifikasi; rute tidak menjamin video tersedia.
+
+Baca [penjelasan lengkap urutan dan laporan koreksi](watch-order.md) jika hubungan judul tidak lengkap, muncul hasil parsial, atau ada perdebatan urutan episode.
