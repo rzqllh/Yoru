@@ -48,7 +48,8 @@ Katalog dari Tenrai menghasilkan MAL ID; provider lokal/addon menghubungkan MAL 
 - `GET /api/anime/search?q=judul&page=1`
 - `GET /api/anime/:id`
 - `GET /api/anime/:id/episodes`
-- `GET /api/anime/:id/watch-guide` (relasi langsung AniList, bukan kronologi yang dikurasi)
+- `GET /api/anime/:id/watch-guide` (relasi langsung AniList)
+- `GET /api/anime/:id/watch-guide?depth=2` (opt-in jaringan dua tingkat, maksimal 10 tetangga langsung, 75 node, hasil parsial dilabeli; bukan kronologi yang dikurasi)
 - `GET /api/providers`
 - `GET /api/anime/:id/provider-episodes`
 - `GET /api/streams?episodeRef=...` (stream HTTPS `items`; addon Stremio juga dapat mengembalikan `unavailable` untuk deskriptor torrent/external yang belum playable)
@@ -60,3 +61,5 @@ Gunakan branch dan PR ke `deploy/vercel-preview-20261029` untuk pekerjaan UX yan
 Jangan commit credential, `configs/*.local.json`, aset/media yang tidak boleh didistribusikan atau file build `dist/`. Lihat [Panduan provider](providers.md) dan [Status rilis](releases.md).
 
 **Release:** CI/Chromium/WebKit di branch preview tidak mengesahkan pengujian provider live atau perangkat Safari fisik. `main`/production tetap diblokir oleh [issue #20](https://github.com/rzqllh/Yoru/issues/20). Dokumentasi publik hanya diperbarui setelah fitur terkait diverifikasi, bukan saat masih sekadar rancangan.
+
+Source investigation and discussion citations for ordering edge cases: `docs/internal/WATCH_ORDER_RESEARCH_2026-10-30.md`. Pure graph normalizer uses `backend/pipeline/watch-graph-core.ts`; network layer in `backend/pipeline/watch-graph.ts`. Avoid multiplying AniList GraphQL requests: the API is currently degraded to roughly 30 requests/minute, and Yoru applies an additional conservative in-process cap. This is not multi-instance rate limiting.
