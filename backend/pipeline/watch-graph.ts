@@ -1,6 +1,7 @@
 /** Bounded AniList graph retrieval; pure graph normalization lives in watch-graph-core. */
 import {getWatchGuide} from './watch-guide.js'
 import {graphFrontier,normalizeWatchGraph,type WatchGraphResult} from './watch-graph-core.js'
+const obj=(v:unknown):Record<string,unknown>=>v&&typeof v==='object'&&!Array.isArray(v)?v as Record<string,unknown>:{}
 const QUERY=`query YoruGraph($ids:[Int]){Page(page:1,perPage:10){media(id_in:$ids,type:ANIME){id idMal type format startDate{year month} title{english romaji native} coverImage{medium} relations{edges{relationType node{id idMal type format startDate{year month} title{english romaji native} coverImage{medium}}}}}}}`
 const cache=new Map<number,{expires:number;value:WatchGraphResult}>()
 const pending=new Map<number,Promise<WatchGraphResult>>()
