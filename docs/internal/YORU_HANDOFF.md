@@ -45,6 +45,11 @@ Last updated: 2026-10-30, Asia/Jakarta. Source of truth: **GitHub**, not remembe
 - PR #50 anime guide merged `0a184799` after CI/Browser E2E green on `ad000df`. This is **first-degree AniList relations only**, recommended/chronology still disabled and curated paths absent.
 - Torrentio capability PR #49 was green at `5520993` but conflicted after #50 squash; transferred source+tests into `feat/yoru-torrentio-rebased-20261030`. Await exact new head checks; no torrent resolver or playback proof.
 
+## Current milestone
+- Source parser #51 merged preview `a7cacfe9`, CI+Browser E2E PASS at `3c2d711`. Torrent-only hashes still not playable.
+- One-tap resume branch `feat/yoru-one-tap-resume-20261030` implements last-episode source verification then direct player, progress cutoff relative to duration (short clips now resume), library/home buttons and honest metadata candidate labels. **CI pending, not merged**.
+- YX-02 full source lifecycle and Torrentio UI disabled candidate are not complete; #20 release gates untouched.
+
 ## Architecture boundaries
 - `frontend/src/App.tsx`: UI state, home, browse, library, detail. `frontend/src/components/Player.tsx`: direct media player and subtitle controls.
 - `backend/pipeline/jikan.ts`: Jikan/Tenrai catalog API; separate AniList relations may need new fixed-host API with strict timeouts.
