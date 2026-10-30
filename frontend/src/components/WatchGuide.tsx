@@ -105,7 +105,7 @@ export default function WatchGuide({malId,onPick,onBack,onOpenAnime}:{
     {selectedCurated.spoilerRisk==='contextual'&&<div className="guide-information"><Info size={17}/>
      <p>Rute ini dapat memperlihatkan hubungan cerita lebih awal daripada urutan rilis. Sinopsis episode dan twist sengaja tidak dicantumkan.</p></div>}
     <ol className="guide-curated-steps">
-     {selectedCurated.steps.map((step,index)=>{
+     {selectedCurated.steps.map(step=>{
       const matched=step.aniListId?entryById.get(step.aniListId):undefined
       return <li key={`${selectedCurated.id}:${step.aniListId??step.title}`}>
        <div><strong>{step.title}</strong>
