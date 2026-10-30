@@ -17,7 +17,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 | YX-01 | P0 | One-tap continue playback | TESTED (PR #52 head 330b7ab; preview merged 4e482f0) | Correct episode + resume; verified native source; graceful source-choice fallback |
 | YX-02 | P0 | Episode availability and source truth | CODED (candidate label only; needs full state model) | Metadata candidate/verified/failed states never conflated |
 | YX-03 | P0 | Honest adaptive quality controls | TESTED (CI+Browser E2E PR #48 head b7219869; merged) | Auto as initial choice; no phantom 1080p; unsupported disabled |
-| YX-04 | P0 | Subtitle appearance and placement | CODED (new exact-head CI/E2E pending) | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
+| YX-04 | P0 | Subtitle appearance and placement | TESTED (native controls; PR #55 head 40a2bb8; Safari physical pending) | Font, sizes, text/background opacity, position, outline, preview + native/embed capability gating |
 | YX-05 | P0 | Mobile and physical Safari | BLOCKED | Real iPhone model/iOS, fullscreen, subtitle, PiP, PWA, portrait/landscape evidence |
 | YX-06 | P0 | Source memory/recovery and smart next | PLANNED | Verified source remembering; bounded recovery; manual consent |
 | YX-07 | P0 | Franchise relations on detail | TESTED (direct links only; #50 head ad000df; not curated) | Verified TV/OVA/movie/prequel/side-story relation graph; attribution |
@@ -31,7 +31,7 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 | YX-15 | P1 | UI design system + microcopy | PLANNED | Canonical CSS tokens, coherent radius/space/color, WCAG/HIG, no marketing fluff |
 | YX-16 | P1 | Visual load and performance | PLANNED | Lazy poster loading, correct sizing, measured CWV |
 | YX-17 | P1 | First-run and recovery UX | PLANNED | Actionable error states; transparent setup; backup reassurance |
-| YX-18 | P0 | Stremio/Torrentio response parity | TESTED (parser/ID only; PR #51 head 3c2d711; no resolver) | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
+| YX-18 | P0 | Stremio/Torrentio response parity | CODED (parser + disabled source UI; exact CI pending) | Classify direct HTTPS vs infoHash/fileIdx torrent vs externalUrl; never claim torrent=HTTP |
 | YX-19 | P0 | Opt-in torrent-capable playback path | BLOCKED | Explicit verified playback engine/resolver; browser/platform limitations and secure config |
 | YX-20 | P0 | Real video/subtitle compatibility matrix | BLOCKED | Independent real examples, codecs, source access, safe URL checks, user approval and device proof |
 | YX-21 | P0 | QA and release gates | BLOCKED | Exact-SHA CI+E2E, physical iPhone, no unresolved P0/P1, release issue #20 |
@@ -45,6 +45,8 @@ Updated: 2026-10-30 (UTC+7). Epic: https://github.com/rzqllh/Yoru/issues/44. Rel
 - Public-facing docs (README, docs/public/*, DESIGN.md): **last** step only.
 
 ## Progress ledger
+- PR #55 subtitle appearance merged preview `3bbc14374970e1c19571f3002cd8db85f33a81a4` with exact head `40a2bb8` CI + Browser E2E PASS. Native WebVTT only; real Safari still unverified.
+- Disabled Torrentio source UI previous PR #54 head `f0bb016` passed CI/E2E but conflicted after #55 merge; clean rebase `feat/yoru-torrentio-visible-rebased-20261030` awaits new exact-SHA CI.
 - YX-04 original feature branch `34299fee` passed CI+Browser E2E with native caption style presets/preview and guarded cue placement; rebased onto preview with #52 regressions preserved. New exact head needs testing before merge.
 - Torrentio mapping/classification PR #51 merged preview `a7cacfe9` with exact-SHA CI+Browser E2E green at `3c2d711`; no torrent engine or browser playback.
 - YX-01 one-tap resume on `feat/yoru-one-tap-resume-20261030`: verified-source-first route, fallback to detail if source unavailable, short-clip progress fix, browser regression. CI pending.
