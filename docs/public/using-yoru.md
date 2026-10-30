@@ -16,6 +16,8 @@ Yoru mengambil hubungan **langsung** dari AniList. Pengguna dapat memilih **Perl
 
 Daftar menampilkan prekuel, sekuel, side story, jalur alternatif, film atau OVA jika metadata tersedia. Tombol **Urutan rilis** menyusun berdasarkan tanggal yang tersedia. Ini **bukan** kronologi cerita atau urutan lengkap semua judul dalam satu franchise. Untuk mode pengurutan metadata umum, **Disarankan** dan **Kronologi** belum aktif karena memerlukan kurasi terverifikasi. Judul tanpa pemetaan MyAnimeList tidak dapat dibuka sebagai detail.
 
+Untuk kasus **urutan episode berbeda antar edisi** (misalnya Haruhi 2006 versus 2009), pilih rute yang sesuai dan periksa label `edisi` di setiap langkah. Re:ZERO juga memiliki rute yang membedakan dua episode OVA dalam satu entri AniList. **Detail serial** tidak berarti episode tersebut tersedia untuk diputar. Lihat [bukti dan batasan kurasi](watch-order.md).
+
 ## Memulai video dan melanjutkan tontonan
 
 1. Buka detail anime lalu pilih episode. Pilihan sumber video yang belum diperiksa bukan jaminan video dapat diputar.
