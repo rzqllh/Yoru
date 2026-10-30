@@ -71,3 +71,16 @@ The project now provides an **opt-in live test**, deliberately separate from moc
 ```
 
 Each test searches the actual provider, validates episode/language identity, verifies the signed download grant, downloads a bounded native subtitle file using the backend credentials, and checks a WebVTT cue. It prints only provider/status codes, never credentials, full subtitle text, or temporary download URLs. **Passing the script is evidence only for the exact three fixtures**; it does not certify coverage for every anime, native video playability, physical iPhone Safari, or a production deployment. Secrets stay in environment variables, not committed JSON files.
+
+## Action to be taken — outstanding public release gates
+
+The current release is blocked pending empirical evidence for all six gates. Track ownership and evidence in [GitHub issue #20](https://github.com/rzqllh/Yoru/issues/20):
+
+1. **G1:** real, authorized HLS/MP4 provider coverage across representative titles/episodes and failure modes.
+2. **G2:** correct season/cour/special/movie matching and no false availability claims.
+3. **G3:** live OpenSubtitles, SubDL and SubSource search/download verification with authorized credentials, quotas and error handling.
+4. **G4:** physical iPhone Safari validation, with device/iOS recorded, including subtitles, fullscreen, PiP and PWA install/upgrade.
+5. **G5:** HTTPS hosting, server-only secrets, gateway auth/rate limiting, CSP/CORS, observability and a tested rollback.
+6. **G6:** exact-final-commit CI/browser evidence, measured coverage, no unresolved P0/P1 and explicit owner go/no-go.
+
+A successful merge, unit test, browser fixture or READY preview deployment does not independently close these gates.
