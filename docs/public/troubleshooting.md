@@ -44,3 +44,7 @@ Jika satu provider memiliki konfigurasi rusak, API tetap mengembalikan episode/p
 ## Metadata sesudah 1 Oktober 2026
 
 Jikan Public API sudah dihentikan. Yoru menggunakan Tenrai `/v1` untuk katalog MyAnimeList. Jika katalog tetap kosong, cek respon `GET /api/anime/discover?kind=season&page=1` dan status Tenrai; kode `503` menandakan upstream belum tersedia. Tombol *Coba lagi* tidak dapat memperbaiki upstream yang offline.
+
+## Panduan urutan hanya menemukan sebagian anime
+
+Periksa apakah judul terhubung di AniList dan punya MAL ID. Gunakan **Perluas hubungan (2 tingkat)** untuk penelusuran tambahan secara manual. Yoru membatasi jumlah node dan permintaan untuk menghindari lonjakan AniList, sehingga hasil **terbatas** atau **gagal perluasan** bukan berarti franchise tidak punya anime lain. Tanggal yang belum diketahui ditaruh di akhir. Untuk masalah kronologi/OVA, gunakan [panduan dan laporan koreksi](watch-order.md)—jangan menjadikan urutan rilis sebagai bukti canon.
