@@ -35,6 +35,10 @@ Last updated: 2026-10-30, Asia/Jakarta. Source of truth: **GitHub**, not remembe
 ## In-progress changes
 - Adaptive quality branch rebased onto actual preview after tracker #45 squash. Prior #46 had clean source CI (64263345b) but could not merge due base history conflict; replacement PR is tracked separately. Do not claim rebased head verified until its own exact-SHA checks pass.
 
+## Latest product integration evidence
+- YX-03 exact feature head `b7219869` CI and Browser E2E PASS, #48 merged to preview `8b82c1fd`; no real device/live upstream proof.
+- YX-18 safe Torrentio response classifier and explicit `ttNNNN` IMDb mappings are CODED on `feat/yoru-torrentio-capabilities-20261030`. **No torrent engine/resolver**: plain infoHash must be shown as unavailable, never offered as a functioning video choice. CI pending.
+
 ## Architecture boundaries
 - `frontend/src/App.tsx`: UI state, home, browse, library, detail. `frontend/src/components/Player.tsx`: direct media player and subtitle controls.
 - `backend/pipeline/jikan.ts`: Jikan/Tenrai catalog API; separate AniList relations may need new fixed-host API with strict timeouts.
