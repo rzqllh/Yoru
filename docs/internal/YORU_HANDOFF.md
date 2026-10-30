@@ -40,7 +40,7 @@
 
 - `frontend/src/App.tsx`: Home/Browse/Library/Detail, candidate-source selection, direct resume.
 - `frontend/src/components/Player.tsx`: HLS/MP4 + embed player, subtitle view/preferences, quality and recovery.
-- `frontend/src/components/WatchGuide.tsx`: separate franchise discovery, dated AniList direct links.
+- `frontend/src/components/WatchGuide.tsx`: separate franchise discovery, 2-hop AniList graph and editorial sourced route choices.
 - `frontend/src/lib/quality-options.ts`, `caption-appearance.ts`, `resume.ts`: verified-only quality levels, bounded subtitle style, resumable progress.
 - `frontend/src/lib/db.ts`: IndexedDB + backup compatibility; use **versioned schema migrations** for new franchise progress.
 - `backend/pipeline/watch-guide.ts`: fixed AniList GraphQL direct-relations explorer, strict MAL ID mapping. No complete franchise graph/curated path.
@@ -60,11 +60,15 @@
 - **NOT COMPLETED:** all-series forum review or automatically reliable chronology; curated Fate/Monogatari/Gundam/Haruhi/OVA episode insertion routes; human-reviewed and cited `pathId` steps/optionality, rewatch/spoiler classifications, local path progress; real AniList queries and physical Safari. Keep Recommended/Chronology disabled pending editorial proof.
 - **NEXT RESUME STEP:** read current preview HEAD and open PRs; implement generic **curated watch-path data schema** with source/edition/episode range/branch/spoiler verification and pilot across different forum issue categories. Keep unsupported Recommended/Chronology modes disabled. YX-02 honest source lifecycle and YX-12 browse URL persist remain independent lanes. No main/production promotion. No main/production promotion.
 
-## Curated watch paths (2026-10-30, unmerged branch)
-- Working branch `feat/yoru-curated-watch-paths-rebased-20261030` based on current preview containing #58/#59/#60. Original #61 conflicts after parallel documentation merge; do not force-merge.
+## Curated watch paths (2026-10-30, merged PR #62)
+- PR #62 merged to preview `d5651b1a4c6e954a9326d56b56dbdaf9d60c0fdf`, exact tested head `ff104181f0344c3584af3ccb4b046dca8f75549b` Linux/Windows CI and Chromium/WebKit Browser E2E PASS. Original #61 closed as superseded after #59/#60 documentation merge.
 - Added bounded, audited source registry in `frontend/src/lib/curated-watch-paths.ts` and adapted WatchGuide UI with editorial citations/dates, two Fate alternatives (newcomer and prequel-first) plus Monogatari starter route. Features are source-dependent suggestions **not universal chronological truth**.
 - Entry cards use exact verified AniList IDs as anchors; show local details only if MAL ID from graph is available, otherwise AniList link. Every other franchise retains universal 2-hop metadata explorer; no fictitious canon.
-- Unit and browser tests added; CI/E2E still pending for this rebased branch. Public docs LAST after tests+merge, #20 remains BLOCKED. Next action: create rebase PR, test exact head and merge preview only.
+- Unit and browser tests passed for this code; still NOT proof of live franchise editorial completeness or real source playback. Public docs updated as final follow-up; #20 remains BLOCKED. NEXT: add more sourced watch-path editions/episode insertion based on community complaints without publishing unreviewed canon, and implement YX-10 local path progress via safe IndexedDB schema.
+
+## Exact current code checkpoint
+- Preview after #62 feature merge: `d5651b1a4c6e954a9326d56b56dbdaf9d60c0fdf`. Verify current HEAD, do not assume unchanged.
+- Published paths: Fate anime-modern newcomer; Fate prequel-first alternative; Monogatari introductory editorial. Source links, checked/reviewed date and explicit NOT-canon disclaimer. All other anime retain generic graph. Public documentation PR is **documentation-only** and must pass its own CI before merge.
 
 ## Hard blockers
 
@@ -94,4 +98,4 @@ NEXT ACTION (one exact next step):
 DO NOT: merge main, promote production, invent provider/Subtitle Indonesia/release proof.
 ```
 
-**Resume suggestion:** implement an evidence-based *generic curated route schema* (episode range + prerequisites + alternative continuity + spoiler/scope notes), pilot across multiple known forum problem classes (Fate, Monogatari, Haruhi, Gundam, Re:Zero etc.), without pretending to have curated every anime. In parallel, independent YX-02 source lifecycle and YX-12 browse state tasks remain open. In parallel, the unrelated YX-02 complete source state model and YX-12 browse URL persistence can be scoped into separate PRs.
+**Resume suggestion:** extend curated path evidence by verified franchise/edition, episode ranges, optionality, prerequisite relationships, public correction process; pilot Haruhi broadcast order, Re:Zero OVA placement, Gundam continuities, then add safe local path-progress storage. Fate/Monogatari options already live in preview code but not production. In parallel, independent YX-02 source lifecycle and YX-12 browse state tasks remain open. In parallel, the unrelated YX-02 complete source state model and YX-12 browse URL persistence can be scoped into separate PRs.
