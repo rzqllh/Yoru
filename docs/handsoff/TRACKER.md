@@ -10,3 +10,6 @@
 External gates: OTP/RLS live, physical iPhone, live provider/resolver, hosting, #20 release and historical branches deferred.
 
 - [x] Implementation and two unit regressions committed; await exact-head CI/browser.
+
+- [x] Pre-cleanup exact-head CI Linux/Windows SUCCESS, Browser Chromium/WebKit SUCCESS at `587ac31b`.
+- [ ] Remove handoff docs, final exact-head checks, merge only when safe.
