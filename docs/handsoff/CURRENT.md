@@ -19,3 +19,8 @@ CODED: normalization now removes malformed tracks/quality, enforces native candi
 ## First CI failure and correction
 - PR #115 first exact-head `7ef4d6f` CI failed because Node `--experimental-strip-types` requires `.ts` on runtime imports. Failure observed in CI job 124662328518 (`ERR_MODULE_NOT_FOUND` for source-readiness); Chromium build also failed. This is NOT a PASS.
 - Corrected runtime import to `./source-readiness.ts` in `c39a34d`. Re-run exact-head CI/Chromium/WebKit required.
+
+## Tested checkpoint (before cleanup)
+- Branch head `10b167bed33c68f9ac9c81b6af3f91d1ffaa6e49` exact-head CI Linux/Windows SUCCESS: https://github.com/rzqllh/Yoru/actions/runs/41243657089 (validate + Windows jobs).
+- Exact-head Chromium/WebKit SUCCESS: https://github.com/rzqllh/Yoru/actions/runs/41243657082 (both browser jobs).
+- The earlier failed run is recorded above, not reclassified as passing. Publish these immutable links to PR #115 and Issue #44, then delete handoff files and require final cleanup-HEAD CI again before merge.
