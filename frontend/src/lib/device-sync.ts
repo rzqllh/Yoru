@@ -79,6 +79,28 @@ export function syncableBackup(source:Backup):Backup{
   })??[]
  }
 }
+/** Manual download reconciles independent library/progress records by their
+ * last-update time (local wins ties) instead of silently rolling back newer
+ * viewing history. Preferences are an explicit remote override, because v1
+ * preference rows have no per-key timestamp. Deletions are not propagated.
+ */
+export function mergeDownloadedBackup(local:Backup,remote:Backup):Backup{
+ if(!validateBackup(local)||!validateBackup(remote))
+  throw new Error('Format cadangan lokal atau cloud tidak valid')
+ function freshest<T extends {anime:{id:string};updatedAt:number}>(own:T[],other:T[]):T[]{
+  const rows=new Map(own.map(row=>[row.anime.id,row]))
+  for(const row of other){
+   const previous=rows.get(row.anime.id)
+   if(!previous||row.updatedAt>previous.updatedAt)rows.set(row.anime.id,row)
+  }
+  return [...rows.values()]
+ }
+ const preferences=new Map((local.preferences??[]).map(row=>[row.key,row]))
+ for(const row of remote.preferences??[])preferences.set(row.key,row)
+ return {version:1,library:freshest(local.library,remote.library),
+  progress:freshest(local.progress,remote.progress),
+  preferences:[...preferences.values()]}
+}
 export function createDeviceSyncClient(config:{url:string;key:string},fetcher:FetchLike=fetch){
  const valid=syncConfig(config.url,config.key)
  if(!valid)throw new Error('Konfigurasi sinkronisasi tidak valid')
