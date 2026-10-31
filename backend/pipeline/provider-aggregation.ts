@@ -16,7 +16,9 @@ export function combineProviderResults<T>(
  const warnings:string[]=[]
  for(let i=0;i<results.length;i++){
   const result=results[i]
-  if(result.status==='fulfilled')items.push(...result.value)
+  // A fulfilled promise can still carry malformed adapter data at runtime.
+  // Treat a non-array payload as a provider failure, preserving healthy peers.
+  if(result.status==='fulfilled'&&Array.isArray(result.value))items.push(...result.value)
   else warnings.push(labels[i])
  }
  return {items,warnings,allFailed:results.length>0&&warnings.length===results.length}
