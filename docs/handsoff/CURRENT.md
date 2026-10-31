@@ -15,3 +15,10 @@ Phase 06 canonical Watch Guide deep-link MAL ID. The current `Number(params.get(
 
 ## Status
 Audit VERIFIED; implementation PENDING; CI/Chromium/WebKit NOT RUN on this branch. Temporary files must be removed before merge. Evidence will be transferred to PR and #44.
+
+## Implementation checkpoint (2026-11-01)
+- CODED: `frontend/src/lib/router.ts` rejects exponent, hex, whitespace, leading zero, fractions and overlong MAL IDs in guide URL; `routeToPath` does not emit invalid guide IDs.
+- TEST ADDED: `tests/router.test.mjs` and Chromium fixture in `tests/browser/yoru.spec.mjs`.
+- Branch code/test HEAD: `be9e83607645f649f7ab7db4abcdba7aee50a234`.
+- CI Linux/Windows and Chromium/WebKit: PENDING, not claimed PASS.
+- Scope excludes external media, Supabase, hosting, production and release.
