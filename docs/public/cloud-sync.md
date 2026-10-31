@@ -29,8 +29,9 @@ reported instead of silently replacing an unobserved revision.
 
 Provision a Supabase project owned by the operator. Apply the reviewed migration:
 `supabase/migrations/20261031_yoru_device_sync.sql`. It creates one
-`yoru_sync_snapshots` row per authenticated user with explicit RLS
-SELECT/INSERT/UPDATE/DELETE policies and an optimistic-revision RPC.
+`yoru_sync_snapshots` row per authenticated user, an account-scoped RLS
+SELECT policy, and RPC-only writes/deletion with optimistic-revision checks.
+Direct PostgREST INSERT/UPDATE/DELETE permissions are not granted.
 
 Configure **email OTP** templates with `{{ .Token }}`, approved Auth redirect
 allow-list and a functioning SMTP sender. Default project email delivery is
