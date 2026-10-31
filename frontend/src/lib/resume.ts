@@ -5,6 +5,9 @@ import type {ProgressEntry} from '../types'
  */
 export function isResumableProgress(progress:Pick<ProgressEntry,'seconds'|'duration'>):boolean{
  if(!Number.isFinite(progress.seconds)||progress.seconds<=0)return false
- if(!Number.isFinite(progress.duration)||progress.duration<=0)return true
+ // A zero duration means not yet measured. Negative/NaN/infinite durations
+ // are corrupt or non-seekable and must not become a resume target.
+ if(!Number.isFinite(progress.duration)||progress.duration<0)return false
+ if(progress.duration===0)return true
  return progress.seconds<progress.duration-Math.min(10,progress.duration*0.05)
 }
