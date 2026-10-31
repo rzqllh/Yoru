@@ -52,3 +52,24 @@ test('invalid unavailable collection is not reported as a healthy empty response
  assert.equal(result.failed,1)
  assert.deepEqual(result.unavailable,[])
 })
+
+test('malformed individual source entries are discarded without losing valid provider candidates',()=>{
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[
+  null,false,'bad',{},
+  {format:'hls',url:null},
+  {format:'mp4',url:'   '},
+  {format:'torrent',url:'https://test.example/file'},
+  hls
+ ]}}])
+ assert.equal(result.state,'candidates')
+ assert.equal(result.responded,1)
+ assert.equal(result.failed,0)
+ assert.deepEqual(result.items,[hls])
+ assert.match(result.message,/1 kandidat sumber/)
+})
+test('only malformed entries do not create false video candidates',()=>{
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[null,{format:'hls',url:42}]}}])
+ assert.equal(result.state,'no-direct')
+ assert.equal(result.responded,1)
+ assert.deepEqual(result.items,[])
+})
