@@ -39,9 +39,9 @@ test('obsolete release asset cleanup workflow is no longer checked in',()=>{
  assert.equal(existsSync(resolve(root,'.github/workflows/web-preview-release.yml')),false)
 })
 
-test('engineering main branch is not an automatic production deployment',()=>{
+test('owner-authorized main branch automatically deploys while release gate remains separate',()=>{
  const config=JSON.parse(readFileSync(resolve(root,'vercel.json'),'utf8'))
- assert.equal(config.git.deploymentEnabled.main,false)
+ assert.equal(config.git.deploymentEnabled.main,true)
  assert.equal(config.framework,'vite')
  assert.equal(config.rewrites[0].source,'/api/:path*')
 })
