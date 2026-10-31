@@ -59,6 +59,22 @@ export const episodes=(malId:number,page=1,signal?:AbortSignal)=>api<{items:Epis
 export const providerEpisodes=(malId:number,signal?:AbortSignal)=>api<{items:Episode[]}>(`/api/anime/${malId}/provider-episodes`,signal)
 export type UnavailableStream={kind:'torrent'|'external'|'unsupported';label:string;reason:string}
 export const streams=(providerEpisodeId:string,signal?:AbortSignal,start=0)=>api<{items:Stream[];unavailable?:UnavailableStream[]}>(`/api/streams?episodeRef=${encodeURIComponent(providerEpisodeId)}${start>0?`&start=${Math.floor(start)}`:''}`,signal)
+export type AnimeGenreOption={id:number;name:string}
+export type BrowseGenreOptionsResponse={
+ items:AnimeGenreOption[];source:'Tenrai'|'built-in';status:'upstream'|'fallback'
+}
+export async function getBrowseGenreOptions(signal?:AbortSignal):Promise<BrowseGenreOptionsResponse>{
+ const result=await api<BrowseGenreOptionsResponse>('/api/anime/genres',signal,15000)
+ if(!result||!Array.isArray(result.items)||
+  !['Tenrai','built-in'].includes(result.source)||
+  !['upstream','fallback'].includes(result.status)||
+  (result.source==='Tenrai')!==(result.status==='upstream')||
+  !result.items.every(item=>item&&Number.isSafeInteger(item.id)&&item.id>0&&item.id<=1000&&
+   typeof item.name==='string'&&item.name.length>0&&item.name.length<=70))
+  throw new Error('Daftar genre tidak valid.')
+ return result
+}
+
 export const providers=()=>api<{providers:{id:string;name:string;animeCount:number|null}[];warnings?:string[]}>('/api/providers')
 
 

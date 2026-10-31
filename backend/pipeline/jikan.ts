@@ -1,5 +1,6 @@
 import { normalizeAnime, normalizeEpisode, normalizeList } from './normalize.js'
 import {getCatalogEndpoint} from './catalog-sources.js'
+import {getAnimeGenreOptions} from './anime-genres.js'
 
 const cache = new Map<string,{ expires:number; payload:unknown }>()
 const inflight = new Map<string,Promise<unknown>>()
@@ -62,8 +63,15 @@ export async function browseAnime(input:BrowseFilters){
  const query=(input.q||'').trim()
  if(query)params.set('q',query.slice(0,120))
  if(input.genre){
-  if(!Object.hasOwn(genreIds,input.genre))throw new Error('INVALID_GENRE')
-  params.set('genres',String(genreIds[input.genre]))
+  let id:number|undefined
+  if(Object.hasOwn(genreIds,input.genre))id=genreIds[input.genre]
+  else if(/^mal:[1-9]\d{0,2}$/.test(input.genre)){
+   const options=await getAnimeGenreOptions()
+   const candidate=Number(input.genre.slice(4))
+   id=options.items.find(item=>item.id===candidate)?.id
+  }
+  if(!id)throw new Error('INVALID_GENRE')
+  params.set('genres',String(id))
  }
  if(input.type)params.set('type',input.type.toLowerCase())
  if(input.minScore)params.set('min_score',String(input.minScore))

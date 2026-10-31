@@ -53,7 +53,8 @@ app.get('/api/anime/browse',async c=>{
  const year=Number(c.req.query('year')||'0')
  const rawPage=c.req.query('page')||'1',page=Number(rawPage)
  if(!['season','top','upcoming'].includes(kind)||q.length>120||
-  !['','Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].includes(genre)||
+  (!['','Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].includes(genre)&&
+   !/^mal:[1-9]\d{0,2}$/.test(genre))||
   !['','TV','Movie','OVA','ONA','Special','Music'].includes(type)||
   !['default','rating','newest'].includes(order)||![0,7,8,9].includes(score)||
   (year!==0&&(!Number.isInteger(year)||year<1950||year>new Date().getFullYear()+2))||
@@ -62,7 +63,8 @@ app.get('/api/anime/browse',async c=>{
   return c.json(await browseAnime({kind:kind as BrowseFilters['kind'],page,q,
    genre:genre||undefined,type:type||undefined,minScore:score||undefined,year:year||undefined,
    order:order as BrowseFilters['order']}))
- }catch{return c.json({error:'CATALOG_UNAVAILABLE'},503)}
+ }catch(e){return (e instanceof Error&&e.message==='INVALID_GENRE')?
+  c.json({error:'INVALID_FILTER'},400):c.json({error:'CATALOG_UNAVAILABLE'},503)}
 })
 app.get('/api/anime/:id/watch-guide',async c=>{
  const id=validId(c.req.param('id'));if(!id)return c.json({error:'INVALID_ID'},400)

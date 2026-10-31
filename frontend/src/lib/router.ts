@@ -15,7 +15,7 @@ export function sanitizeBrowseFilters(candidate:Partial<BrowseFilters>):BrowseFi
  const yearValid=typeof candidate.year==='string'&&/^\d{4}$/.test(candidate.year)&&
   Number.isSafeInteger(year)&&year>=1950&&year<=new Date().getFullYear()+2
  return {
-  genre:typeof candidate.genre==='string'&&GENRES.has(candidate.genre)?candidate.genre:'',
+  genre:typeof candidate.genre==='string'&&(GENRES.has(candidate.genre)||/^mal:[1-9]\d{0,2}$/.test(candidate.genre))?candidate.genre:'',
   format:typeof candidate.format==='string'&&FORMATS.has(candidate.format)?candidate.format:'',
   minimumScore:[7,8,9].includes(Number(candidate.minimumScore))?Number(candidate.minimumScore):0,
   year:yearValid?String(year):'',
