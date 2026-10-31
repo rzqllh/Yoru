@@ -154,3 +154,15 @@ test('cloud snapshots strip third-party metadata, stream URLs and arbitrary fiel
  assert.equal(JSON.stringify(snapshot).includes('service_role'),false)
  assert.equal(snapshot.version,1)
 })
+
+test('live verification tool refuses to run without explicit test credentials',async()=>{
+ const {spawnSync}=await import('node:child_process')
+ const {fileURLToPath}=await import('node:url')
+ const path=fileURLToPath(new URL('../scripts/verify-device-sync-live.mjs',import.meta.url))
+ const result=spawnSync(process.execPath,[path],{
+  encoding:'utf8',env:{},timeout:5000
+ })
+ assert.equal(result.status,2)
+ assert.match(result.stderr,/Missing YORU_SYNC_TEST_URL/)
+ assert.equal(result.stdout,'')
+})
