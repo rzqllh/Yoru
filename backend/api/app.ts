@@ -54,7 +54,7 @@ app.get('/api/anime/browse',async c=>{
  const rawPage=c.req.query('page')||'1',page=Number(rawPage)
  if(!['season','top','upcoming'].includes(kind)||q.length>120||
   (!['','Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].includes(genre)&&
-   !/^mal:[1-9]\\d{0,2}$/.test(genre))||
+   !/^mal:[1-9]\d{0,2}$/.test(genre))||
   !['','TV','Movie','OVA','ONA','Special','Music'].includes(type)||
   !['default','rating','newest'].includes(order)||![0,7,8,9].includes(score)||
   (year!==0&&(!Number.isInteger(year)||year<1950||year>new Date().getFullYear()+2))||
