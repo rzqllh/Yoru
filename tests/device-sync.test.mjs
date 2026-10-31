@@ -5,7 +5,7 @@ const UUID='11111111-2222-4333-8444-555555555555'
 const SETTINGS={url:'https://example.supabase.co',key:'sb_publishable_example_public_key'}
 const baseline={version:1,library:[],progress:[],preferences:[
  {key:'auto-next',value:'on'},
- {key:'source-choice:mal:1',value:'{"version":1,"providerId":"fixture","format":"hls","updatedAt":1}'},
+ {key:'source-choice:mal:1',value:JSON.stringify({version:1,providerId:'fixture',format:'hls',updatedAt:Date.now()})},
  {key:'unknown-secret',value:'DO_NOT_SYNC'}
 ]}
 test('reject unsafe or unconfigured sync endpoints and publishable keys',()=>{
@@ -55,4 +55,27 @@ test('reject corrupt cloud responses, expired sessions and invalid verification 
  await assert.rejects(api.verifyCode('a@b.com','not-an-otp'),/tidak valid/)
  await assert.rejects(api.read(session),/rusak/)
  await assert.rejects(api.read({...session,expiresAt:Date.now()-1}),/Sesi berakhir/)
+})
+
+test('known preference keys do not smuggle secrets or executable remote URLs',()=>{
+ const dirty={...baseline,preferences:[
+  {key:'auto-next',value:'Bearer gho_fake-secret'},
+  {key:'subtitle-style:global',value:JSON.stringify({font:'serif',apiKey:'sb_secret_fake'})},
+  {key:'watch-path:story-one',value:JSON.stringify({completed:3,updatedAt:1000,token:'secret-token'})},
+  {key:'source-choice:mal:42',value:JSON.stringify({version:1,providerId:'https://evil.example/token',format:'hls',updatedAt:Date.now()})},
+  {key:'subtitle-offset:mal:42',value:'javascript:alert(1)'},
+  {key:'playback-speed',value:'1'},
+  {key:'subtitle-default-language',value:'id'},
+ ]}
+ const safe=syncableBackup(dirty)
+ const payload=JSON.stringify(safe)
+ assert.equal(/sb_secret_fake|gho_fake-secret|secret-token|evil.example|javascript:/i.test(payload),false)
+ assert.deepEqual(safe.preferences?.map(p=>p.key),[
+  'subtitle-style:global','watch-path:story-one','playback-speed','subtitle-default-language'
+ ])
+ assert.deepEqual(JSON.parse(safe.preferences[0].value),{
+  font:'serif',size:100,backdrop:'dark',textOpacity:100,
+  backgroundOpacity:75,outline:1,position:'original'
+ })
+ assert.deepEqual(JSON.parse(safe.preferences[1].value),{completed:3,updatedAt:1000})
 })

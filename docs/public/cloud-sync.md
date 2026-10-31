@@ -54,9 +54,10 @@ Supabase project over HTTPS.
 ## Data and security
 
 Cloud data includes selected anime library metadata, watch progress and
-approved preference keys (including bounded source-provider identity and manual
-Watch Guide progress). **Media URLs, stream tokens and unknown preference keys
-are excluded.** Content is protected from other users by RLS, but stored in
+canonicalized, whitelisted preference keys (including bounded source-provider identity and manual
+Watch Guide progress). Raw stream URLs and access tokens are not intentionally
+synced; unknown or malformed preference values are discarded. Anime metadata
+may still include poster and cover image URLs, which are included in snapshots. Content is protected from other users by RLS, but stored in
 Supabase under the project owner's administrative control; this is not
 end-to-end encrypted.
 

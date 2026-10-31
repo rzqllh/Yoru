@@ -1,4 +1,6 @@
 import {validateBackup,type Backup} from './backup.ts'
+import {parseSourceMemory} from './source-memory.ts'
+import {normalizeCaptionSettings} from './caption-appearance.ts'
 
 // Manual, user-initiated cloud snapshots. Session exists only in React memory;
 // no refresh token, remote media URL or provider credential is persisted here.
@@ -20,9 +22,44 @@ export function syncConfig(url:unknown,key:unknown):{url:string;key:string}|null
   return {url:u.origin,key}
  }catch{return null}
 }
+/** Canonicalize values, not merely keys: a known preference key can still be
+ * corrupted or contain an unrelated token. Never upload unparsed JSON values.
+ */
+function safePreference(row:{key:string;value:string}):{key:string;value:string}|null{
+ const {key,value}=row
+ if(!SYNCABLE.test(key))return null
+ if(key==='auto-next')return value==='on'||value==='off'?{key,value}:null
+ if(key==='playback-speed')return ['0.5','0.75','1','1.25','1.5','2'].includes(value)?{key,value}:null
+ if(key==='subtitle-default-language')return ['auto','id','en','off'].includes(value)?{key,value}:null
+ if(key.startsWith('subtitle-offset:')){
+  if(!value.trim())return null
+  const offset=Number(value)
+  return Number.isFinite(offset)&&offset>=-30&&offset<=30?{key,value:String(offset)}:null
+ }
+ if(key.startsWith('source-choice:')){
+  const remembered=parseSourceMemory(value)
+  return remembered?{key,value:JSON.stringify(remembered)}:null
+ }
+ try{
+  const parsed:unknown=JSON.parse(value)
+  if(!record(parsed))return null
+  if(key.startsWith('subtitle-style:'))return {key,value:JSON.stringify(normalizeCaptionSettings(parsed))}
+  if(key.startsWith('watch-path:')){
+   if(!Number.isSafeInteger(parsed.completed)||Number(parsed.completed)<0||
+    !Number.isSafeInteger(parsed.updatedAt)||Number(parsed.updatedAt)<0)return null
+   return {key,value:JSON.stringify({
+    completed:Math.min(Number(parsed.completed),80),updatedAt:parsed.updatedAt
+   })}
+  }
+ }catch{return null}
+ return null
+}
 export function syncableBackup(source:Backup):Backup{
  if(!validateBackup(source))throw new Error('Format data lokal tidak valid')
- return {...source,preferences:source.preferences?.filter(row=>SYNCABLE.test(row.key))??[]}
+ return {...source,preferences:source.preferences?.flatMap(row=>{
+  const safe=safePreference(row)
+  return safe?[safe]:[]
+ })??[]}
 }
 export function createDeviceSyncClient(config:{url:string;key:string},fetcher:FetchLike=fetch){
  const valid=syncConfig(config.url,config.key)
