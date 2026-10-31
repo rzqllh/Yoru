@@ -119,7 +119,8 @@ export function createDeviceSyncClient(config:{url:string;key:string},fetcher:Fe
    return response as number
   },
   async remove(session:DeviceSyncSession):Promise<void>{
-   await request(`/rest/v1/yoru_sync_snapshots?user_id=eq.${session.userId}`,'DELETE',undefined,session)
+   const deleted=await request('/rest/v1/rpc/yoru_sync_delete','POST',{},session)
+   if(typeof deleted!=='boolean')throw new Error('Respons penghapusan cloud tidak valid')
   },
  }
 }
