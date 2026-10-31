@@ -45,6 +45,22 @@ test('provider episode matching rejects boolean, array and exponent coercion wit
  assert.deepEqual(subsource.map(x=>x.id),['subsource:99'])
 })
 
+test('subtitle file identifiers reject coerced arrays, booleans and objects while preserving valid decimal IDs',()=>{
+ const invalid=[true,false,[25],{id:25},'2e1','25.0',25.5,Infinity]
+ const opensubtitles=normalizeOpenSubtitles({data:[{attributes:{
+  language:'ind',feature_details:{episode_number:5},files:[
+   ...invalid.map(file_id=>({file_id})),{file_id:25},{file_id:'026'}
+  ]
+ }}]},5)
+ assert.deepEqual(opensubtitles.map(item=>item.fileId),[25,26])
+ const subsource=normalizeSubSource({data:[
+  ...invalid.map(id=>({id,language:'ID',episode_number:5})),
+  {id:'025',language:'ID',episode_number:5},
+  {id:26,language:'ID',episode_number:5}
+ ]},5)
+ assert.deepEqual(subsource.map(item=>item.id),['subsource:025','subsource:26'])
+})
+
 test('SRT to VTT conversion keeps cue text and rejects unknown formats',()=>{
  const result=toWebVtt('1\\n00:00:01,123 --> 00:00:02,500\\nHello\\n')
  assert.ok(result.startsWith('WEBVTT'))
