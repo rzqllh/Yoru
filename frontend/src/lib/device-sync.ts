@@ -27,12 +27,14 @@ export function syncableBackup(source:Backup):Backup{
 export function createDeviceSyncClient(config:{url:string;key:string},fetcher:FetchLike=fetch){
  const valid=syncConfig(config.url,config.key)
  if(!valid)throw new Error('Konfigurasi sinkronisasi tidak valid')
+ const endpoint=valid.url
+ const apiKey=valid.key
  async function request(path:string,method:'GET'|'POST'|'DELETE',body:unknown,session?:DeviceSyncSession):Promise<unknown>{
   if(session&&(!UUID.test(session.userId)||Date.now()>=session.expiresAt-10_000))
    throw new Error('Sesi berakhir. Masuk kembali untuk sinkronisasi.')
-  const response=await fetcher(valid.url+path,{
+  const response=await fetcher(endpoint+path,{
    method,headers:{
-    apikey:valid.key,
+    apikey:apiKey,
     ...(session?{Authorization:`Bearer ${session.accessToken}`}:{}),
     Accept:'application/json',
     ...(body===undefined?{}:{'Content-Type':'application/json'})
