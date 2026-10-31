@@ -10,3 +10,9 @@
 - CODED `2b779d80`: strict string status validation, preserving `planned`/`watching`/`completed`.
 - CODED `52b7d684`: regression for imported JSON objects with poisoned `toString`/`valueOf`, arrays, null and primitives; asserts no throw and false; valid status remains true.
 - PR-head CI and Chromium/WebKit: NOT RUN as of this checkpoint. Do not merge before results.
+
+## Pre-cleanup verification checkpoint
+
+- Exact PR branch head `35f85b58503dc23af08a9c044cb8be1a14ea2441` [CI Linux/Windows SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41229435760), jobs validate and Windows/Node22/production-smoke both success.
+- Same head [Chromium/WebKit SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41229435664), jobs chromium and webkit-smoke both success.
+- Tests are deterministic; no real device, live provider or production acceptance. Next: copy evidence to PR #112 and Issue #44, delete handoff files, verify cleanup head and merge only with exact-head CI.
