@@ -146,3 +146,11 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 **D06/D07 `3134282` — PASS (fixtures):** [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41223942927), [Chromium/WebKit E2E](https://github.com/rzqllh/Yoru/actions/runs/41223942739). Full iOS swipe/scroll interaction NOT RUN; final docs SHA pending.
 
 | AC-HOME-05/06 D07 | `fix/y03-anime-popular-grid-20261101` | Browser mobile 320px/390px card layout | NOT RUN | All rank-card widths equal grid cells, posters 2:3 with stable dimensions, rank and score badges separate, no horizontal overflow; physical iPhone NOT RUN. |
+
+## Verified engineering checkpoint — 2026-11-01
+
+| Acceptance case | Evidence SHA | Status | Evidence / limitation |
+| --- | --- | --- | --- |
+| AC-SUB-03/05/06 explicit season guard | PR #107 `a21586a`, main `dc2bd45` | PASS (deterministic only) | [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41224226939) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41224227162); actual provider season/cour mapping NOT VERIFIED |
+| AC-HOME-01/02 hero interaction | PR #106 combined head `4de07e3`, main `f21c4a8` | PASS (deterministic only) | Hover, swipe, keyboard, reduced-motion tests; physical iPhone NOT RUN |
+| AC-HOME-05/06 popular grid | PR #108 head `0bde4a1`, main `b4f35bd` | PASS (deterministic PR head only) | [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41224846356) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41224846533); physical iPhone screenshot NOT RUN; main `b4f35bd` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41225040383) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41225040380) PASS 4/4 (fixtures only) |
