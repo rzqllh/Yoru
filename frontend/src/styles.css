@@ -2617,9 +2617,6 @@ body {
 @media(prefers-reduced-motion:reduce){.browse-controls *,.modal-backdrop *{scroll-behavior:auto!important;transition:none!important}}
 
 /* Featured titles are ranked by catalog popularity, never represented as daily views. */
-.hero-top-ten{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0;border:0;padding:0;min-width:0}
-.hero-top-ten button{min-height:44px;min-width:44px;border-radius:12px;background:#182332;border:1px solid var(--line-strong);color:var(--soft);font-weight:750}
-.hero-top-ten button.active{background:var(--accent);border-color:var(--accent);color:#162414}
 .ranked-anime{position:relative;min-width:0}
 .ranked-anime-number{position:absolute;top:8px;left:8px;z-index:2;display:grid;place-items:center;border-radius:10px;width:31px;height:31px;background:#101925e8;color:var(--accent);font-weight:800}
 .subtitle-indonesia-state{padding:12px;border:1px solid var(--line);border-radius:12px;color:var(--soft);background:#202c3b}
@@ -2648,12 +2645,10 @@ body {
 /* The source label is always visible: daily AniList activity ≠ viewer counts. */
 .hero-source{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px;font-size:11px;color:var(--soft)}
 .hero-source a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;min-height:44px;display:inline-flex;align-items:center}
-.hero-navigation{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:12px 0}
-.hero-navigation .hero-top-ten{margin:0;flex:1}
-.hero-navigation-actions{display:flex;align-items:center;gap:6px}
-.hero-navigation-actions button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;border:1px solid var(--line-strong);border-radius:12px;background:#182332;color:var(--soft)}
-.hero-navigation-actions button:hover,.hero-navigation-actions button:focus-visible{border-color:var(--accent);color:var(--accent)}
-@media(max-width:600px){.hero-navigation{align-items:stretch}.hero-navigation .hero-top-ten{width:100%;flex-basis:100%}.hero-navigation-actions{margin-left:auto}.hero-source{line-height:1.5}}
+/* The focused carousel is the accessible keyboard alternative to touch swiping. */
+.hero-card:focus-within{outline:3px solid var(--accent);outline-offset:3px}
+.hero-card{touch-action:pan-y}
+@media(max-width:600px){.hero-source{line-height:1.5}}
 
 /* Secondary watch guide: restrained content-first layout, no new primary browse tab. */
 .yoru-watch-guide{display:flex;flex-direction:column;gap:18px}
