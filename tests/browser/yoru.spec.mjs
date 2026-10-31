@@ -63,20 +63,21 @@ test('a verified native source remembers only its provider identity for later pl
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
  await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
- const getChoice=()=>page.evaluate(async()=>{
+ const getChoice=(key='source-choice:mal:1')=>page.evaluate(async key=>{
   const request=indexedDB.open('yoru-local-v1')
   return await new Promise((resolve,reject)=>{
    request.onerror=()=>reject(request.error)
    request.onsuccess=()=>{
     const db=request.result
     const tx=db.transaction('preferences','readonly')
-    const get=tx.objectStore('preferences').get('source-choice:mal:1')
+    const get=tx.objectStore('preferences').get(key)
     get.onsuccess=()=>{db.close();resolve(get.result?.value??'')}
     get.onerror=()=>{db.close();reject(get.error)}
    }
   })
- })
+ },key)
  await expect.poll(async()=>JSON.parse(await getChoice()).providerId).toBe('fixture')
+ await expect.poll(async()=>JSON.parse(await getChoice('source-choice:mal:1:ep:1')).providerId).toBe('fixture')
  const remembered=JSON.parse(await getChoice())
  expect(remembered).toMatchObject({version:1,providerId:'fixture',format:'hls'})
  expect(JSON.stringify(remembered)).not.toContain('/demo/')
