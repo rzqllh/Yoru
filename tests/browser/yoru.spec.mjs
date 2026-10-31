@@ -1035,3 +1035,12 @@ test('genre taxonomy failure preserves legacy filter choices and discloses parti
  await expect(page.getByRole('combobox',{name:'Genre'}).locator('option')).toHaveCount(13)
  await expect(page.getByText('Daftar genre tambahan belum tersedia. Genre umum tetap bisa dipakai.')).toBeVisible()
 })
+
+test('invalid guide deep-link IDs keep the unselected guide landing state',async({page})=>{
+ for(const value of ['1e3','0x10','01']){
+  await page.goto('/jelajahi/panduan-urutan?anime='+encodeURIComponent(value))
+  await expect(page.getByRole('heading',{name:'Panduan urutan anime'})).toBeVisible()
+  await expect(page.getByText(/Mulai dari judul apa pun/)).toBeVisible()
+  await expect(page.getByRole('region',{name:'Panduan menonton dengan sumber'})).toHaveCount(0)
+ }
+})
