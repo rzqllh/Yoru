@@ -40,6 +40,7 @@ import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,li
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {EMPTY_BROWSE_FILTERS,getBreadcrumbs,parseRoute,routeToPath,type BrowseFilters,type RouteState} from './lib/router'
 import Player from './components/Player'
+import DeviceSync from './components/DeviceSync'
 import WatchGuide from './components/WatchGuide'
 import {verifyNativeSource} from './lib/source-readiness'
 import {rankNativeStreams} from './lib/source-ranking'
@@ -1271,8 +1272,8 @@ function SettingsPage({
      <div><h2>Akun & perangkat</h2><p>Akun dapat ditambahkan tanpa mengubah koleksi saat ini.</p></div>
     </div>
     <div className="settings-box">
-     <div className="setting-row"><div><strong>Tanpa akun</strong><small>Koleksi tetap tersimpan di browser ini.</small></div><span className="setting-state good"><span/>Aktif</span></div>
-     <div className="settings-note"><Info size={16}/><p>Login dan sinkronisasi belum tersedia. Gunakan cadangan untuk memindahkan koleksi.</p></div>
+     <div className="setting-row"><div><strong>Data perangkat</strong><small>Koleksi tetap tersimpan di browser dan bisa dipakai tanpa login. Cloud sync hanya berjalan bila diaktifkan dan pengguna memintanya.</small></div><span className="setting-state good"><span/>Lokal aktif</span></div>
+     <DeviceSync onNotify={onNotify} onDataChanged={onDataChanged}/>
     </div>
     <div id="pengaturan-data" className="settings-heading">
      <div className="settings-heading-icon"><Bookmark size={20}/></div>
