@@ -102,7 +102,12 @@ export function normalizeOpenSubtitles(input:unknown,episode:number,expectedSeas
   const score=confidence(episode,feature?.episode_number??feature?.episode)
   if(!lang||score===0)continue
   for(const fileValue of files){
-   const file=object(fileValue),fileId=Number(file?.file_id)
+   const file=object(fileValue),rawId=file?.file_id
+   // Provider IDs must be genuine integer values, not Number(true) or Number([25]).
+   const validId=typeof rawId==='number'?Number.isSafeInteger(rawId):
+    typeof rawId==='string'&&/^\d+$/.test(rawId.trim())
+   if(!validId)continue
+   const fileId=Number(rawId)
    if(!Number.isSafeInteger(fileId)||fileId<1)continue
    const release=string(attr.release||file?.file_name,160)
    add(out,{id:'opensubtitles:'+fileId,provider:'opensubtitles',
@@ -118,7 +123,10 @@ export function normalizeSubSource(input:unknown,episode:number,expectedSeason:n
    =[]
  for(const row of list(root?.data??root?.subtitles)){
   const value=object(row);if(!value)continue
-  const id=String(value.id??'')
+  // Never turn array/object provider data into an apparently valid decimal ID.
+  const rawId=value.id
+  const id=typeof rawId==='string'?rawId:
+   typeof rawId==='number'&&Number.isSafeInteger(rawId)&&rawId>=0?String(rawId):''
   const lang=language(value.language??value.lang)
   if(!/^\d{1,16}$/.test(id)||!lang)continue
   if(!matchesExplicitSeason(expectedSeason,value.season_number??value.season))continue
