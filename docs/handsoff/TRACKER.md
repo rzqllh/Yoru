@@ -8,3 +8,6 @@
 | PR-head Linux/Windows and Chromium/WebKit | NOT RUN | Must await GitHub Actions |
 | Evidence transfer + cleanup | NOT RUN | PR/issues before deleting this folder |
 | Merge/main exact SHA checks | NOT RUN | No release/deploy |
+
+| Code | CODED | `2b779d80`, `52b7d684`; backup.ts + backup-validation.test.mjs |
+| CI after code | NOT RUN | Await Actions on PR |
