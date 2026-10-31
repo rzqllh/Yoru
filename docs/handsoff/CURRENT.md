@@ -8,3 +8,5 @@ Scope: Phase 02, fail-closed subtitle episode metadata coercion only. Existing n
 Audit: only open PR #77 draft; issues #44/#78 open; #20 release BLOCKED. No `docs/handsoff/` in baseline main. Exact-head CI for this branch: PENDING. Real subtitle provider, iPhone, Supabase OTP/RLS, hosting, resolver and release: DEFERRED.
 
 Checkpoint rule: record code and test SHA, wait for CI Linux/Windows + Browser E2E Chromium/WebKit on exact head, transfer evidence to PR and issue #44, then delete this folder before merging.
+
+Code checkpoint: source commit `524c372` and regression commit `fe5eba9`. CI and browser tests pending; season mapping still unverified.
