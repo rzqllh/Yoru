@@ -145,7 +145,8 @@ export function createDeviceSyncClient(config:{url:string;key:string},fetcher:Fe
    const row:unknown=raw[0]
    if(!record(row)||!validRevision(row.revision)||!validateBackup(row.payload))
     throw new Error('Cadangan cloud rusak; tidak ada data yang diimpor')
-   return {revision:row.revision as number,payload:row.payload}
+   // Treat remote JSON as untrusted even when DB validation succeeded.
+   return {revision:row.revision as number,payload:syncableBackup(row.payload)}
   },
   async upload(session:DeviceSyncSession,snapshot:Backup,expectedRevision:number):Promise<number>{
    const safe=syncableBackup(snapshot)
