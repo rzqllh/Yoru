@@ -1,0 +1,67 @@
+# PHASE 02 — Subtitle Correctness, Language Consent and Player UI
+
+> **Handoff type:** owner-requested persistent project planning, not temporary `docs/handsoff/`.  
+> **Snapshot:** 2026-10-31 (Asia/Jakarta) · inspected main `2b6c1d4bb518c4345d50e7849af5f8f7ef53aa1b`.  
+> **Status:** ADAPTERS/STYLING PARTIAL; NEW D01 FLOW NOT IMPLEMENTED; LIVE BLOCKED. **No implementation or tests were executed for this planning-only artifact.**
+
+## Objective and dependency
+
+Subtitle Correctness, Language Consent and Player UI. Dependencies: 01 eligibility; correct source+season identity before subtitle auto selection. Refer to [Master Plan](../MASTER_PLAN.md), [Phase Plan](../PHASE_PLAN.md), [Tracker](../TRACKING.md) and [Acceptance Matrix](../ACCEPTANCE_MATRIX.md).
+
+## Scope / intended changes (NOT YET DONE)
+
+- Indonesian subtitle first; if none, prompt explicitly before English; decline/Off remains Off across episode/remount/source.
+- Provide familiar system sans baseline approximately 90%, outline/backdrop, safe-area placement, native renderer presets and disabled unsupported controls.
+- Use correct MAL ↔ provider season/cour/episode mapping; never hardcode season one for season-three title.
+- Validate actual release match, language, subtitle provider status, search/download quota, signed grants and errors.
+- Keep external embed without verified subtitle controls ineligible under D02; do not offer cosmetic buttons that cannot affect its iframe.
+- Run provider fixture and actual authorized search/download checks for SubDL, SubSource, OpenSubtitles, mapped Stremio addon.
+
+## Existing implementation and evidence at snapshot
+
+- `backend/providers/subtitles.ts` contains adapters and grants; `Player.tsx` has native style/picker, local files and stored preferences.
+- Current subtitle search uses `season_number=1` in non-movie queries and native automatic fallback can select English; both conflict with new requirements.
+- Embed path bypasses native subtitle search and native caption renderer; hard-subs cannot be re-styled from Yoru parent.
+- Live provider G3 has NOT been established; `/api/subtitles/status` reports configuration, not successful download.
+
+These are baseline observations, not proof that proposed modifications are complete or that public release gates pass.
+
+## Acceptance and quality gate
+
+AC-SUB-01..08; do not close #20 G3 with only unit/browser fixtures.
+
+Every future check requires **exact SHA**, browser/device/environment, input fixture or live sample, observed result and evidence URL. Do not mark PASS merely because CI once succeeded on another SHA. No production promotion is implied.
+
+## Risks, blockers and owner decisions
+
+- **Risks / blockers:** Episode ambiguity, quota/entitlement, wrong dubbed/hard-sub tracks, third-party formats and grant expiry.
+- **Approval needed:** Owner/provider credentials only in server secrets; live authorized test asset; no secrets in docs or PR.
+- **Responsibilities:** product owner for scope/approval; engineering assignee TBD; QA reviewer TBD. Do not name an agent or person without actual dispatch.
+
+## Next authorized work
+
+1. Implement season-aware provider lookup + false-match rejection tests.
+2. Implement English opt-in dialog and persisted Off/preference semantics.
+3. Verify native styling across Chromium/WebKit then physical Safari; complete three-provider live sign-off.
+
+## Primary files and references
+
+backend/providers/subtitles.ts, frontend/src/components/Player.tsx, frontend/src/lib/caption-appearance.ts, tests/subtitle-providers.test.mjs, tests/stremio-addon-subtitles.test.mjs, scripts/verify-live-subtitles.mjs
+
+## Actual changes / PR / test log
+
+| Field | Current entry |
+| --- | --- |
+| Phase implementation PR | NOT CREATED for this phase |
+| Modified app files | NONE as part of this planning task |
+| Implemented SHA | NOT APPLICABLE; baseline only |
+| New phase CI / browser tests | NOT RUN |
+| Live provider / device verification | NOT RUN in this planning task |
+| Phase sign-off | PENDING |
+| Next handoff update | On first actual implementation PR or new verified blocker |
+
+**Update protocol:** append dated checkpoint below after each real phase slice. Include PR, diff paths, exact SHA, test URLs, blockers resolved/new, any owner decisions, and follow-up instructions. Do not rewrite an incomplete checkpoint as DONE.
+
+## Checkpoint history
+
+- **2026-10-31 — BASELINE / PLANNING:** handoff initialized from repository, epic/gate and user-approved UX/CX decisions. No code, cloud, production configuration or release change in this handoff.
