@@ -55,12 +55,29 @@ function safePreference(row:{key:string;value:string}):{key:string;value:string}
  }catch{return null}
  return null
 }
+/** Cloud snapshots carry the smallest required anime identity, never arbitrary
+ * metadata from a third-party catalog or user-imported backup. Full Anime view
+ * models are rebuilt by normalizeBackupAnime during existing v1 import.
+ */
+function cloudAnime(anime:Backup['library'][number]['anime']){
+ return {id:anime.id,malId:anime.malId,title:anime.title} as typeof anime
+}
 export function syncableBackup(source:Backup):Backup{
  if(!validateBackup(source))throw new Error('Format data lokal tidak valid')
- return {...source,preferences:source.preferences?.flatMap(row=>{
-  const safe=safePreference(row)
-  return safe?[safe]:[]
- })??[]}
+ return {
+  version:1,
+  library:source.library.map(row=>({
+   anime:cloudAnime(row.anime),status:row.status,updatedAt:row.updatedAt
+  })),
+  progress:source.progress.map(row=>({
+   anime:cloudAnime(row.anime),episode:row.episode,seconds:row.seconds,
+   duration:row.duration,updatedAt:row.updatedAt
+  })),
+  preferences:source.preferences?.flatMap(row=>{
+   const safe=safePreference(row)
+   return safe?[safe]:[]
+  })??[]
+ }
 }
 export function createDeviceSyncClient(config:{url:string;key:string},fetcher:FetchLike=fetch){
  const valid=syncConfig(config.url,config.key)
