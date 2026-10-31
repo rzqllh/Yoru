@@ -885,3 +885,49 @@ test('unsupported URL filters are discarded and long-tail historical year is sel
  await expect(page.getByRole('combobox',{name:'Urutkan anime'})).toHaveValue('default')
  await expect(page.getByRole('button',{name:'Musim ini',exact:true})).toHaveAttribute('aria-pressed','true')
 })
+
+test('D01: external English-only subtitle is not downloaded until explicit confirmation',async({page})=>{
+ let downloads=0
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[{...testStream,tracks:[],subtitleMode:'unknown'}]}}))
+ await page.route('**/api/anime/1/subtitles?**',route=>route.fulfill({json:{items:[
+  {id:'subdl:english',provider:'subdl',language:'en',label:'English',release:'Episode 1',episode:1,
+   score:70,sourceUrl:'/api/subtitles/file?provider=subdl&ref=english'}
+ ],warnings:[]}}))
+ await page.route('**/api/subtitles/file?**',route=>{
+  downloads++
+  return route.fulfill({status:200,contentType:'text/vtt',body:'WEBVTT\\n\\n00:00:00.100 --> 00:00:02.000\\nHello\\n'})
+ })
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const player=page.getByRole('main',{name:'Layar tonton'})
+ await expect(player).toBeVisible()
+ await player.locator('.player-subtitle-trigger').click()
+ const confirm=player.getByRole('group',{name:'Konfirmasi subtitle English'})
+ await expect(confirm).toBeVisible()
+ await expect(player.locator('video track[srclang="en"]')).toHaveCount(0)
+ expect(downloads).toBe(0)
+ await confirm.getByRole('button',{name:'Gunakan subtitle English'}).click()
+ await expect(player.locator('video track[srclang="en"]')).toHaveCount(1)
+ await expect(player.locator('.player-subtitle-trigger')).toContainText('English')
+ expect(downloads).toBe(1)
+})
+test('D01: declining English-only offer keeps native English track inactive',async({page})=>{
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[{
+  ...testStream,tracks:[{lang:'en',label:'English',url:'/demo-id.vtt'}]
+ }]}}))
+ await page.route('**/api/anime/1/subtitles?**',route=>route.fulfill({json:{items:[],warnings:[]}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const player=page.getByRole('main',{name:'Layar tonton'})
+ await expect(player).toBeVisible()
+ await expect(player.locator('video track[srclang="en"][default]')).toHaveCount(0)
+ await player.locator('.player-subtitle-trigger').click()
+ const confirm=player.getByRole('group',{name:'Konfirmasi subtitle English'})
+ await expect(confirm).toBeVisible()
+ await confirm.getByRole('button',{name:'Tidak sekarang'}).click()
+ await expect(confirm).toHaveCount(0)
+ await expect(player.locator('video track[srclang="en"][default]')).toHaveCount(0)
+ await expect(player.getByText(/English tidak diaktifkan/)).toBeVisible()
+})
