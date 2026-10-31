@@ -195,3 +195,20 @@ test('cloud merge resolves timestamp ties to local state and retains non-overlap
  assert.equal(merged.library.length,2)
  assert.throws(()=>mergeDownloadedBackup(local,{version:1,library:'invalid',progress:[]}),/tidak valid/)
 })
+
+test('cloud read canonicalizes remote records even after RLS access is granted',async()=>{
+ const anime={id:'mal:7',malId:7,title:'Anime',streamUrl:'https://evil.invalid/secret'}
+ const mock=async(url)=>{
+  if(url.includes('?select=revision'))return Response.json([{revision:3,payload:{
+   version:1,library:[{anime,status:'watching',updatedAt:100}],
+   progress:[],preferences:[{key:'unknown-secret',value:'access-token'}]
+  }}])
+  throw new Error('unexpected request')
+ }
+ const client=createDeviceSyncClient(SETTINGS,mock)
+ const session={accessToken:'access',userId:UUID,email:'a@b.com',expiresAt:Date.now()+100000}
+ const snapshot=await client.read(session)
+ assert.equal(snapshot.revision,3)
+ assert.deepEqual(snapshot.payload.preferences,[])
+ assert.deepEqual(snapshot.payload.library[0].anime,{id:'mal:7',malId:7,title:'Anime'})
+})
