@@ -15,7 +15,8 @@ const SYNCABLE=/^(?:auto-next|playback-speed|subtitle-default-language|subtitle-
 const record=(value:unknown):value is Record<string,unknown>=>typeof value==='object'&&value!==null&&!Array.isArray(value)
 const validRevision=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>0
 export function syncConfig(url:unknown,key:unknown):{url:string;key:string}|null{
- if(typeof url!=='string'||typeof key!=='string'||key.length<12||key.length>600||url.length>400)return null
+ if(typeof url!=='string'||typeof key!=='string'||url.length>400||
+  !/^sb_publishable_[A-Za-z0-9_-]{10,200}$/.test(key))return null
  try{
   const u=new URL(url)
   if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||u.pathname!=='/')return null
