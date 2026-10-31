@@ -103,3 +103,12 @@ test('source memory rejects nonpositive timestamps and invalid current clocks',(
  for(const now of [0,-1,NaN,Infinity,1.5])
   assert.equal(parseSourceMemory(JSON.stringify(memo),now),null)
 })
+
+test('imported source memory discards URL and token-like extra fields on parse and read',async()=>{
+ const expected=rememberedNativeSource(stream('safe-provider','mp4'),NOW)
+ const tainted=JSON.stringify({...expected,url:'https://private.example/watch?token=secret',token:'secret',
+  headers:{Authorization:'Bearer secret'}})
+ assert.deepEqual(parseSourceMemory(tainted,NOW),expected)
+ assert.deepEqual(await readRememberedSource(17,2,async()=>tainted,NOW),expected)
+ assert.equal(JSON.stringify(parseSourceMemory(tainted,NOW)).includes('secret'),false)
+})
