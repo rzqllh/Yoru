@@ -7,6 +7,7 @@ import {getDailyAnimeTrends} from '../pipeline/daily-trends.js'
 import {getWatchGuide} from '../pipeline/watch-guide.js'
 import {getWatchGraph} from '../pipeline/watch-graph.js'
 import { getAnime, getAnimeEpisodes, getDiscover, searchAnime, browseAnime, type BrowseFilters } from '../pipeline/jikan.js'
+import {getAnimeGenreOptions} from '../pipeline/anime-genres.js'
 import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../providers/local.js'
 import {getStremioConfig,getStremioEpisodes,getStremioSourceCandidates} from '../providers/stremio.js'
 import {externalStream} from '../providers/public-embed.js'
@@ -43,6 +44,7 @@ app.get('/api/anime/search',async c=>{
  if(!q||q.length>120)return c.json({error:'INVALID_QUERY'},400)
  try{return c.json(await searchAnime(q,positive(c.req.query('page'))))}catch(e){return c.json({error:'CATALOG_UNAVAILABLE',message:(e as Error).message},503)}
 })
+app.get('/api/anime/genres',async c=>c.json(await getAnimeGenreOptions()))
 app.get('/api/anime/browse',async c=>{
  const kind=c.req.query('kind')||'top',q=(c.req.query('q')||'').trim()
  const genre=c.req.query('genre')||'',type=c.req.query('type')||''
