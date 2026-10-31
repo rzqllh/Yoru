@@ -23,7 +23,7 @@ test('WebKit desktop displays anime catalog and does not invent playable episode
  await expect(dialog).toBeVisible()
  await expect(dialog.getByText(/Belum menemukan kandidat video/).first()).toBeVisible()
  await dialog.locator('.episode-list .episode-row').first().click()
- await expect(dialog.getByText(/Video alternatif tanpa kontrol subtitle tidak ditawarkan/)).toBeVisible()
+ await expect(dialog.getByText(/Video alternatif tanpa kontrol subtitle tidak ditawarkan/).first()).toBeVisible()
  await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
 })
 test('WebKit iPhone-sized layout keeps navigation and safe areas accessible',async({page})=>{
