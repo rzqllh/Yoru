@@ -89,3 +89,20 @@ test('uncontrolled embed cannot remove valid native candidate',()=>{
  assert.equal(result.state,'candidates')
  assert.deepEqual(result.items,[hls])
 })
+
+test('malformed unavailable metadata is ignored without hiding valid provider evidence',()=>{
+ const valid={kind:'torrent',label:'1080p source',reason:'Needs a resolver'}
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[hls],unavailable:[
+  null,false,{},[],
+  {kind:'arbitrary',label:'fake',reason:'Not a supported category'},
+  {kind:'external',label:'  ',reason:'Missing label'},
+  {kind:'unsupported',label:'Missing reason',reason:'   '},
+  {kind:'torrent',label:'x'.repeat(161),reason:'Oversize label'},
+  {kind:'torrent',label:'Bounded label',reason:'x'.repeat(251)},
+  valid,valid
+ ]}}])
+ assert.equal(result.state,'candidates')
+ assert.equal(result.responded,1)
+ assert.deepEqual(result.items,[hls])
+ assert.deepEqual(result.unavailable,[valid])
+})
