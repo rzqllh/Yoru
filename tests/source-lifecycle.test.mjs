@@ -32,3 +32,23 @@ test('pure resolver never reports candidates as playable or verified',()=>{
  assert.equal(result.state,'candidates')
  assert.match(result.message,/belum diverifikasi/i)
 })
+
+test('malformed fulfilled provider payloads count as failures without hiding healthy candidates',()=>{
+ const result=summarizeSourceSearch([
+  {status:'fulfilled',value:null},
+  {status:'fulfilled',value:{items:'not-an-array'}},
+  {status:'fulfilled',value:{items:[hls],unavailable:[]}}
+ ])
+ assert.equal(result.queried,3)
+ assert.equal(result.responded,1)
+ assert.equal(result.failed,2)
+ assert.equal(result.state,'degraded')
+ assert.deepEqual(result.items,[hls])
+})
+test('invalid unavailable collection is not reported as a healthy empty response',()=>{
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[],unavailable:{kind:'torrent'}}}])
+ assert.equal(result.state,'failed')
+ assert.equal(result.responded,0)
+ assert.equal(result.failed,1)
+ assert.deepEqual(result.unavailable,[])
+})
