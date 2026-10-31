@@ -5,3 +5,7 @@ Base main `f36e95c170c3b03fffc1f2da5c5543f074c78e46`. Audited PR #77 (draft), is
 Scope: isolated catalog normalization guard. Reject fractional or unsafe MAL anime IDs and episode indices from upstream payload; preserve valid decimal scores. No production, auth, provider, Supabase, resolver, secret, deployment or release changes.
 
 Checkpoint status: CODED on branch `877345b9f95c348d4ae1458dc6186ca0df3f2446`; unit/CI/browser tests NOT RUN as of this update. Remove this folder before main merge, transferring evidence to PR and #44.
+
+## PR checkpoint
+
+PR #120 code/docs head `dee12f8150a29243af9764f7a8237fc677878d8d`: [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41252952889) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41252952890) each completed SUCCESS (4 jobs total). Deterministic fixture evidence only. Remove temporary handoff and recheck exact final head before merge.
