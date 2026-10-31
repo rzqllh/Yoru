@@ -154,3 +154,12 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 | AC-SUB-03/05/06 explicit season guard | PR #107 `a21586a`, main `dc2bd45` | PASS (deterministic only) | [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41224226939) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41224227162); actual provider season/cour mapping NOT VERIFIED |
 | AC-HOME-01/02 hero interaction | PR #106 combined head `4de07e3`, main `f21c4a8` | PASS (deterministic only) | Hover, swipe, keyboard, reduced-motion tests; physical iPhone NOT RUN |
 | AC-HOME-05/06 popular grid | PR #108 head `0bde4a1`, main `b4f35bd` | PASS (deterministic PR head only) | [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41224846356) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41224846533); physical iPhone screenshot NOT RUN; main `b4f35bd` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41225040383) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41225040380) PASS 4/4 (fixtures only) |
+
+## 2026-11-01 — Continuation acceptance checkpoint (read-only)
+
+| Case | Evidence | Status | Reason / next verification |
+| --- | --- | --- | --- |
+| AC-REL-05 | Vercel production deployment `dpl_514E91c6XQkRCvF2wS5YumdgvgrU` READY at `5496aae`; GitHub `main` `bf3105d` | **BLOCKED / LIVE HTTP NOT VERIFIED** | Root, `/api/health`, and `/api/anime/discover` requests could not resolve/reach the target from the assistant environment; obtain real HTTPS status/JSON and inspect logs before claiming API healthy. No new deployment was initiated. |
+| AC-DATA-05/06 | Static 12-genre allowlists verified in frontend router, backend HTTP validator and Jikan pipeline | **NOT RUN / PLANNED** | Verified source limitation; no dynamic AniList genre/tag implementation or multi-page filter acceptance executed. |
+
+| AC-DATA-08 visible-results count | PR #111 head `0f3db7a`, main merge `ae9bc81` | **PASS (deterministic browser only); LIVE NOT RUN** | [CI](https://github.com/rzqllh/Yoru/actions/runs/41227101975) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41227101983) SUCCESS. Label `N ditampilkan` counts deduped loaded titles across page 1 and page 2; no unsupported total count. Real hosted data/pagination not verified. |

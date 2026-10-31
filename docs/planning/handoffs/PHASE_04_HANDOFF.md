@@ -63,3 +63,15 @@ backend/pipeline/jikan.ts, backend/pipeline/daily-trends.ts, backend/pipeline/wa
 ## Checkpoint history
 
 - **2026-10-31 — BASELINE / PLANNING:** handoff initialized from repository, epic/gate and user-approved UX/CX decisions. No code, cloud, production configuration or release change in this handoff.
+
+## 2026-11-01 — Continuation source/contract audit (READ-ONLY)
+
+- `frontend/src/lib/router.ts`, `backend/api/app.ts` and `backend/pipeline/jikan.ts` each still constrain genre filtering to the same 12 static genre names. `browseAnime` converts those names to MAL/Jikan numeric IDs and performs server-side filtered requests. Merely adding AniList `GenreCollection` labels to the UI would be misleading because AniList genres/tags do not automatically map to Jikan's MAL taxonomy.
+- Official references: [AniList GraphQL](https://docs.anilist.co/guide/graphql/) and [Jikan anime search / genre filters](https://github.com/jikan-me/jikan-rest/blob/master/storage/api-docs/api-docs.json). Full AniList genre/tag discovery and honest backend matching remain **PLANNED**, not implemented or tested.
+- Next engineering slice: define a verified canonical filter-option contract and explicit support/mapping/provenance per provider, then add matched API/router/UI tests for filter combinations and pagination. Do not enable options unsupported by the backend or perform client-only first-page filtering. No files, endpoints, data, or provider settings were changed during this research audit.
+
+## 2026-11-01 — Browse truthful-count and default-sort checkpoint (MERGED; LIMITED)
+
+- [PR #111](https://github.com/rzqllh/Yoru/pull/111), reviewed change to `frontend/src/App.tsx` and regression to `tests/browser/yoru.spec.mjs`, merged main `ae9bc81ae00ce61cba5abcdd4d1be34edb465327`. The count label reports **loaded deduplicated titles**, not an unsupported catalog total. Default sorting is correctly labeled **Paling populer**, consistent with Jikan `order_by=popularity&sort=asc`.
+- PR head `0f3db7a09cb366acac32857fb0905e6cbe6ebe44`: [Linux/Windows checks](https://github.com/rzqllh/Yoru/actions/runs/41227101975) SUCCESS, [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41227101983) SUCCESS. The browser fixture loads page two with an overlapping anime and verifies unique visible count. **Physical device, actual provider, full genre/combined filter QA NOT RUN.**
+- Scope: **AC-DATA-08 partial UI correctness**, not whole Phase 04. Next: canonical supported genre/tag contract, mapping, filters and cross-page response evidence, plus hosted health and release gates.
