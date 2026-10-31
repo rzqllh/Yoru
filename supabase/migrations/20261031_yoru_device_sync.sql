@@ -61,15 +61,22 @@ begin
     raise exception 'INVALID_PAYLOAD';
   end if;
 
-  insert into public.yoru_sync_snapshots as snapshot
-    (user_id, payload, revision, updated_at)
-  values (owner_id, next_payload, 1, now())
-  on conflict (user_id) do update set
-    payload = excluded.payload,
-    revision = snapshot.revision + 1,
-    updated_at = now()
-  where snapshot.revision = expected_revision
-  returning revision into new_revision;
+  -- Revision 0 may only create an absent row; an existing row must never
+  -- be overwritten. Nonzero revisions update exactly the observed version.
+  if expected_revision = 0 then
+    insert into public.yoru_sync_snapshots
+      (user_id, payload, revision, updated_at)
+    values (owner_id, next_payload, 1, now())
+    on conflict (user_id) do nothing
+    returning revision into new_revision;
+  else
+    update public.yoru_sync_snapshots
+    set payload = next_payload,
+        revision = revision + 1,
+        updated_at = now()
+    where user_id = owner_id and revision = expected_revision
+    returning revision into new_revision;
+  end if;
 
   if new_revision is null then raise exception 'SYNC_CONFLICT'; end if;
   return new_revision;
