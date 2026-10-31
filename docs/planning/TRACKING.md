@@ -129,3 +129,7 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 
 - **MERGED:** [#111](https://github.com/rzqllh/Yoru/pull/111) → `main` `ae9bc81ae00ce61cba5abcdd4d1be34edb465327`. Browse label uses loaded count **“N ditampilkan”** (AC-DATA-08 partially addressed) and default sort accurately reads **“Paling populer”**. Exact PR head `0f3db7a`: [CI](https://github.com/rzqllh/Yoru/actions/runs/41227101975) and [Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41227101983) SUCCESS (4/4 jobs; fixture, not live). Dynamic AniList genres/tags and correct canonical matching/filter semantics remain PLANNED; no live production iPhone/media/subtitle certification or deployment.
 - **Recovery audit:** [#110](https://github.com/rzqllh/Yoru/pull/110) persists source and hosting facts, release/sync/branch-cleanup blockers and exact-SHA evidence. Production READY but still on `5496aae` until approved deployment. `/api/health` and `/api/anime/discover` live HTTP checks remain UNKNOWN from this tool environment.
+
+### 2026-11-01 — Y04 independent genre API slice
+
+- **CODED / PENDING CI:** `feat/y04-tenrai-genre-options-20261101`. New isolated `/api/anime/genres` Tenrai-backed genre-option contract with source provenance and safe fallback; dedicated negative/source-cache/API tests. Phase 04 full dynamic filter integration **NOT DONE**, AniList tag taxonomy **NOT DONE**, live source and production **NOT VERIFIED**. No change to existing 12 static Browse options. See [Phase 04 handoff](handoffs/PHASE_04_HANDOFF.md).
