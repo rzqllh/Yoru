@@ -106,3 +106,45 @@ test('malformed unavailable metadata is ignored without hiding valid provider ev
  assert.deepEqual(result.items,[hls])
  assert.deepEqual(result.unavailable,[valid])
 })
+
+
+test('malformed source picker metadata is normalized without dropping valid native video',()=>{
+ const validTrack={lang:'id',label:'Indonesia',url:'https://test.example/sub.vtt'}
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[
+  {format:'hls',url:'https://test.example/a.m3u8',tracks:null,quality:{height:1080},subtitleMode:null},
+  {format:'mp4',url:'https://test.example/b.mp4',tracks:[null,{lang:'id'},validTrack],quality:'720p',subtitleMode:'soft'}
+ ]}}])
+ assert.equal(result.state,'candidates')
+ assert.equal(result.items.length,2)
+ assert.deepEqual(result.items[0],{format:'hls',url:'https://test.example/a.m3u8',tracks:[],subtitleMode:'unknown'})
+ assert.deepEqual(result.items[1].tracks,[validTrack])
+ assert.equal(result.items[1].quality,'720p')
+ assert.equal(result.items[1].tracks.some(track=>track.lang==='id'),true)
+})
+
+test('unsafe or unsupported media URLs are not offered as selectable candidates',()=>{
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[
+  {format:'hls',url:'javascript:alert(1)'},
+  {format:'hls',url:'http://test.example/stream.m3u8'},
+  {format:'mp4',url:'https://127.0.0.1/stream.mp4'},
+  {format:'hls',url:'https://test.example/not-hls.mp4'},
+  {format:'mp4',url:'https://test.example/valid.mp4',tracks:[],subtitleMode:'unknown'}
+ ]}}])
+ assert.equal(result.state,'candidates')
+ assert.equal(result.items.length,1)
+ assert.equal(result.items[0].url,'https://test.example/valid.mp4')
+ const rejected=summarizeSourceSearch([{status:'fulfilled',value:{items:[{format:'hls',url:'http://test.example/a.m3u8'}]}}])
+ assert.equal(rejected.state,'no-direct')
+ assert.deepEqual(rejected.items,[])
+})
+
+test('oversized quality text and invalid subtitle tracks cannot break picker rendering',()=>{
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[{
+  format:'hls',url:'https://test.example/media.m3u8',quality:'Q'.repeat(500),
+  tracks:[false,[],{lang:'id',label:[],url:'https://test.example/sub.vtt'}],subtitleMode:{value:'hard'}
+ }]}}])
+ assert.equal(result.items.length,1)
+ assert.equal(result.items[0].quality,undefined)
+ assert.deepEqual(result.items[0].tracks,[])
+ assert.equal(result.items[0].subtitleMode,'unknown')
+})
