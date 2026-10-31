@@ -131,3 +131,5 @@ All rows are **NOT RUN for this new contract** until measured in future phase PR
 | --- | --- | --- | --- | --- |
 | AC-SRC-06 D02 | `a91e7ec` (PR #100) | Linux/Windows + Chromium/WebKit fixture | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41220260198), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41220260118). Live source and iPhone NOT RUN; revalidate final docs SHA. |
 | AC-SRC-05 Torrentio | unchanged existing main and D02 branch | live addon | NOT RUN | Hash classification persists; no torrent engine or playable URL inferred. |
+
+| AC-SUB-01/02 D01 | `528f70a` branch | External English-only + native English-only browser fixtures | NOT RUN (PR CI pending) | No English download/default until explicit choice; decline leaves English inactive; preserve Id/Off. |
