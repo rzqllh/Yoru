@@ -30,7 +30,7 @@ insert into auth.users values ('${a}'),('${b}');
   await asUser(a)
   assert.equal((await put(0,valid)).rows[0].revision,1)
   await db.exec('reset role')
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261031131903_yoru_sync_required_payload_fields.sql',import.meta.url),'utf8'))
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261031134607_yoru_sync_required_payload_fields.sql',import.meta.url),'utf8'))
   await asUser(a)
   for(const payload of [{},{version:1,progress:[]},{version:1,library:[]},
    {version:1,library:null,progress:[]},{...valid,preferences:null}]){
