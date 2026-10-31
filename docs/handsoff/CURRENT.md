@@ -1,9 +1,7 @@
-# Yoru — YX-02 source-ranking checkpoint (31 Oct 2026)
+# Yoru — YX-02 coded checkpoint (31 Oct 2026)
 
-Base main: `6654894e6ee7ae9013e8f87ac71ecb6ecd9fb411` (PR #82 merged). Prior main exact-head CI Linux/Windows SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41191340624 and Chromium/WebKit SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41191340621.
+Base main `6654894e6ee7ae9013e8f87ac71ecb6ecd9fb411`, postmerge Linux/Windows SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41191340624 and Chromium/WebKit SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41191340621.
 
-Audit: #44 remains open; #77 remains draft and #78 needs live OTP/RLS/two-account sign-off; #20 release blocked. No live provider, physical iPhone, hosting, resolver or branch cleanup planned.
+CODED: `frontend/src/lib/source-ranking.ts` guards malformed/nonstring quality, absent/null subtitle track arrays and invalid track language before awarding Indonesian subtitle rank; stable native-only ordering and actual playback verification remain unchanged. Regression tests in `tests/source-ranking.test.mjs`. Commits `315e4d5` and `e8bfc37`.
 
-Scope: isolated YX-02 defensive presentation ranking for malformed provider subtitle/quality metadata; avoid throwing away healthy native candidates or inventing Indonesian subtitle score. Preserve all playback preflight and availability semantics. Add Node unit regressions, require exact-head Linux/Windows and Chromium/WebKit CI.
-
-Status: PLANNED, not CODED or TESTED. Temporary handoff must be transferred to PR/issues and removed before merge.
+TESTED: PENDING exact-head Linux/Windows and Chromium/WebKit. LIVE_VERIFIED: NO. #77/#78 external sync and #20 release remain blocked. Temporary handoff must be removed after PR/Issue evidence transfer and before merge.
