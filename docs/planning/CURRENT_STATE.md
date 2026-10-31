@@ -1,6 +1,6 @@
 # Yoru — Current State & New-Chat Recovery
 
-> **Updated:** 2026-11-01 Asia/Jakarta. **Verified main at this snapshot:** [`b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd`](https://github.com/rzqllh/Yoru/commit/b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd). This is **repository state, not proof of live production deployment**. The latest main CI after PR #108 must be checked separately; code PR checks are recorded below.
+> **Updated:** 2026-11-01 Asia/Jakarta. **Verified main at this snapshot:** [`b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd`](https://github.com/rzqllh/Yoru/commit/b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd). This is **repository state, not proof of live production deployment**. The latest main exact `b4f35bd` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41225040383) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41225040380) completed SUCCESS (four checks).
 
 ## Read this first (simple)
 
@@ -22,7 +22,7 @@
 | Reject malformed episode identity | [#105](https://github.com/rzqllh/Yoru/pull/105) | `6b85d3c` | Code merged; correctness fixture and subsequent main builds |
 | Reject explicit season mismatch | [#107](https://github.com/rzqllh/Yoru/pull/107) | `dc2bd45` | [CI](https://github.com/rzqllh/Yoru/actions/runs/41224226939) + [browser](https://github.com/rzqllh/Yoru/actions/runs/41224227162) on PR head; main CI passed in this session; not complete live season mapping |
 | Swipe hero / Anime Popular heading | [#106](https://github.com/rzqllh/Yoru/pull/106) | `f21c4a8` | [CI](https://github.com/rzqllh/Yoru/actions/runs/41223942927) + [browser](https://github.com/rzqllh/Yoru/actions/runs/41223942739) on corrected code; later integration rechecked 4/4; real iPhone pending |
-| Equal-width mobile poster grid 2:3 | [#108](https://github.com/rzqllh/Yoru/pull/108) | `b4f35bd` | [CI](https://github.com/rzqllh/Yoru/actions/runs/41224846356) + [browser](https://github.com/rzqllh/Yoru/actions/runs/41224846533) PASS on PR head; exact main CI separate |
+| Equal-width mobile poster grid 2:3 | [#108](https://github.com/rzqllh/Yoru/pull/108) | `b4f35bd` | [CI](https://github.com/rzqllh/Yoru/actions/runs/41224846356) + [browser](https://github.com/rzqllh/Yoru/actions/runs/41224846533) PASS on PR head; main exact SHA [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41225040383) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41225040380) SUCCESS |
 
 Other previously merged work includes [#99](https://github.com/rzqllh/Yoru/pull/99) malformed provider response handling and [#104](https://github.com/rzqllh/Yoru/pull/104) handoff continuity. Cloud PR [#77](https://github.com/rzqllh/Yoru/pull/77) remains **DRAFT**, not deployed/merged.
 
@@ -58,4 +58,4 @@ Other previously merged work includes [#99](https://github.com/rzqllh/Yoru/pull/
 
 ## Latest work handoff
 
-At `b4f35bd`, PRs #107, #106 and #108 have merged. The latest main commit's CI is/was running at this checkpoint; query exact commit checks rather than assuming PASS. Pending work should start with provider season and actual subtitle-source evidence, or an independent Phase 03/04 visual slice if live provider credentials/device are unavailable. **NO PUBLIC RELEASE.**
+At `b4f35bd`, PRs #107, #106 and #108 have merged. Exact main `b4f35bd` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41225040383) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41225040380) passed 4/4 checks (fixtures; not live media/iPhone). Pending work should start with provider season and actual subtitle-source evidence, or an independent Phase 03/04 visual slice if live provider credentials/device are unavailable. **NO PUBLIC RELEASE.**
