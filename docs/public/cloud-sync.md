@@ -90,3 +90,21 @@ in-memory UI session; browser-cached data is not deleted.
 Reference: [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security),
 [email OTP](https://supabase.com/docs/guides/auth/auth-email-passwordless),
 [JavaScript OTP](https://supabase.com/docs/reference/javascript/auth-verifyotp).
+
+## Two-account live acceptance harness
+
+After configuring a dedicated test project and signing in two distinct **test
+accounts**, use `node scripts/verify-device-sync-live.mjs`. It requires
+`YORU_SYNC_TEST_URL`, `YORU_SYNC_TEST_PROJECT_REF`,
+`YORU_SYNC_TEST_PUBLISHABLE_KEY`, and the two temporary access tokens in
+`YORU_SYNC_TEST_TOKEN_A` / `YORU_SYNC_TEST_TOKEN_B` environment variables.
+Never commit tokens or paste them into public issues. Use short-lived sessions.
+
+The harness refuses non-HTTPS or mismatched projects, requires independently
+verified accounts and **empty existing snapshots**, checks anonymous denial,
+per-user row visibility, stale revision conflicts and account-scoped RPC writes,
+then deletes only snapshots created by that test. Missing credentials cause
+an immediate nonzero exit code without network traffic. Run it only with
+explicit staging-test authorization. Verify the project is still empty
+following cleanup. Real browser/OTP email acceptance is **additional** to
+this script and cannot be inferred from CI mocks.
