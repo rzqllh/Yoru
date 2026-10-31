@@ -61,12 +61,14 @@ Supabase project over HTTPS.
 
 ## Data and security
 
-Cloud data includes selected anime library metadata, watch progress and
-canonicalized, whitelisted preference keys (including bounded source-provider identity and manual
-Watch Guide progress). Raw stream URLs and access tokens are not intentionally
-synced; unknown or malformed preference values are discarded. Anime metadata
-may still include poster and cover image URLs, which are included in snapshots. Content is protected from other users by RLS, but stored in
-Supabase under the project owner's administrative control; this is not
+Cloud data includes only anime ID/title plus library status and watch
+progress, and canonicalized, whitelisted preferences (including bounded source
+provider identities and manual Watch Guide progress). Third-party metadata
+such as posters, covers, synopses and stream URLs is **not** uploaded. The
+existing backup import reconstructs safe local anime models and the catalog may
+reload remaining artwork from its provider. Unknown/malformed preferences are
+discarded. Content is protected from other users by RLS, but stored in
+Supabase under the project operator's administrative control; this is **not**
 end-to-end encrypted.
 
 Limit: 500 kB per snapshot client-side, 512 KiB database-side. On any request
