@@ -1,0 +1,7 @@
+## Yoru engineering checkpoint — 2026-10-31
+
+Base `main`: `3a9b30aa7cd49d1452a5beebe62438d660628052`.
+Scope: client API request cancellation during an HTTP error JSON body read, isolated to `frontend/src/lib/api.ts` and `tests/catalog-recovery.test.mjs`.
+Status: AUDITED / PROPOSED; no test outcome claimed yet.
+Risk: a caller-aborted navigation can be misreported as HTTP 503 because error-body parsing swallows the abort. Preserve the original HTTP status for malformed error JSON, preserve cancellation for caller aborts, and retain timeout diagnostics.
+Constraints: no production deployment, Supabase, provider live, secrets, or release changes. `vercel.json` currently disables Git deployment. Remove both handoff files before merge; evidence belongs in PR and Issue #44.
