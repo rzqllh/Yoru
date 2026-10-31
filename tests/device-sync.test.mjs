@@ -106,3 +106,28 @@ test('privileged SQL lives in unexposed schema with narrow invoker RPC entrypoin
  assert.equal((sql.match(/\bas \$\$/g)??[]).length,4)
  assert.equal((sql.match(/^\$\$;$/gm)??[]).length,4)
 })
+
+test('stale cloud revision and rejected authorization never silently succeed',async()=>{
+ const session={accessToken:'token',userId:UUID,email:'test@example.com',expiresAt:Date.now()+100000}
+ const conflict=createDeviceSyncClient(SETTINGS,async()=>Response.json({message:'SYNC_CONFLICT'},{status:409}))
+ await assert.rejects(conflict.upload(session,baseline,1),/HTTP 409/)
+ const forbidden=createDeviceSyncClient(SETTINGS,async()=>Response.json({message:'not allowed'},{status:403}))
+ await assert.rejects(forbidden.read(session),/HTTP 403/)
+ const expired={...session,expiresAt:Date.now()-1000}
+ await assert.rejects(forbidden.upload(expired,baseline,0),/Sesi berakhir/)
+})
+test('corrupt payloads, invalid revisions and oversized snapshots fail before network calls',async()=>{
+ let calls=0
+ const client=createDeviceSyncClient(SETTINGS,async()=>{calls++;throw new Error('Unexpected request')})
+ const session={accessToken:'token',userId:UUID,email:'test@example.com',expiresAt:Date.now()+100000}
+ await assert.rejects(client.upload(session,{...baseline,library:'not an array'},0),/tidak valid/)
+ await assert.rejects(client.upload(session,baseline,-1),/tidak valid/)
+ const tooLarge={...baseline,preferences:Array.from({length:400},(_,i)=>({
+  key:`watch-path:route-${i}`,value:JSON.stringify({completed:1,updatedAt:1000})
+ })),library:Array.from({length:1000},(_,i)=>({
+  anime:{id:`mal:${i+1}`,malId:i+1,title:'A'.repeat(490)},
+  status:'planned',updatedAt:1000
+ }))}
+ await assert.rejects(client.upload(session,tooLarge,0),/terlalu besar/)
+ assert.equal(calls,0)
+})
