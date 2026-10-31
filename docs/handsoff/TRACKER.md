@@ -59,3 +59,8 @@ All external/owner-dependent blockers are **DEFERRED to the final acceptance pha
 - PR #80 `feat/yx13-library-sorting-20261031` based on main after PR #79. Adds persisted sort modes recent/title/score/year and unit+browser tests. Main merge pending exact-head Chromium E2E. On PR #80 branch, a temporary `docs/handsoff/CURRENT.md` checkpoint exists and must be removed before engineering merge.
 - PR #77 manual cloud sync allowlist and value parser now support `source-choice:mal:<id>:ep:<episode>` and the whitelisted `library-sort` preference, with tests; branch commits `e50a2f3`, `723ace9`, `9a3f514`, `3a91293`. Cloud project live OTP/RLS blockers still deferred, not verified. Main and Supabase database not changed by these draft edits.
 - Resume by refreshing branch HEAD, checking last CI SHA, and continuing independently testable tasks. No credentials required until final acceptance phase.
+
+## 2026-10-31 integrated YX-13 checkpoint
+- PR #80 MERGED into main as `42923d1498c2956b4bd62008cb1841f24da9a767`; final tested feature head `eedb9b89d43f2e6ca594457134ad0f012966d23d`: Linux/Windows CI run 41185084626, Chromium/WebKit E2E run 41185084633 both PASS. Handoff folder was removed before main merge. `main` now ahead of draft PR #77; reconcile when eventually integrating cloud.
+- Current cloud PR77 branch has safe whitelist for local `library-sort` and episode-scoped `source-choice` values with unit tests. Needs new CI exact-head and real Auth/RLS live tests (DEFERRED).
+- User directive: finish unblocked engineering lanes first, defer all owner-input and real-device/provider/production signoff work. Do not ask for OTP/inboxes yet.
