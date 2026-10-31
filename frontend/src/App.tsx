@@ -7,7 +7,6 @@ import {
  Bookmark,
  Check,
  ChevronDown,
- ChevronLeft,
  ChevronRight,
  Clapperboard,
  Clock3,
@@ -21,7 +20,6 @@ import {
  LoaderCircle,
  Menu,
  MonitorPlay,
- Pause,
  Play,
  Plus,
  RefreshCw,
@@ -184,7 +182,10 @@ function App(){
  const [resumingAnimeId,setResumingAnimeId]=useState<string|null>(null)
  const resumeAttempt=useRef(0)
  const [featuredIndex,setFeaturedIndex]=useState(0)
- const [rotateHero,setRotateHero]=useState(true)
+ const [heroHovered,setHeroHovered]=useState(false)
+ const [heroFocused,setHeroFocused]=useState(false)
+ const [heroTouching,setHeroTouching]=useState(false)
+ const heroTouchStart=useRef<{x:number;y:number}|null>(null)
  const daily=useDailyTrends()
  const season=useCatalog('season')
  const top=useCatalog('top')
@@ -276,13 +277,13 @@ function App(){
  const hero=featured[featuredIndex%Math.max(1,featured.length)]||season.data[0]
  const sourceDate=dailyAvailable?new Date(daily.date+'T00:00:00Z').toLocaleDateString('id-ID',{timeZone:'UTC',day:'numeric',month:'short',year:'numeric'}):''
  useEffect(()=>{
-  if(route.page!=='home'||selected||playback||!rotateHero||featured.length<2)return
+  if(route.page!=='home'||selected||playback||heroHovered||heroFocused||heroTouching||featured.length<2)return
   const motion=window.matchMedia('(prefers-reduced-motion: reduce)')
   const timer=window.setInterval(()=>{
    if(!document.hidden&&!motion.matches)setFeaturedIndex(index=>(index+1)%featured.length)
   },8000)
   return()=>window.clearInterval(timer)
- },[route.page,selected,playback,rotateHero,featured.length])
+ },[route.page,selected,playback,heroHovered,heroFocused,heroTouching,featured.length])
  const continueList=useMemo(()=>progress.filter(isResumableProgress).slice(0,6),[progress])
 
  async function resumeRow(row:ProgressEntry){
@@ -427,9 +428,39 @@ function App(){
       </div>
      </div>
 
-     {hero&&<div className="hero-card" style={hero.cover?{backgroundImage:`linear-gradient(90deg,#0e1014 0%,rgba(14,16,20,.94) 36%,rgba(14,16,20,.7) 64%,rgba(14,16,20,.2) 100%),linear-gradient(0deg,#0e1014 0%,transparent 60%),url("${hero.cover.replaceAll('"','%22')}")`}:undefined}>
+     {hero&&<div className="hero-card" role="region" aria-roledescription="carousel"
+       aria-label="Anime unggulan. Fokuskan area ini lalu tekan panah kiri atau kanan, atau geser mendatar pada layar sentuh."
+       tabIndex={0}
+       onMouseEnter={()=>setHeroHovered(true)}
+       onMouseLeave={()=>setHeroHovered(false)}
+       onFocusCapture={()=>setHeroFocused(true)}
+       onBlurCapture={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node|null))setHeroFocused(false)}}
+       onKeyDown={event=>{
+        if(event.target!==event.currentTarget||featured.length<2)return
+        if(event.key==='ArrowRight'||event.key==='ArrowLeft'){
+         event.preventDefault()
+         setFeaturedIndex(i=>(i+(event.key==='ArrowRight'?1:-1)+featured.length)%featured.length)
+        }
+       }}
+       onTouchStart={event=>{
+        if(event.touches.length!==1)return
+        heroTouchStart.current={x:event.touches[0].clientX,y:event.touches[0].clientY}
+        setHeroTouching(true)
+       }}
+       onTouchEnd={event=>{
+        const start=heroTouchStart.current
+        heroTouchStart.current=null
+        setHeroTouching(false)
+        const end=event.changedTouches[0]
+        if(!start||!end||featured.length<2)return
+        const dx=end.clientX-start.x,dy=end.clientY-start.y
+        if(Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.25)return
+        setFeaturedIndex(i=>(i+(dx<0?1:-1)+featured.length)%featured.length)
+       }}
+       onTouchCancel={()=>{heroTouchStart.current=null;setHeroTouching(false)}}
+       style={hero.cover?{backgroundImage:`linear-gradient(90deg,#0e1014 0%,rgba(14,16,20,.94) 36%,rgba(14,16,20,.7) 64%,rgba(14,16,20,.2) 100%),linear-gradient(0deg,#0e1014 0%,transparent 60%),url("${hero.cover.replaceAll('"','%22')}")`}:undefined}>
       <div className="hero-copy">
-       <div className="hero-badge"><span className="pulse"/> {dailyAvailable?'TREN HARIAN ANILIST':'10 ANIME POPULER'}</div>
+       <div className="hero-badge"><span className="pulse"/> {dailyAvailable?'TREN HARIAN ANILIST':'ANIME POPULAR'}</div>
        <h2>{hero.title}</h2>
        <div className="hero-meta">
         <span className="hero-rating"><Star size={14} fill="currentColor"/> {scoreDisplay(hero.score)}</span>
@@ -450,15 +481,6 @@ function App(){
       </div>
       <div className="hero-corner"><span>{dailyAvailable?'TREN HARIAN · ANILIST':'POPULARITAS KATALOG'}</span><ArrowDownRight size={20}/></div>
      </div>}
-     {featured.length>1&&<div className="hero-navigation">
-      <fieldset className="hero-top-ten"><legend className="sr-only">{dailyAvailable?'Pilihan tren harian AniList':'Pilihan anime populer'}</legend>{featured.map((a,i)=><button key={a.malId} type="button" aria-label={`Pilih anime peringkat ${i+1}: ${a.title}`} aria-pressed={hero?.malId===a.malId} className={hero?.malId===a.malId?"active":""} onClick={()=>setFeaturedIndex(i)}>{i+1}</button>)}</fieldset>
-      <div className="hero-navigation-actions">
-       <button type="button" aria-label="Anime sebelumnya" onClick={()=>setFeaturedIndex(i=>(i-1+featured.length)%featured.length)}><ChevronLeft size={18}/></button>
-       <button type="button" aria-label={rotateHero?'Jeda pergantian hero':'Lanjutkan pergantian hero'} aria-pressed={!rotateHero} onClick={()=>setRotateHero(value=>!value)}>{rotateHero?<Pause size={17}/>:<Play size={17}/>}</button>
-       <button type="button" aria-label="Anime berikutnya" onClick={()=>setFeaturedIndex(i=>(i+1)%featured.length)}><ChevronRight size={18}/></button>
-      </div>
-     </div>}
-
      {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
       <div className="continue-grid">
        {continueList.map(row=><button type="button" key={row.anime.id} className="continue-card" disabled={Boolean(resumingAnimeId)} onClick={()=>void resumeRow(row)}>
@@ -483,7 +505,7 @@ function App(){
 
      <Section
       eyebrow={dailyAvailable?`AKTIVITAS ANILIST · ${sourceDate} UTC`:"BERDASARKAN POPULARITAS KATALOG"}
-      title={dailyAvailable?"10 anime tren harian":"10 anime populer"}
+      title="Anime Popular"
       action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'top',libraryView:'all',searchQuery:''})}>Lihat semua <ArrowRight size={16}/></button>}
      >
       {!dailyAvailable&&top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{!dailyAvailable&&top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):featured.map((a,i)=><div className="ranked-anime" key={a.id}><span className="ranked-anime-number">{i+1}</span><Card anime={a} onOpen={setSelected}/></div>)}</div>}
