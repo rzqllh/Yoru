@@ -37,6 +37,15 @@ test.beforeEach(async({page})=>{
  await page.route('**/api/streams?**',async route=>
   route.fulfill({json:{items:[testStream]}}))
 })
+test('cloud sync is inactive without configured Supabase project and does not block local use',async({page})=>{
+ let cloudRequests=0
+ await page.route('**/*.supabase.co/**',route=>{cloudRequests++;return route.abort()})
+ await page.goto('/pengaturan')
+ await expect(page.getByRole('heading',{name:'Akun & perangkat'})).toBeVisible()
+ await expect(page.getByText(/belum diaktifkan pada build ini/)).toBeVisible()
+ expect(cloudRequests).toBe(0)
+ await expect(page.getByRole('button',{name:'Ekspor'})).toBeEnabled()
+})
 test('collection sort choice is accessible and persists through reload',async({page})=>{
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
