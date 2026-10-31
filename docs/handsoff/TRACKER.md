@@ -14,3 +14,8 @@
 | First PR CI attempt | FAILED | https://github.com/rzqllh/Yoru/actions/runs/41243589382 — ERR_MODULE_NOT_FOUND, fixed in `c39a34d` |
 | Browser first attempt | FAILED | https://github.com/rzqllh/Yoru/actions/runs/41243589492 — Chromium build, recheck needed |
 | Runtime import fix | CODED, NOT YET TESTED | `c39a34d` |
+
+| Tested branch head | VERIFIED | `10b167bed33c68f9ac9c81b6af3f91d1ffaa6e49` |
+| Linux/Windows | SUCCESS | https://github.com/rzqllh/Yoru/actions/runs/41243657089 |
+| Chromium/WebKit | SUCCESS | https://github.com/rzqllh/Yoru/actions/runs/41243657082 |
+| Cleanup-head CI | PENDING | Handoff removal changes branch SHA |
