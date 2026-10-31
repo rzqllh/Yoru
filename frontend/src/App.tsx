@@ -43,6 +43,7 @@ import Player from './components/Player'
 import WatchGuide from './components/WatchGuide'
 import {verifyNativeSource} from './lib/source-readiness'
 import {rankNativeStreams} from './lib/source-ranking'
+import {sourceMemoryKey,rememberedNativeSource,parseSourceMemory,preferRememberedSource} from './lib/source-memory'
 import {summarizeSourceSearch} from './lib/source-lifecycle'
 import {isResumableProgress} from './lib/resume'
 import {useDialogFocus} from './lib/useDialogFocus'
@@ -147,14 +148,21 @@ async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:strin
   const providers=await providerEpisodes(malId)
   const matches=providers.items.filter(item=>item.number===episode&&item.providerId!=='public-embed').slice(0,6)
   const resolved=await Promise.allSettled(matches.map(item=>streams(item.id)))
-  const candidates=rankNativeStreams(resolved.flatMap(result=>result.status==='fulfilled'?result.value.items:[]))
-   .filter(source=>source.url!==exceptUrl)
+  const stored=await getPreference(sourceMemoryKey(malId),'').catch(()=> '')
+  const candidates=preferRememberedSource(rankNativeStreams(
+   resolved.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
+  ).filter(source=>source.url!==exceptUrl),parseSourceMemory(stored))
   const visited=new Set<string>()
   for(const candidate of candidates){
    if(visited.has(candidate.url))continue
    visited.add(candidate.url)
    if(visited.size>6)break
-   try{await verifyNativeSource(candidate,10000);return candidate}catch{/* test other native */}
+   try{
+    await verifyNativeSource(candidate,10000)
+    const memory=rememberedNativeSource(candidate)
+    if(memory)void setPreference(sourceMemoryKey(malId),JSON.stringify(memory)).catch(()=>{})
+    return candidate
+   }catch{/* test other native */}
   }
  }catch{/* failed provider is not available */}
  return null
@@ -953,6 +961,8 @@ function DetailDialog({
    await verifyNativeSource(stream)
    if(requestId!==sourceRequest.current)return
    setSourceFeedback({episode:ep,phase:'verified',message:'Video native lolos pemeriksaan browser.'})
+   const memory=rememberedNativeSource(stream)
+   if(memory)void setPreference(sourceMemoryKey(info.malId),JSON.stringify(memory)).catch(()=>{})
    onWatch({anime:info,episode:ep,stream,manualSource:manual})
   }catch{
    if(requestId!==sourceRequest.current)return
@@ -984,7 +994,9 @@ function DetailDialog({
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
    if(requestId!==sourceRequest.current)return
    const summary=summarizeSourceSearch(results)
-   const native=rankNativeStreams(summary.items)
+   const remembered=await getPreference(sourceMemoryKey(info.malId),'').catch(()=> '')
+   if(requestId!==sourceRequest.current)return
+   const native=preferRememberedSource(rankNativeStreams(summary.items),parseSourceMemory(remembered))
    if(!native.length){
     setChoices({episode:ep.number,items:[embedCandidate(ep.number)],unavailable:summary.unavailable})
     setSourceFeedback({episode:ep.number,phase:summary.state,message:summary.message})
