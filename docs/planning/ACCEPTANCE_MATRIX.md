@@ -135,4 +135,4 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 
 **D01 first PR head `0ec7183` — FAIL (lint).** [CI](https://github.com/rzqllh/Yoru/actions/runs/41221002621), [browser workflow](https://github.com/rzqllh/Yoru/actions/runs/41221002597). Two lint errors corrected; `d02aef2` rerun PASS for exact PR code/test head. Final docs SHA requires additional verification.
 
-| AC-SUB-04 D09 | next caption defaults branch | Node unit + Chromium/WebKit, physical iPhone | NOT RUN | Verify default 90% cue, sans/50% background, retained old 100%/75% preference, accessible text and video safe areas. Native CSS support on actual Safari still unknown. |
+| AC-SUB-04 D09 | `b56cae5` PR #103 | Node unit + Chromium/WebKit fixture, Linux/Windows | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41222013660), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41222013653). Saved old settings retained. Actual Safari caption styling, contrast and physical visual legibility NOT RUN. |
