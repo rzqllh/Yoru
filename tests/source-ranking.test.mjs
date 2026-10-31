@@ -36,3 +36,17 @@ test('untrusted non-Indonesian tracks do not receive an invented subtitle rankin
  ]
  assert.deepEqual(rankNativeStreams(sources).map(x=>x.providerId),['verified-id','invalid-lang'])
 })
+
+test('bitrate and dimension labels never masquerade as advertised video height',()=>{
+ const sources=[
+  {format:'hls',quality:'2160kbps',subtitleMode:'unknown',tracks:[],providerId:'bitrate-2160'},
+  {format:'mp4',quality:'720p',subtitleMode:'unknown',tracks:[],providerId:'explicit-720'},
+  {format:'hls',quality:'1920x1080',subtitleMode:'unknown',tracks:[],providerId:'dimensions'},
+  {format:'mp4',quality:'1080px',subtitleMode:'unknown',tracks:[],providerId:'pixels'},
+  {format:'hls',quality:'1080p60',subtitleMode:'unknown',tracks:[],providerId:'explicit-1080'},
+  {format:'hls',quality:'480p HDR',subtitleMode:'unknown',tracks:[],providerId:'explicit-480'},
+ ]
+ assert.deepEqual(rankNativeStreams(sources).map(s=>s.providerId),[
+  'explicit-1080','explicit-720','explicit-480','bitrate-2160','dimensions','pixels'
+ ])
+})
