@@ -20,3 +20,9 @@ Status: AUDITED / IMPLEMENTATION PENDING. Work branch: `fix/subtitle-file-id-val
 - CI Linux/Windows and Chromium/WebKit on exact PR head; record actual results, not assumptions.
 - Move evidence to PR/#44, delete temporary handoff files before merge, recheck exact-head gates and main after merge.
 - External blockers (live providers, physical iPhone, Supabase OTP/RLS, hosting, release, historical branches) remain deferred.
+
+## Code checkpoint
+- Backend `normalizeOpenSubtitles` now accepts only safe integer or decimal-string file IDs; rejects booleans, arrays, objects, exponents and fractional IDs.
+- Backend `normalizeSubSource` accepts string IDs and safe integer numeric IDs without coercing arrays/objects.
+- Regression fixture in `tests/subtitle-providers.test.mjs` verifies invalid IDs are dropped and valid numeric/decimal-string IDs remain.
+- Code SHA: `2202abd3c9b128132a0d45b27032572188ad5a1c` (after test commit). CI NOT RUN at this checkpoint.
