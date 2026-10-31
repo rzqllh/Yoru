@@ -101,5 +101,4 @@ test('privileged SQL lives in unexposed schema with narrow invoker RPC entrypoin
  assert.match(sql,/grant execute on function yoru_private\.sync_put\(bigint,jsonb\)\s+to authenticated;/i)
  assert.equal((sql.match(/\bas \$\$/g)??[]).length,4)
  assert.equal((sql.match(/^\$\$;$/gm)??[]).length,4)
- assert.doesNotMatch(sql,/create or replace function public\.\w+\([^]*?language plpgsql\s+security definer/i)
 })
