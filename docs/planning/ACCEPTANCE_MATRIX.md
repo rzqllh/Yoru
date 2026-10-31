@@ -136,3 +136,5 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 **D01 first PR head `0ec7183` — FAIL (lint).** [CI](https://github.com/rzqllh/Yoru/actions/runs/41221002621), [browser workflow](https://github.com/rzqllh/Yoru/actions/runs/41221002597). Two lint errors corrected; `d02aef2` rerun PASS for exact PR code/test head. Final docs SHA requires additional verification.
 
 | AC-SUB-04 D09 | `b56cae5` PR #103 | Node unit + Chromium/WebKit fixture, Linux/Windows | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41222013660), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41222013653). Saved old settings retained. Actual Safari caption styling, contrast and physical visual legibility NOT RUN. |
+
+| AC-HOME-01/02 D06–D07 | `184536a` on Phase 03 branch | Browser: gesture, hover, focus, reduced motion and keyboard | NOT RUN (CI pending) | 8-second rotation, hover/focus/touch pause, horizontal swipe, vertical scroll, no numbered controls and Anime Popular heading; physical iOS NOT RUN. |

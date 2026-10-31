@@ -109,3 +109,5 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 - **PR #103 D09:** exact code head `b56cae5`, 4/4 checks [CI](https://github.com/rzqllh/Yoru/actions/runs/41222013660), [browser](https://github.com/rzqllh/Yoru/actions/runs/41222013653) SUCCESS. Docs follow-up exact SHA still requires verification; live Safari/legibility unknown.
 
 - **D09 merged:** [PR #103](https://github.com/rzqllh/Yoru/pull/103) main `6b13e0016670ab443ebd6cb1d212534656dff44b`, final head [CI](https://github.com/rzqllh/Yoru/actions/runs/41222189020) + [Browser](https://github.com/rzqllh/Yoru/actions/runs/41222188893) 4/4 SUCCESS. Current merged-main checks pending at checkpoint. New subtitle defaults are code shipped to `main`, NOT production/device/live-verified.
+
+- **2026-11-01 — Phase 03 D06/D07:** branch `feat/y03-swipe-hero-20261101`, code `e2e4729`, CSS `d85538c`, browser tests `184536a`. Removed hero numbering/controls, added pause and swipe, renamed Anime Popular. **CI NOT RUN, NOT MERGED**, see [Phase 03 handoff](handoffs/PHASE_03_HANDOFF.md).
