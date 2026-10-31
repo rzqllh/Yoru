@@ -46,3 +46,6 @@ Mock CI tests are not LIVE_VERIFIED.
 
 ## Session recovery
 Read this file and `docs/handsoff/CURRENT.md`, check GitHub SHA/PR77 and latest CI runs and Issue #78. Inspect Supabase Yoru project `ospwrqyfvfxnippknire`, existing migration ledger and RLS. Keep all secrets out of docs. Don't merge before live auth signoff. On each meaningful task update this tracker and `CURRENT.md`; clean both before main merge.
+
+## Owner priority decision — 31 October 2026
+All external/owner-dependent blockers are **DEFERRED to the final acceptance phase**: two-account OTP, physical iPhone, authorized video/subtitle providers, torrent resolver approval, production hosting and release signoff. Do not repeatedly request owner input or falsely mark these done. Continue independent code, tests, UX and performance work on isolated branches first. YX-06 episode-scoped source recovery is active in PR #79 based on main; cloud draft PR #77 remains unmerged. Keep this handoff temporary; remove it before any main merge after preserving state in Issue #78/PR comments.
