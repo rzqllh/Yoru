@@ -33,3 +33,17 @@ User requests full remaining Yoru backlog delivered in dependency order, with th
 
 ## Recovery commands
 Fetch branch, read this checkpoint and PR #77/#78, verify exact refs and CI, inspect Supabase migration ledger / RLS and security advisor; continue implementation without depending on old chats.
+
+## 2026-10-31 follow-up: read-only database audit + regression
+- Supabase SQL read-only queries succeeded: `count(*) = 0`, `relrowsecurity = true`; `information_schema.role_table_grants` shows `authenticated` has only SELECT on `public.yoru_sync_snapshots`; `postgres` and `service_role` retain administrative rights (expected). `pg_proc` shows public `yoru_sync_put`/`yoru_sync_delete` are SECURITY INVOKER while `yoru_private.sync_put`/`sync_delete` are SECURITY DEFINER.
+- Added `tests/device-sync.test.mjs` regression coverage for HTTP 409 conflict, HTTP 403 access denied, expired session, invalid snapshots/revisions, and >500 KB client limit. Commit `f345bc1a9d47ae824b9fa5ebb52399f1e03b2060`. Exact-head CI run https://github.com/rzqllh/Yoru/actions/runs/41182511755 and Browser E2E https://github.com/rzqllh/Yoru/actions/runs/41182511769 were PENDING when this line was written. Do not cite older passing CI as evidence for this commit.
+- Live RLS two-user/anon authentication still not tested. Cloud frontend not configured with public URL/publishable key; no real-device sync. No merge, release, or unrelated Supabase project changes.
+
+## Ordered remaining execution lanes
+1. Cloud live acceptance: dedicated Yoru project authenticated OTP + two separate users, public RPC read/write isolation, revision conflict, browser upload/download. Address faults; then reviewed, CI-verified PR #77 merge **after deleting this folder**.
+2. Automatic two-way device sync: design versioned per-entry records, deletion tombstones, idempotent offline queue, conflict strategy and account/device lifecycle. Do not simulate with periodic full-snapshot overwrite.
+3. YX-06 player smart recovery & next: verified fresh candidates only, abortable fallbacks, conservative source identity.
+4. Authorized provider and subtitles G1-G3: needs genuine endpoints, credentials and operator approval; torrent resolver is explicitly gated behind security/legal review.
+5. Watch Guide long-tail chronology with citations, UI/UX, performance/CWV, accessibility and search.
+6. Physical Safari G4, public HTTPS/security/rollback G5 and final acceptance G6 need empirical owner-controlled resources. NO-GO until gates passed.
+7. Branch/artifact cleanup only after evidence preservation, no deleting unique unmerged work. Merge PR only after `docs/handsoff/` removal and state copied to issues.
