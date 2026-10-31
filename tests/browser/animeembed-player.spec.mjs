@@ -1,178 +1,39 @@
-import { expect, test } from '@playwright/test'
+import {expect,test} from '@playwright/test'
 
-const testAnime = {
-  id: 'mal:52991',
-  malId: 52991,
-  title: 'Sousou no Frieren',
-  englishTitle: 'Frieren: Beyond Journey\'s End',
-  japaneseTitle: '葬送のフリーレン',
-  poster: null,
-  cover: null,
-  synopsis: 'The adventure is over but life goes on for an elf mage.',
-  score: 9.3,
-  episodes: 28,
-  year: 2023,
-  status: 'Finished Airing',
-  type: 'TV',
-  rating: 'PG-13',
-  genres: ['Adventure', 'Drama', 'Fantasy'],
-  studios: ['Madhouse'],
-  trailerYoutubeId: null
+const anime={
+ id:'mal:52991',malId:52991,title:'Sousou no Frieren',
+ englishTitle:"Frieren: Beyond Journey's End",japaneseTitle:null,poster:null,cover:null,
+ synopsis:'Fixture.',score:9,episodes:1,year:2023,status:'Finished Airing',type:'TV',
+ rating:'PG-13',genres:['Fantasy'],studios:[],trailerYoutubeId:null
 }
-
-const testEpisode = {
-  id: 'mal:52991:1',
-  animeId: 'mal:52991',
-  number: 1,
-  title: 'The Journey\'s End',
-  filler: false,
-  recap: false
-}
-
-const embedStream = {
-  id: 'public-embed:52991:1:0',
-  providerId: 'External embed (unverified)',
-  format: 'embed',
-  url: 'https://www.animeembed.com/embed/mal/52991/1',
-  subtitleMode: 'unknown',
-  tracks: [],
-  quality: 'External player'
-}
-
-test.beforeEach(async ({ page }) => {
-  await page.route('https://www.animeembed.com/**',async route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body>Fixture</body></html>'}))
-  await page.route('**/api/anime/discover?**', async route =>
-    route.fulfill({ json: { items: [testAnime], page: 1, hasNext: false } })
-  )
-  await page.route('**/api/anime/search?**', async route =>
-    route.fulfill({ json: { items: [testAnime], page: 1, hasNext: false } })
-  )
-  await page.route('**/api/anime/52991', async route =>
-    route.fulfill({ json: testAnime })
-  )
-  await page.route('**/api/anime/52991/episodes?**', async route =>
-    route.fulfill({ json: { items: [testEpisode], page: 1, hasNext: false } })
-  )
-  await page.route('**/api/anime/52991/provider-episodes', async route =>
-    route.fulfill({ json: { items: [] } }) // forces external embed fallback
-  )
-  await page.route('**/api/streams?**', async route =>
-    route.fulfill({ json: { items: [embedStream] } })
-  )
+test.beforeEach(async({page})=>{
+ await page.route('**/api/anime/daily-trends',route=>route.fulfill({status:503,json:{error:'DAILY_TRENDS_UNAVAILABLE'}}))
+ await page.route('**/api/anime/discover?**',route=>route.fulfill({json:{items:[anime],page:1,hasNext:false}}))
+ await page.route('**/api/anime/52991',route=>route.fulfill({json:anime}))
+ await page.route('**/api/anime/52991/episodes?**',route=>route.fulfill({json:{items:[{id:'mal:52991:1',animeId:anime.id,number:1,title:'Episode 1'}],page:1,hasNext:false}}))
 })
-
-test('AnimeEmbed requires explicit unverified fallback consent and displays the embed frame', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Buka Sousou no Frieren' }).first().click()
-  await expect(page.getByRole('dialog', { name: 'Detail Sousou no Frieren' })).toBeVisible()
-
-  await page.locator('.episode-list .episode-row').first().click()
-  await page.locator('.source-options button').first().click()
-  await expect(page.getByRole('main', { name: 'Layar tonton' })).toBeVisible()
-
-  // Verify iframe existence and initial clean URL
-  const iframe = page.getByTitle('Video alternatif · Episode 1')
-  await expect(iframe).toBeVisible()
-  await expect(iframe).toHaveAttribute('src', 'https://www.animeembed.com/embed/mal/52991/1')
-
-  // Verify truthful subtitle disclosure
-  await expect(page.getByText(/Pilihan subtitle mengikuti video/i)).toBeVisible()
-  await expect(page.getByText(/Progress tersimpan di browser ini/i)).toBeVisible()
+test('no configured provider never offers uncontrolled AnimeEmbed fallback (D02)',async({page})=>{
+ await page.route('**/api/anime/52991/provider-episodes',route=>route.fulfill({json:{items:[]}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Sousou no Frieren'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const detail=page.getByRole('dialog',{name:'Detail Sousou no Frieren'})
+ await expect(detail.getByText(/Video alternatif tanpa kontrol subtitle tidak ditawarkan/)).toBeVisible()
+ await expect(detail.locator('.source-options button')).toHaveCount(0)
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
+ await expect(page.locator('iframe[src*="animeembed.com"]')).toHaveCount(0)
 })
-
-test('AnimeEmbed postMessage progress, pause, and ended update IndexedDB and enable resume on reload', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Buka Sousou no Frieren' }).first().click()
-  await page.locator('.episode-list .episode-row').first().click()
-  await page.locator('.source-options button').first().click()
-  await expect(page.getByRole('main', { name: 'Layar tonton' })).toBeVisible()
-
-  const helperReadDB = () =>
-    page.evaluate(async () => {
-      const req = indexedDB.open('yoru-local-v1')
-      return new Promise((resolve, reject) => {
-        req.onerror = () => reject(req.error)
-        req.onsuccess = () => {
-          const db = req.result
-          const tx = db.transaction('progress', 'readonly')
-          const get = tx.objectStore('progress').get('mal:52991')
-          get.onerror = () => reject(get.error)
-          get.onsuccess = () => {
-            resolve(get.result)
-            db.close()
-          }
-        }
-      })
-    })
-
-  // 1. Simulate real AnimeEmbed postMessage: 'pause' event with currentTime = 150 seconds
-  await page.evaluate(() => {
-    const frame = document.querySelector('iframe')
-    if (frame?.contentWindow) {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: 'https://www.animeembed.com',
-          source: frame.contentWindow,
-          data: {
-            channel: 'animeembed',
-            version: 1,
-            event: 'pause',
-            data: { currentTime: 150, duration: 1420 }
-          }
-        })
-      )
-    }
-  })
-
-  // Verify progress was written to IndexedDB
-  await expect.poll(async () => {
-    const data = await helperReadDB()
-    return data?.episode === 1 && data.seconds === 150 && data.duration === 1420
-  }, { timeout: 10000 }).toBe(true)
-
-  // 2. Untrusted origin postMessage is rejected and does not corrupt IndexedDB
-  await page.evaluate(() => {
-    const frame = document.querySelector('iframe')
-    if (frame?.contentWindow) {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: 'https://attacker.example.com',
-          source: frame.contentWindow,
-          data: {
-            channel: 'animeembed',
-            version: 1,
-            event: 'pause',
-            data: { currentTime: 9999, duration: 9999 }
-          }
-        })
-      )
-    }
-  })
-
-  // Verify data is still 150 (untouched)
-  const dataAfterSpoof = await helperReadDB()
-  expect(dataAfterSpoof?.seconds).toBe(150)
-
-  // 3. Close the player
-  await page.getByRole('button', { name: 'Kembali' }).click()
-  await expect(page.getByRole('main', { name: 'Layar tonton' })).not.toBeVisible()
-
-  // 4. Reopen episode 1: verify that resume position is loaded into the iframe src query parameter (?start=150)
-  await page.getByRole('button', { name: 'Buka Sousou no Frieren' }).first().click()
-  await page.locator('.episode-list .episode-row').first().click()
-  await page.locator('.source-options button').first().click()
-  await expect(page.getByRole('main', { name: 'Layar tonton' })).toBeVisible()
-
-  const resumedIframe = page.getByTitle('Video alternatif · Episode 1')
-  await expect(resumedIframe).toBeVisible()
-
-  // Check URL has start=150
-  await expect.poll(async () => {
-    const src = await resumedIframe.getAttribute('src')
-    return src
-  }, { timeout: 5000 }).toContain('start=150')
-
-  // Check heading displays resume indicator
-  await expect(page.getByText(/Melanjutkan dari 2m 30s/)).toBeVisible()
+test('embed-only provider response remains unplayable (D02)',async({page})=>{
+ await page.route('**/api/anime/52991/provider-episodes',route=>route.fulfill({json:{items:[{id:'fixture:52991:1',animeId:anime.id,number:1,title:'Episode 1',providerId:'fixture'}]}}))
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[{
+  id:'fixture:embed',providerId:'fixture',format:'embed',
+  url:'https://www.animeembed.com/embed/mal/52991/1',tracks:[],subtitleMode:'unknown'
+ }]}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Sousou no Frieren'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const detail=page.getByRole('dialog',{name:'Detail Sousou no Frieren'})
+ await expect(detail.getByText(/Belum ada video yang dapat diperiksa/)).toBeVisible()
+ await expect(detail.locator('.source-options button')).toHaveCount(0)
+ await expect(page.locator('iframe[src*="animeembed.com"]')).toHaveCount(0)
 })
-
