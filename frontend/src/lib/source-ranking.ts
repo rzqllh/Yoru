@@ -5,7 +5,9 @@ export function rankNativeStreams<T extends Pick<Stream,'format'|'quality'|'trac
  const native=streams.filter(stream=>stream.format==='hls'||stream.format==='mp4')
  const score=(stream:T)=>{
   const quality=typeof stream.quality==='string'?stream.quality:''
-  const height=Number(/(?:^|\D)(2160|1440|1080|720|480|360|240)(?:p|\D|$)/i.exec(quality)?.[1]||0)
+  // Quality is untrusted provider text: bitrate (1080kbps), dimensions and
+  // 1080px are not evidence of a 1080p rendition. Explicit p labels only.
+  const height=Number(/(?:^|[^a-z0-9])(2160|1440|1080|720|480|360|240)p(?![a-z])/i.exec(quality)?.[1]||0)
   // Provider metadata is untrusted: malformed tracks must not hide valid video candidates.
   const tracks=Array.isArray(stream.tracks)?stream.tracks:[]
   const subtitles=tracks.some(track=>track&&typeof track.lang==='string'&&track.lang.toLowerCase()==='id')?55:0
