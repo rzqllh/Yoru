@@ -65,7 +65,7 @@ export async function browseAnime(input:BrowseFilters){
  if(input.genre){
   let id:number|undefined
   if(Object.hasOwn(genreIds,input.genre))id=genreIds[input.genre]
-  else if(/^mal:[1-9]\\d{0,2}$/.test(input.genre)){
+  else if(/^mal:[1-9]\d{0,2}$/.test(input.genre)){
    const options=await getAnimeGenreOptions()
    const candidate=Number(input.genre.slice(4))
    id=options.items.find(item=>item.id===candidate)?.id
