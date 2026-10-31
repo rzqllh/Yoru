@@ -14,6 +14,14 @@ function isProviderSourceResponse(value:unknown):value is ProviderSourceResponse
  return Array.isArray(data.items)&&
   (data.unavailable===undefined||Array.isArray(data.unavailable))
 }
+/** Discard malformed individual records without losing valid provider candidates. */
+function isSourceCandidate(value:unknown):value is Stream{
+ if(!value||typeof value!=='object'||Array.isArray(value))return false
+ const source=value as Record<string,unknown>
+ return (source.format==='hls'||source.format==='mp4'||source.format==='embed')&&
+  typeof source.url==='string'&&source.url.trim().length>0
+}
+
 /**
  * Search responses are candidate *metadata*, never proof that video can decode.
  * An individual failed provider must not erase evidence from healthy providers.
@@ -24,7 +32,7 @@ export function summarizeSourceSearch(
  const successful=results.flatMap(r=>r.status==='fulfilled'&&isProviderSourceResponse(r.value)?[r.value]:[])
  const responded=successful.length
  const failed=results.length-responded
- const items=successful.flatMap(r=>r.items).slice(0,60)
+ const items=successful.flatMap(r=>r.items).filter(isSourceCandidate).slice(0,60)
  const unavailable=[...new Map(successful.flatMap(r=>r.unavailable??[])
   .filter(x=>x&&typeof x.reason==='string'&&typeof x.label==='string')
   .map(item=>[`${item.kind}:${item.label}:${item.reason}`,item] as const)).values()].slice(0,20)
