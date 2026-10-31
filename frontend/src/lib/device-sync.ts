@@ -88,7 +88,7 @@ export function mergeDownloadedBackup(local:Backup,remote:Backup):Backup{
  if(!validateBackup(local)||!validateBackup(remote))
   throw new Error('Format cadangan lokal atau cloud tidak valid')
  function freshest<T extends {anime:{id:string};updatedAt:number}>(own:T[],other:T[]):T[]{
-  const rows=new Map(own.map(row=>[row.anime.id,row]))
+  const rows=new Map<string,T>(own.map(row=>[row.anime.id,row]))
   for(const row of other){
    const previous=rows.get(row.anime.id)
    if(!previous||row.updatedAt>previous.updatedAt)rows.set(row.anime.id,row)
