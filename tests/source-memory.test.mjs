@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import {test} from 'node:test'
-import {sourceMemoryKey,rememberedNativeSource,parseSourceMemory,preferRememberedSource} from '../frontend/src/lib/source-memory.ts'
+import {sourceMemoryKey,readRememberedSource,saveRememberedSource,rememberedNativeSource,parseSourceMemory,preferRememberedSource} from '../frontend/src/lib/source-memory.ts'
 
 const NOW=1_800_000_000_000
 const stream=(providerId,format='hls')=>({providerId,format})
@@ -31,4 +31,34 @@ test('remembered candidate is preferred but other candidates retain stable order
   ['remembered','quality-high','fallback'])
  assert.deepEqual(preferRememberedSource(options,null),options)
  assert.notEqual(preferRememberedSource(options,memo),options)
+})
+
+test('episode-specific preference wins and legacy anime-wide key remains fallback',async()=>{
+ const records=new Map()
+ const read=async key=>records.get(key)??''
+ const write=async(key,value)=>{records.set(key,value)}
+ const first=stream('original-source')
+ const second=stream('episode-two-source','mp4')
+ assert.equal(await saveRememberedSource(17,1,first,write),true)
+ assert.equal(sourceMemoryKey(17,1),'source-choice:mal:17:ep:1')
+ assert.equal(parseSourceMemory(records.get(sourceMemoryKey(17,1)))?.providerId,'original-source')
+ assert.equal((await readRememberedSource(17,2,read))?.providerId,'original-source')
+ assert.equal(await saveRememberedSource(17,2,second,write),true)
+ assert.equal((await readRememberedSource(17,1,read))?.providerId,'original-source')
+ assert.equal((await readRememberedSource(17,2,read))?.providerId,'episode-two-source')
+ assert.equal((await readRememberedSource(17,3,read))?.providerId,'episode-two-source')
+ assert.equal(records.size,3)
+})
+test('episode memory rejects invalid identity, unverified embed and invalid persisted payload',async()=>{
+ const records=new Map()
+ const write=async(k,v)=>{records.set(k,v)}
+ assert.throws(()=>sourceMemoryKey(1,0),/INVALID_EPISODE/)
+ assert.throws(()=>sourceMemoryKey(1,20001),/INVALID_EPISODE/)
+ assert.equal(await saveRememberedSource(1,1,stream('embed-source','embed'),write),false)
+ assert.equal(await saveRememberedSource(1,-1,stream('native'),write),false)
+ assert.equal(records.size,0)
+ records.set(sourceMemoryKey(1,1),'{"providerId":"https://evil.example/token"}')
+ records.set(sourceMemoryKey(1),JSON.stringify(rememberedNativeSource(stream('legacy-safe'),NOW)))
+ assert.equal((await readRememberedSource(1,1,async key=>records.get(key)??'',NOW))?.providerId,'legacy-safe')
+ assert.equal(await readRememberedSource(1,1,async()=>{throw new Error('Storage unavailable')}),null)
 })
