@@ -37,7 +37,9 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [selectedSubtitle,setSelectedSubtitle]=useState<{id:string;lang:string;url:string}|null>(null)
  const [subtitleOff,setSubtitleOff]=useState(false)
  const [subtitleManual,setSubtitleManual]=useState(false)
- const [englishOfferDismissed,setEnglishOfferDismissed]=useState(false)
+ const [englishOfferDismissedFor,setEnglishOfferDismissedFor]=useState('')
+ const subtitleOfferKey=`${anime?.id??'demo'}:${episode}`
+ const englishOfferDismissed=englishOfferDismissedFor===subtitleOfferKey
  const [subtitlePreference,setSubtitlePreference]=useState<'auto'|'id'|'en'|'off'>('auto')
  const [subtitlePreferenceReady,setSubtitlePreferenceReady]=useState(false)
  const [captionFont,setCaptionFont]=useState<'sans'|'serif'>('sans')
@@ -199,9 +201,6 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   return()=>{alive=false}
  },[anime,demo])
 
- useEffect(()=>{
-  setEnglishOfferDismissed(false)
- },[anime?.id,episode])
  useEffect(()=>{
   if(demo||!anime||stream.format==='embed')return
   const controller=new AbortController()
@@ -741,7 +740,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    {!subtitleSearch&&!subtitleOff&&!selectedSubtitle&&!englishOfferDismissed&&subtitlePreference!=='en'&&
     !stream.tracks.some(track=>track.lang==='id')&&!subtitleChoices.some(item=>item.language==='id')&&
     (stream.tracks.some(track=>track.lang==='en')||subtitleChoices.some(item=>item.language==='en'))&&
-    <div className="subtitle-indonesia-state" role="group" aria-label="Konfirmasi subtitle English">
+    <fieldset className="subtitle-indonesia-state" aria-label="Konfirmasi subtitle English">
      <p>Sub Indo belum tersedia. Gunakan subtitle English untuk episode ini?</p>
      <button type="button" onClick={()=>{
       const native=stream.tracks.some(track=>track.lang==='en')
@@ -750,13 +749,13 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
        const candidate=subtitleChoices.find(item=>item.language==='en')
        if(candidate)void activateSubtitle(candidate,true)
       }
-      setEnglishOfferDismissed(true)
+      setEnglishOfferDismissedFor(subtitleOfferKey)
      }}>Gunakan subtitle English</button>
      <button type="button" onClick={()=>{
-      setEnglishOfferDismissed(true)
+      setEnglishOfferDismissedFor(subtitleOfferKey)
       setSubtitleState('English tidak diaktifkan. Subtitle tetap tidak tersedia.')
      }}>Tidak sekarang</button>
-    </div>}
+    </fieldset>}
    {!subtitleSearch&&!stream.tracks.some(t=>t.lang==='id')&&!subtitleChoices.some(item=>item.language==='id')&&<p className="subtitle-indonesia-state" role="status">Sub Indo belum tersedia untuk episode ini. Tambahkan file SRT atau VTT dari perangkat.</p>}
    <div className="subtitle-upload">
     <label htmlFor="yoru-subtitle-upload"><Upload size={16}/> Tambahkan subtitle dari perangkat</label>

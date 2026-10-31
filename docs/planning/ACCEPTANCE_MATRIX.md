@@ -133,3 +133,5 @@ All rows are **NOT RUN for this new contract** until measured in future phase PR
 | AC-SRC-05 Torrentio | unchanged existing main and D02 branch | live addon | NOT RUN | Hash classification persists; no torrent engine or playable URL inferred. |
 
 | AC-SUB-01/02 D01 | `528f70a` branch | External English-only + native English-only browser fixtures | NOT RUN (PR CI pending) | No English download/default until explicit choice; decline leaves English inactive; preserve Id/Off. |
+
+**D01 first PR head `0ec7183` — FAIL (lint).** [CI](https://github.com/rzqllh/Yoru/actions/runs/41221002621), [browser workflow](https://github.com/rzqllh/Yoru/actions/runs/41221002597). Fix awaiting fresh exact-head results.
