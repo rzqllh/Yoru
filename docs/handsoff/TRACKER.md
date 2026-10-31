@@ -2,10 +2,10 @@
 
 | Check | Status | Evidence |
 | --- | --- | --- |
-| Main HEAD / PR / CI / #44/#78 audit | VERIFIED | `503212d1`, Actions `41222655954` and `41222656068` SUCCESS; PR #77 draft; #44/#78 open |
-| Episode metadata type guard | PLANNED | `backend/providers/subtitles.ts` `confidence()` currently coerces boolean/array into numbers |
-| Regression tests | PLANNED | `tests/subtitle-providers.test.mjs` |
-| Branch Linux/Windows CI | PENDING | Exact-head workflow required |
-| Branch Chromium/WebKit | PENDING | Exact-head workflow required |
-| Live subtitle and production | BLOCKED / DEFERRED | Issue #20 G3/G5; no external access attempted |
-| Temporary handoff cleanup | PENDING | Delete both files before merge |
+| Baseline main and PR audit | VERIFIED | `503212d1`, PR #77 draft, issues #44/#78 open |
+| Subtitle episode coercion guard | CODED | `524c372` |
+| Regression tests | CODED | `fe5eba9` |
+| CI Linux/Windows | PENDING | Exact-head run required |
+| Chromium/WebKit | PENDING | Exact-head run required |
+| External live gates | BLOCKED | Issue #20, no production activity |
+| Handoff cleanup | PENDING | Delete before merge |
