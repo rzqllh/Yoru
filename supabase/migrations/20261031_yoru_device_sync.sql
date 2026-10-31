@@ -15,25 +15,21 @@ create table if not exists public.yoru_sync_snapshots (
  )
 );
 alter table public.yoru_sync_snapshots enable row level security;
+-- Direct PostgREST writes are forbidden: only revision-guarded account RPCs
+-- may change rows. RLS still restricts SELECT to the signed-in account.
 revoke all on table public.yoru_sync_snapshots from public, anon, authenticated;
-grant select, insert, update, delete on public.yoru_sync_snapshots to authenticated;
-
+grant select on public.yoru_sync_snapshots to authenticated;
 create policy "yoru_sync_select_own" on public.yoru_sync_snapshots
  for select to authenticated using (user_id = (select auth.uid()));
-create policy "yoru_sync_insert_own" on public.yoru_sync_snapshots
- for insert to authenticated with check (user_id = (select auth.uid()));
-create policy "yoru_sync_update_own" on public.yoru_sync_snapshots
- for update to authenticated using (user_id = (select auth.uid()))
- with check (user_id = (select auth.uid()));
-create policy "yoru_sync_delete_own" on public.yoru_sync_snapshots
- for delete to authenticated using (user_id = (select auth.uid()));
 
 -- Compare-and-swap prevents simultaneous devices overwriting an unobserved
 -- remote revision. Users explicitly choose to upload/download a snapshot.
 create or replace function public.yoru_sync_put(
  expected_revision bigint, next_payload jsonb
 ) returns bigint
-language plpgsql security invoker
+-- Elevated only inside this owner-scoped function. auth.uid() is derived
+-- from the verified caller JWT; all table objects are schema-qualified.
+language plpgsql security definer
 set search_path = ''
 as $$
 declare
@@ -69,6 +65,25 @@ end;
 $$;
 revoke all on function public.yoru_sync_put(bigint,jsonb) from public, anon;
 grant execute on function public.yoru_sync_put(bigint,jsonb) to authenticated;
+
+create or replace function public.yoru_sync_delete()
+returns boolean
+language plpgsql security definer
+set search_path = ''
+as $
+declare
+ owner_id uuid;
+ deleted boolean;
+begin
+ owner_id := (select auth.uid());
+ if owner_id is null then raise exception 'AUTH_REQUIRED'; end if;
+ delete from public.yoru_sync_snapshots where user_id = owner_id;
+ deleted := found;
+ return deleted;
+end;
+$;
+revoke all on function public.yoru_sync_delete() from public, anon;
+grant execute on function public.yoru_sync_delete() to authenticated;
 
 -- RLS must be tested with two distinct authenticated identities and anonymous
 -- access denied before production. No service_role credential belongs in UI.
