@@ -49,3 +49,8 @@ Read this file and `docs/handsoff/CURRENT.md`, check GitHub SHA/PR77 and latest 
 
 ## Owner priority decision — 31 October 2026
 All external/owner-dependent blockers are **DEFERRED to the final acceptance phase**: two-account OTP, physical iPhone, authorized video/subtitle providers, torrent resolver approval, production hosting and release signoff. Do not repeatedly request owner input or falsely mark these done. Continue independent code, tests, UX and performance work on isolated branches first. YX-06 episode-scoped source recovery is active in PR #79 based on main; cloud draft PR #77 remains unmerged. Keep this handoff temporary; remove it before any main merge after preserving state in Issue #78/PR comments.
+
+## 31 Oct 2026 — independent engineering lane integrated
+- YX-06 episode-scoped source memory PR #79 **MERGED** into `main` as `e5b306086f1e58b44a5a8311da5312ce1f1347ec`. Exact final PR HEAD `6478d35bc4a14eedd9d0636f4325c836a891417e` passed Linux/Windows CI (run 41184402304) and Chromium/WebKit Browser E2E (run 41184406682). Temporary `docs/handsoff/` checkpoint was removed from PR #79 before merging; main remains free of handoff artifacts.
+- PR #77 now needs rebasing or reconciling after main advancement and retains its own temporary handoff. Cloud preference allowlist expanded to support `source-choice:mal:<id>:ep:<episode>` safely, tests added on draft head `723ace9a`; CI must be checked fresh.
+- All externally dependent release/auth/provider/device blockers remain DEFERRED, not completed; no request for credentials at this stage.
