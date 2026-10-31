@@ -131,3 +131,26 @@ test('corrupt payloads, invalid revisions and oversized snapshots fail before ne
  await assert.rejects(client.upload(session,tooLarge,0),/terlalu besar/)
  assert.equal(calls,0)
 })
+
+test('cloud snapshots strip third-party metadata, stream URLs and arbitrary fields',()=>{
+ const anime={
+  id:'mal:21',malId:21,title:'Episode sample',
+  poster:'https://example.com/poster.png?token=secret',
+  cover:'https://example.com/cover.png?session=private',
+  synopsis:'A synopsis containing OAuth bearer credential',
+  streamUrl:'https://media.example/video.m3u8?api_key=secret',
+  arbitrary:{service_role:'sensitive'}
+ }
+ const input={version:1,library:[{anime,status:'watching',updatedAt:1000}],
+  progress:[{anime,episode:2,seconds:125,duration:1400,updatedAt:1000}],
+  preferences:[]}
+ const snapshot=syncableBackup(input)
+ assert.deepEqual(snapshot.library,[{anime:{id:'mal:21',malId:21,title:'Episode sample'},
+  status:'watching',updatedAt:1000}])
+ assert.deepEqual(snapshot.progress,[{anime:{id:'mal:21',malId:21,title:'Episode sample'},
+  episode:2,seconds:125,duration:1400,updatedAt:1000}])
+ assert.equal(JSON.stringify(snapshot).includes('api_key'),false)
+ assert.equal(JSON.stringify(snapshot).includes('OAuth'),false)
+ assert.equal(JSON.stringify(snapshot).includes('service_role'),false)
+ assert.equal(snapshot.version,1)
+})
