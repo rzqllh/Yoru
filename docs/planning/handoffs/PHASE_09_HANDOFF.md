@@ -65,3 +65,10 @@ vercel.json, api/index.ts, docs/public/production-readiness.md, docs/public/oper
 ## Checkpoint history
 
 - **2026-10-31 — BASELINE / PLANNING:** handoff initialized from repository, epic/gate and user-approved UX/CX decisions. No code, cloud, production configuration or release change in this handoff.
+
+## 2026-11-01 — Post-chat recovery hosting checkpoint (READ-ONLY)
+
+- **Source:** GitHub `main` `bf3105da` (PR #109); exact SHA [CI](https://github.com/rzqllh/Yoru/actions/runs/41225489034) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41225489043) both report SUCCESS.
+- **Deployment:** READY production `dpl_514E91c6XQkRCvF2wS5YumdgvgrU`, commit `5496aae`, alias `https://yoru-omega.vercel.app`; build logs confirm actual build on Vercel, not a cancelled ignored step. This is not latest `main`.
+- **HTTP evidence:** `/api/health`, `/api/anime/discover` and root request did not return HTTP status in this execution environment (DNS/network access failed). Their **live status remains UNKNOWN**; 30-minute runtime log query returned no entries. Do not infer success or failure.
+- **Release/next:** [#20](https://github.com/rzqllh/Yoru/issues/20) G1–G6 NO-GO; first obtain real live response status/body and provider/device evidence, then follow an approved exact-SHA production deployment/release gate. No production or configuration modification in this checkpoint.
