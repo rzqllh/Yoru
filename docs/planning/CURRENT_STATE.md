@@ -78,3 +78,7 @@ At `b4f35bd`, PRs #107, #106 and #108 have merged. Exact main `b4f35bd` [Linux/W
 
 - [PR #116](https://github.com/rzqllh/Yoru/pull/116) adds `GET /api/anime/genres`, an explicit source-labeled validated Tenrai/MAL genre list with bounded cache/timeouts and a safe 12-genre fallback if Tenrai fails. This is **API-only**: existing UI still offers 12 genre choices; newly returned genres are not yet permitted by the search backend. Code/test head `27eb458`: [CI](https://github.com/rzqllh/Yoru/actions/runs/41244040283) and [Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41244040288) SUCCESS on deterministic fixtures. Not live hosted or physical device evidence.
 - Another independent source-picker improvement [#115](https://github.com/rzqllh/Yoru/pull/115) has merged into main `1217bcd`. Production remains on older SHA `5496aae`, and public release #20, cloud #77/#78, authorized live media/subtitles and iPhone still require evidence. Final #116 merge and exact-main CI must be verified separately.
+
+### 2026-11-01 — Phase 04 genre filter follow-up branch (CODED/PENDING)
+
+- [#116](https://github.com/rzqllh/Yoru/pull/116) merged as `ae43a69`: safe, source-labelled Tenrai genre-options API. Follow-up branch `feat/y04-genre-filter-ui-20261101` wires API options to Browse, preserves legacy URL names and validates added MAL numeric options server-side. Tests and PR checks are pending, so this is **not yet in main or production**. AniList tags, actual upstream and physical device verification remain separate blockers.
