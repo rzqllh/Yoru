@@ -2,8 +2,9 @@
 
 - Baseline `main`: `524b56ae720a026122a7816f5a9a6d4f543448c9`.
 - Slice: YX-02 native candidate URL input resilience.
-- Scope: `frontend/src/lib/source-readiness.ts` and `tests/source-readiness.test.mjs` only.
-- Baseline CI: Linux/Windows SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41195201540; Chromium/WebKit SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41195201528.
-- New branch CI: NOT RUN. Live provider/iPhone/RLS: NOT VERIFIED.
-- PR #77 / Issue #78 and release gate #20: BLOCKED, not part of this change.
-- Next: implement URL guard, add unit regressions, wait for exact-head CI and browser E2E, remove this handoff before merge.
+- CODED on isolated branch: reject malformed stream objects and non-string URL fields before `startsWith` and browser preflight. Add regression proving `verifyNativeSource` rejects without accessing DOM for invalid input.
+- Files: `frontend/src/lib/source-readiness.ts`, `tests/source-readiness.test.mjs`.
+- Baseline Linux/Windows CI SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41195201540; Chromium/WebKit SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41195201528.
+- Branch unit / CI / browser tests: NOT YET VERIFIED. This checkpoint is not merge authorization.
+- PR #77 / Issue #78 and release gate #20: BLOCKED; no live provider/iPhone/RLS/production action.
+- Next: PR, exact-head CI + browser checks, remove handoff, verify new final-head checks, then merge only if green.
