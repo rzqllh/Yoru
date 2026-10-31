@@ -14,4 +14,4 @@ Base main: `e5812270dd13843a04bbb4bb15fe921520917856`
 - Await exact-HEAD CI Linux/Windows + Chromium/WebKit on PR, then publish evidence to PR/#44, remove this entire handoff folder before merge.
 
 ## Status
-AUDITED; IMPLEMENTATION PENDING; TESTS NOT RUN for this branch.
+CODED: normalization now removes malformed tracks/quality, enforces native candidate URL safety, and adds three deterministic regression tests. Local execution unavailable (repository Git transport inaccessible in this runtime). Exact-head CI and browser results PENDING.
