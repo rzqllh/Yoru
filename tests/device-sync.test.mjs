@@ -31,7 +31,7 @@ test('OTP and cloud requests use publishable key and only signed-in bearer token
   })
   if(url.includes('?select=revision'))return Response.json([])
   if(url.endsWith('/rpc/yoru_sync_put'))return Response.json(1)
-  if(init.method==='DELETE')return new Response(null,{status:204})
+  if(url.endsWith('/rpc/yoru_sync_delete'))return Response.json(true)
   throw new Error('unexpected '+url)
  }
  const api=createDeviceSyncClient(SETTINGS,fake)
@@ -45,7 +45,8 @@ test('OTP and cloud requests use publishable key and only signed-in bearer token
  assert.equal(captured[0].init.headers.Authorization,undefined)
  assert.equal(captured[2].init.headers.Authorization,'Bearer opaque-session-access-token')
  assert.equal(JSON.stringify(captured[3].init.body).includes('DO_NOT_SYNC'),false)
- assert.equal(captured[4].init.method,'DELETE')
+ assert.equal(captured[4].init.method,'POST')
+ assert.match(captured[4].url,/\/rpc\/yoru_sync_delete$/)
 })
 test('reject corrupt cloud responses, expired sessions and invalid verification codes',async()=>{
  const broken=async(url)=>url.includes('select=revision')?
@@ -78,4 +79,17 @@ test('known preference keys do not smuggle secrets or executable remote URLs',()
   backgroundOpacity:75,outline:1,position:'original'
  })
  assert.deepEqual(JSON.parse(safe.preferences[1].value),{completed:3,updatedAt:1000})
+})
+
+test('migration requires RPC writes rather than granting PostgREST table modification',async()=>{
+ const {readFileSync}=await import('node:fs')
+ const sql=readFileSync(new URL('../supabase/migrations/20261031_yoru_device_sync.sql',import.meta.url),'utf8')
+ assert.match(sql,/grant select on public\.yoru_sync_snapshots to authenticated/i)
+ assert.doesNotMatch(sql,/grant select,\s*insert,\s*update,\s*delete on public\.yoru_sync_snapshots/i)
+ assert.match(sql,/create policy "yoru_sync_select_own"/i)
+ assert.equal((sql.match(/language plpgsql security definer/g)??[]).length,2)
+ assert.equal((sql.match(/owner_id := \(select auth\.uid\(\)\)/g)??[]).length,2)
+ assert.match(sql,/where user_id = owner_id/i)
+ assert.match(sql,/where snapshot\.revision = expected_revision/i)
+ assert.match(sql,/grant execute on function public\.yoru_sync_delete\(\) to authenticated/i)
 })
