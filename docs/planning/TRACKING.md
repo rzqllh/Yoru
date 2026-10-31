@@ -25,7 +25,7 @@ Owners below are **responsibility roles**, not claims that any specific person/a
 | SRC-02 / YX-02 | 01 | Source state/candidate validation/ranking | PARTIAL | Playback engineering | [#86](https://github.com/rzqllh/Yoru/pull/86), [#97](https://github.com/rzqllh/Yoru/pull/97) | AC-SRC-03, 04; live G1/G2 |
 | SRC-03 / YX-18 | 01 | Distinguish Stremio direct URL/hash/external | VERIFIED CODE | API engineering | `backend/providers/stremio-core.ts`, [#51](https://github.com/rzqllh/Yoru/pull/51) | AC-SRC-05; real addon fixture/provider |
 | SRC-04 / YX-19 | 01 | Torrentio-only torrent engine/resolver | BLOCKED — ARCHITECTURE NOT APPROVED | Product owner + security | [#44](https://github.com/rzqllh/Yoru/issues/44) | Explicit opt-in/rights/hosting/browser plan; no automatic torrent start |
-| SRC-05 / D02 | 01 | Exclude uncontrolled iframe from playable options | TESTED IN PR #100; MERGE PENDING | Playback/UX | Legacy `App.tsx` / `Player.tsx` fallback | AC-SRC-06; source-gating regression |
+| SRC-05 / D02 | 01 | Exclude uncontrolled iframe from playable options | MERGED PR #100 / PR-HEAD TESTED; MAIN CI PENDING | Playback/UX | Legacy `App.tsx` / `Player.tsx` fallback | AC-SRC-06; source-gating regression |
 | SRC-06 / YX-03 | 01 | Honest native quality Auto and resolution labels | PARTIAL | Playback engineering | [#97](https://github.com/rzqllh/Yoru/pull/97) | AC-SRC-07; real manifest levels |
 | SUB-01 / D01 | 02 | English requires explicit confirmation; Sub Indo preferred | PLANNED (partial prior adapter) | Player/UX | `Player.tsx`, [#21](https://github.com/rzqllh/Yoru/pull/21) | AC-SUB-01/02; current native auto-English behaviour must change |
 | SUB-02 / D09 | 02 | Caption presets/font/size/contrast/position | PARTIAL | Player/UX | [#55](https://github.com/rzqllh/Yoru/pull/55), `caption-appearance.ts` | AC-SUB-03/04; browser capability |
@@ -95,3 +95,5 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 - This slice deliberately removes uncontrolled iframe fallback, even if that reduces apparent video availability. Torrentio torrent-only candidates remain disabled; no resolver has been installed. See [Phase 01 handoff](handoffs/PHASE_01_HANDOFF.md).
 
 - **PR #100 evidence update:** code/test head `a91e7ec` [CI Linux/Windows SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41220260198), [Browser Chromium/WebKit SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41220260118). Documentation follow-up changes SHA; exact final head must be rechecked. No live media/iPhone acceptance.
+
+- **D02 main merge:** PR #100 merged at `f021a85658895123cbc17e02e0ba55d43cf11d7f`. Final PR head `6e3af557` checks [CI SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41220492467), [Chromium/WebKit SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41220492441). Merged-main checks pending at checkpoint; no live production verification.
