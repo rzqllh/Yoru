@@ -30,7 +30,7 @@ reported instead of silently replacing an unobserved revision.
 ## Operator setup
 
 Provision a Supabase project owned by the operator. Apply the reviewed migration:
-`supabase/migrations/20261031_yoru_device_sync.sql`. It creates one
+`supabase/migrations/20261031072944_yoru_device_sync_initial.sql`. It creates one
 `yoru_sync_snapshots` row per authenticated user, an account-scoped RLS
 SELECT policy, and RPC-only writes/deletion with optimistic-revision checks.
 Direct PostgREST INSERT/UPDATE/DELETE permissions are not granted.
@@ -110,3 +110,9 @@ an immediate nonzero exit code without network traffic. Run it only with
 explicit staging-test authorization. Verify the project is still empty
 following cleanup. Real browser/OTP email acceptance is **additional** to
 this script and cannot be inferred from CI mocks.
+
+## Prepared payload validation correction
+
+Read-only staging inspection on 31 October 2026 found that missing JSON keys evaluate to SQL NULL in the original CHECK/RPC validation. This can admit an incomplete snapshot; it is not evidence of cross-account access. The additive migration `supabase/migrations/20261031131903_yoru_sync_required_payload_fields.sql` requires the payload shape expression to be TRUE and uses NULL-safe RPC checks. It preserves existing rows, RLS policies and grants. The original migration filename is aligned with the deployed ledger version `20261031072944`; its SQL is unchanged.
+
+This correction is prepared for review and **has not been applied to Supabase**. Before applying it, audit existing rows with the new expression and stop if any are invalid; do not delete or rewrite user snapshots. Apply only after explicit approval to the dedicated Yoru staging project, then run the two-account harness and real OTP/browser checks. Portable PostgreSQL/WASM tests simulate roles and claims and cannot prove email authentication, Data API exposure or two-device behavior.

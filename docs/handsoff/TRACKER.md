@@ -1,66 +1,7 @@
-# Yoru — work-branch task tracker (temporary)
-Updated 2026-10-31 Asia/Jakarta.
-**DO NOT MERGE `docs/handsoff/` to `main`.** Move evidence to PR/Issue #78, then delete directory before merge.
-Repository: https://github.com/rzqllh/Yoru
-Work branch: `feat/opt-in-cross-device-sync-20261031`; last exact SHA checked `64d90d0c047642d80481410d85e81c6d3396098b`
-Main baseline: `c3bfe11bde6085abeb7009e6b65f33f65077134f`
-PR: https://github.com/rzqllh/Yoru/pull/77
-Cloud acceptance issue: https://github.com/rzqllh/Yoru/issues/78
-Public release gate: https://github.com/rzqllh/Yoru/issues/20
+# Tracker
 
-Status terms: PLANNED / CODED / CI_TESTED / LIVE_VERIFIED / BLOCKED.
-Mock CI tests are not LIVE_VERIFIED.
-
-| Priority | Task | Status | Evidence / next action |
-| --- | --- | --- | --- |
-| P0 | YX-06 source identity | CI_TESTED on main | Merged PR #76; provider ID only, media preflight required each play |
-| P0 | Optional manual cloud snapshot | CODED (draft PR #77) | Yoru Supabase migration applied; RLS on, authenticated SELECT-only; no real two-account acceptance |
-| P0 | Sync security/data minimization | CODED | Private SECURITY DEFINER, public INVOKER, CAS, value canonicalization; cloud snapshots now only ID/title/status/progress/allowlisted preferences |
-| P0 | Cloud safe download merge | CODED | Newer updatedAt wins for library/progress, local tie; preferences remain explicit remote override; no deletes propagated |
-| P0 | Live cloud Auth/RLS test | BLOCKED | Need two user-owned staging identities and OTP access tokens; live fail-closed verifier `scripts/verify-device-sync-live.mjs` checks isolation/CAS/cleanup |
-| P0 | Automatic background sync | PLANNED | Needs per-record versions/tombstones, offline queue and tested conflict semantics; do not use destructive snapshot polling |
-| P0 | Enhanced playback recovery | PARTIAL | Source memory merged; advanced recover/retry/smart-next still pending |
-| P0 | Live streaming G1/G2 | BLOCKED | Authorized source provider matrix; correct episode/season/codec/CORS verification |
-| P0 | Live subtitle G3 | BLOCKED | Provider credentials and representative real downloads/quotas |
-| P0 | Torrent resolver YX-19 | BLOCKED | Security architecture, lawful source/access consent, supported engine; never pretend Safari plays hash |
-| P0 | Physical iPhone G4 | BLOCKED | Real iOS device and verified player/fullscreen/PiP/subtitles/PWA |
-| P1 | Watch Guide expansion | PARTIAL | Curated examples verified; more chronology/source evidence needed |
-| P1 | Smart search, library, onboarding | PLANNED | Separate UX slices with fixture and API evidence |
-| P1 | UI/accessibility/performance | PARTIAL | Needs physical and measured CWV, no fake optimizations |
-| P0 | Hosting production G5 | BLOCKED | HTTPS deployment, auth/rate limit, observability, rollback |
-| P0 | Release signoff G6 | BLOCKED | Exact-commit tests, G1-G5, no P0/P1, owner explicit go/no-go |
-| FINAL | Historical branch/artifact cleanup | PARTIAL | No risky delete before checking PR sources; remove this handoff folder before main merge |
-
-## 31 October changes committed in current work session
-- `d983fbca` minimal cloud anime identity (IDs/title only), strips arbitrary upstream metadata.
-- `422fd12d` unit test proving tokens/artwork/private fields do not upload.
-- `6a6f6b9f` public cloud data disclosure clarified.
-- `1e23907a` safe live two-account verifier (no env => exit 2, no network).
-- `d643c4c6` negative verifier test.
-- `cf14aafc` operator live acceptance guide.
-- `e665b70e`, `8bb083b2`, `8185f80c`, `9c7e3597`, `e917f491` reconcile downloaded history and test.
-- `a40c1857`, `64d90d0c` sanitize remote records and test.
-- Current head `64d90d0c047642d80481410d85e81c6d3396098b` CI/Browser runs queued/in progress at last inspection. **Do not mark PASS until checked.**
-- Real Supabase snapshots remain empty at last inspection. No live OTP or two-user mutation has been executed.
-- Production `main` still separate and not automatically deployed.
-
-## Session recovery
-Read this file and `docs/handsoff/CURRENT.md`, check GitHub SHA/PR77 and latest CI runs and Issue #78. Inspect Supabase Yoru project `ospwrqyfvfxnippknire`, existing migration ledger and RLS. Keep all secrets out of docs. Don't merge before live auth signoff. On each meaningful task update this tracker and `CURRENT.md`; clean both before main merge.
-
-## Owner priority decision — 31 October 2026
-All external/owner-dependent blockers are **DEFERRED to the final acceptance phase**: two-account OTP, physical iPhone, authorized video/subtitle providers, torrent resolver approval, production hosting and release signoff. Do not repeatedly request owner input or falsely mark these done. Continue independent code, tests, UX and performance work on isolated branches first. YX-06 episode-scoped source recovery is active in PR #79 based on main; cloud draft PR #77 remains unmerged. Keep this handoff temporary; remove it before any main merge after preserving state in Issue #78/PR comments.
-
-## 31 Oct 2026 — independent engineering lane integrated
-- YX-06 episode-scoped source memory PR #79 **MERGED** into `main` as `e5b306086f1e58b44a5a8311da5312ce1f1347ec`. Exact final PR HEAD `6478d35bc4a14eedd9d0636f4325c836a891417e` passed Linux/Windows CI (run 41184402304) and Chromium/WebKit Browser E2E (run 41184406682). Temporary `docs/handsoff/` checkpoint was removed from PR #79 before merging; main remains free of handoff artifacts.
-- PR #77 now needs rebasing or reconciling after main advancement and retains its own temporary handoff. Cloud preference allowlist expanded to support `source-choice:mal:<id>:ep:<episode>` safely, tests added on draft head `723ace9a`; CI must be checked fresh.
-- All externally dependent release/auth/provider/device blockers remain DEFERRED, not completed; no request for credentials at this stage.
-
-## 2026-10-31 YX-13 independent work
-- PR #80 `feat/yx13-library-sorting-20261031` based on main after PR #79. Adds persisted sort modes recent/title/score/year and unit+browser tests. Main merge pending exact-head Chromium E2E. On PR #80 branch, a temporary `docs/handsoff/CURRENT.md` checkpoint exists and must be removed before engineering merge.
-- PR #77 manual cloud sync allowlist and value parser now support `source-choice:mal:<id>:ep:<episode>` and the whitelisted `library-sort` preference, with tests; branch commits `e50a2f3`, `723ace9`, `9a3f514`, `3a91293`. Cloud project live OTP/RLS blockers still deferred, not verified. Main and Supabase database not changed by these draft edits.
-- Resume by refreshing branch HEAD, checking last CI SHA, and continuing independently testable tasks. No credentials required until final acceptance phase.
-
-## 2026-10-31 integrated YX-13 checkpoint
-- PR #80 MERGED into main as `42923d1498c2956b4bd62008cb1841f24da9a767`; final tested feature head `eedb9b89d43f2e6ca594457134ad0f012966d23d`: Linux/Windows CI run 41185084626, Chromium/WebKit E2E run 41185084633 both PASS. Handoff folder was removed before main merge. `main` now ahead of draft PR #77; reconcile when eventually integrating cloud.
-- Current cloud PR77 branch has safe whitelist for local `library-sort` and episode-scoped `source-choice` values with unit tests. Needs new CI exact-head and real Auth/RLS live tests (DEFERRED).
-- User directive: finish unblocked engineering lanes first, defer all owner-input and real-device/provider/production signoff work. Do not ask for OTP/inboxes yet.
+- VERIFIED: read-only dedicated Yoru audit + missing-field NULL reproduction.
+- PREPARED: additive correction; PostgreSQL regression; stronger live acceptance harness.
+- PENDING: exact-SHA CI and browser checks, reviewer/owner approval before database application.
+- BLOCKED: actual OTP identities, two-device tests, live media/subtitle/iPhone/hosting/release gates.
+- Before any main merge: move evidence to PR/#78 and remove docs/handsoff.
