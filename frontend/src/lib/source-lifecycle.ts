@@ -1,6 +1,6 @@
 import type {Stream} from '../types'
 import type {UnavailableStream} from './api'
-import {isNativeCandidate} from './source-readiness'
+import {isNativeCandidate} from './source-readiness.ts'
 
 export type ProviderSourceResponse={items:Stream[];unavailable?:UnavailableStream[]}
 export type SourceSearchResult={
