@@ -140,3 +140,5 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 
 - **CODED / CI PENDING:** `feat/y04-genre-filter-ui-20261101` integrates merged #116 into Browse UI and backend. New Tenrai-validated MAL genre IDs are passed to server-side filtered/paginated requests. Legacy `genre=Action` continues to work; new values like `genre=mal%3A46` can round-trip. Fallback remains explicit when the taxonomy service is unavailable. API rejects unknown/adult numeric IDs rather than returning unfiltered matches.
 - **NOT DONE:** Complete AniList genre/tag taxonomy, source-provenance enrichment, live Tenrai search matrix, independent performance/device gate, and release #20. No production/deployment configuration change.
+
+- **PR #117 exact code evidence:** `9fa0143` [CI Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41244704532) + [Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41244698662) SUCCESS. Dynamic Tenrai/MAL genres now implemented in isolated branch UI/router/server, not yet merged or deployed at this checkpoint; AniList tags and live media/devices remain NOT VERIFIED.
