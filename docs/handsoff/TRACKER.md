@@ -1,15 +1,15 @@
-# Yoru isolated engineering tracker
+# Yoru engineering tracker — pre-cleanup checkpoint
 
 | Checkpoint | State | Evidence |
 |---|---|---|
-| Audit main/PR/issues | VERIFIED | main 4de4408; #44/#78 open; #77 draft |
-| Baseline CI | VERIFIED | CI https://github.com/rzqllh/Yoru/actions/runs/41191906031 ; browser https://github.com/rzqllh/Yoru/actions/runs/41191906008 |
-| YX-03 malformed level guard | CODED | commit a6bea6393e2cacaae36cfcc98e034824c5e5fe74 |
-| Focused unit | LOCAL PASS | Node 22.16.0 --experimental-strip-types: 3/3 quality-options tests PASS in isolated two-file reproduction; not repository-wide CI |
-| Feature-head Linux/Windows CI | NOT RUN | Pending |
-| Feature-head Chromium/WebKit | NOT RUN | Pending |
-| Evidence PR/issues | NOT DONE | Pending |
-| Remove handoff before merge | NOT DONE | Pending |
-| Merge | BLOCKED | Until exact-head checks and cleanup |
+| Main/PR/issues audit | VERIFIED | base 4de4408; #44/#78 open; #77 draft |
+| YX-03 code and regression | CODED | quality-options.ts + 3 unit tests |
+| Focused local Node | PASS | 3/3 on reconstructed changed files |
+| Feature-head Linux/Windows | PASS | https://github.com/rzqllh/Yoru/actions/runs/41194407905 |
+| Feature-head Chromium/WebKit | PASS | https://github.com/rzqllh/Yoru/actions/runs/41194407770 |
+| Transfer PR/issues | PENDING | PR #84, Issue #44 |
+| Handoff cleanup | PENDING | Must remove before merge |
+| Final-head CI/E2E | PENDING | Must rerun after cleanup |
+| Merge | BLOCKED | Final checks + no handoff |
 
-No live media or production claims.
+No live device/provider or production sign-off.
