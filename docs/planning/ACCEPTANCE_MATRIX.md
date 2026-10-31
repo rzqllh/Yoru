@@ -136,3 +136,5 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 **D01 first PR head `0ec7183` — FAIL (lint).** [CI](https://github.com/rzqllh/Yoru/actions/runs/41221002621), [browser workflow](https://github.com/rzqllh/Yoru/actions/runs/41221002597). Two lint errors corrected; `d02aef2` rerun PASS for exact PR code/test head. Final docs SHA requires additional verification.
 
 | AC-SUB-04 D09 | `b56cae5` PR #103 | Node unit + Chromium/WebKit fixture, Linux/Windows | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41222013660), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41222013653). Saved old settings retained. Actual Safari caption styling, contrast and physical visual legibility NOT RUN. |
+
+| AC-SUB-03 season/cour | `758d97d` branch | SubDL/OpenSubtitles/SubSource fixtures with season 3, 1, absent, malformed | NOT RUN (CI pending) | Season 3 title must never silently accept season 1 or unknown season; unnumbered titles must not invent season 1; live provider mapping remains BLOCKED. |
