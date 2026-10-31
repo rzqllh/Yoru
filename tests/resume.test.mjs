@@ -12,3 +12,10 @@ test('progress requires meaningful nonzero position; duration may be unknown',()
  assert.equal(isResumableProgress({seconds:115,duration:120}),false)
  assert.equal(isResumableProgress({seconds:109,duration:120}),true)
 })
+test('invalid or non-seekable duration does not create a misleading resume target',()=>{
+ for(const duration of [-1,-120,NaN,Infinity,-Infinity]){
+  assert.equal(isResumableProgress({seconds:34,duration}),false,`invalid duration ${duration}`)
+ }
+ assert.equal(isResumableProgress({seconds:34,duration:0}),true)
+ assert.equal(isResumableProgress({seconds:34,duration:120}),true)
+})
