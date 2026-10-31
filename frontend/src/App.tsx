@@ -71,7 +71,12 @@ const SKELETON_KEYS=['a','b','c','d','e','f','g','h','i','j','k','l']
 const posterPlaceholder='radial-gradient(circle at 68% 25%,#3a3e35 0%,#202422 35%,#13161a 75%)'
 
 function Poster({anime,aspect='portrait'}:{anime:Anime;aspect?:'portrait'|'wide'}){
- return <div className={`poster ${aspect}`} style={{backgroundImage:anime.poster?`linear-gradient(180deg,transparent 40%,rgba(0,0,0,.3)),url("${anime.poster.replaceAll('"','%22')}")`:posterPlaceholder}} role="img" aria-label={`Poster ${anime.title}`}><span className="poster-glow"/></div>
+ const [failedPoster,setFailedPoster]=useState<string|null>(null)
+ const poster=typeof anime.poster==='string'&&anime.poster.length>0?anime.poster:null
+ return <div className={`poster ${aspect}`} style={{backgroundImage:posterPlaceholder}} role="img" aria-label={`Poster ${anime.title}`}>
+  {poster&&poster!==failedPoster&&<img className="poster-image" src={poster} alt="" aria-hidden="true" loading="lazy" decoding="async" onError={()=>setFailedPoster(poster)}/>}
+  <span className="poster-glow"/>
+ </div>
 }
 
 function MiniLabel({children}:{children:React.ReactNode}){
