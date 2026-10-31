@@ -2618,6 +2618,12 @@ body {
 
 /* Featured titles are ranked by catalog popularity, never represented as daily views. */
 .ranked-anime{position:relative;min-width:0}
+/* Each ranked grid cell owns its full column; intrinsic poster widths cannot shrink a card. */
+.ranked-anime{display:flex;flex-direction:column;width:100%}
+.ranked-anime>.anime-card{width:100%;max-width:100%;min-width:0;align-items:stretch}
+.ranked-anime .card-art{aspect-ratio:2 / 3;flex:none}
+.ranked-anime .card-copy{width:100%;min-width:0}
+
 .ranked-anime-number{position:absolute;top:8px;left:8px;z-index:2;display:grid;place-items:center;border-radius:10px;width:31px;height:31px;background:#101925e8;color:var(--accent);font-weight:800}
 .subtitle-indonesia-state{padding:12px;border:1px solid var(--line);border-radius:12px;color:var(--soft);background:#202c3b}
 /* Library consumes the same card tokens as discovery; no new navigation idioms. */
