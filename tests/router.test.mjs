@@ -93,3 +93,21 @@ test('source-backed MAL genre IDs round-trip without breaking legacy names',()=>
   assert.equal(parseRoute('/jelajahi','genre='+encodeURIComponent(unsafe)).browseFilters.genre,'')
  }
 })
+
+test('watch-guide deep links reject non-decimal or malformed MAL IDs without selecting another title',()=>{
+ for(const invalid of ['','0','01','-1','1.0','1e3','0x10',' 1 ','Infinity','NaN','1000000000','1<script>']){
+  const route=parseRoute('/jelajahi/panduan-urutan','anime='+encodeURIComponent(invalid))
+  assert.equal(route.page,'guide')
+  assert.equal(route.guideMalId,undefined,`unexpected guide id for ${invalid}`)
+  assert.equal(routeToPath(route),'/jelajahi/panduan-urutan')
+ }
+ for(const id of [1,1000,999999999]){
+  const route=parseRoute('/jelajahi/panduan-urutan',`anime=${id}`)
+  assert.equal(route.guideMalId,id)
+  assert.equal(routeToPath(route),`/jelajahi/panduan-urutan?anime=${id}`)
+ }
+ for(const invalid of [0,-1,1.5,Infinity,NaN,1000000000]){
+  const route={...parseRoute('/jelajahi/panduan-urutan',''),guideMalId:invalid}
+  assert.equal(routeToPath(route),'/jelajahi/panduan-urutan')
+ }
+})

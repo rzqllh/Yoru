@@ -66,8 +66,10 @@ export function parseRoute(pathname: string, search: string): RouteState {
   }
 
   if (cleanPath === '/jelajahi/panduan-urutan') {
-    const raw=Number(params.get('anime'))
-    const guideMalId=Number.isSafeInteger(raw)&&raw>0&&raw<=999999999?raw:undefined
+    // A deep link must contain a canonical decimal MAL ID, not JS number syntax.
+    // Number('1e3') and Number('0x10') would silently select unrelated titles.
+    const raw=params.get('anime')??''
+    const guideMalId=/^[1-9]\d{0,8}$/.test(raw)?Number(raw):undefined
     return {page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId}
   }
 
@@ -150,7 +152,11 @@ export function parseRoute(pathname: string, search: string): RouteState {
 
 export function routeToPath(state: RouteState): string {
   if (state.page === 'home') return '/'
-  if (state.page === 'guide') return '/jelajahi/panduan-urutan'+(state.guideMalId?`?anime=${state.guideMalId}`:'')
+  if (state.page === 'guide') {
+    const id=state.guideMalId
+    const valid=Number.isSafeInteger(id)&&Number(id)>0&&Number(id)<=999999999
+    return '/jelajahi/panduan-urutan'+(valid?`?anime=${id}`:'')
+  }
 
   if (state.page === 'browse') {
     // Preserve the selected tab even when searching/filtering and share one canonical URL.
