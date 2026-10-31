@@ -81,3 +81,15 @@ test('historical year filter and canonical season shortcut survive reload',()=>{
  assert.equal(route.browseFilters.year,'1965')
  assert.equal(routeToPath(route),'/jelajahi/musim-ini?genre=Drama&year=1965')
 })
+
+test('source-backed MAL genre IDs round-trip without breaking legacy names',()=>{
+ const modern=parseRoute('/jelajahi/populer','genre=mal%3A46&type=TV&year=2024')
+ assert.equal(modern.browseFilters.genre,'mal:46')
+ const url=routeToPath(modern)
+ assert.equal(url,'/jelajahi/populer?genre=mal%3A46&type=TV&year=2024')
+ assert.equal(parseRoute('/jelajahi/populer',url.split('?')[1]).browseFilters.genre,'mal:46')
+ assert.equal(parseRoute('/jelajahi','genre=Action').browseFilters.genre,'Action')
+ for(const unsafe of ['mal:0','mal:-1','mal:9999','mal:5<script>']){
+  assert.equal(parseRoute('/jelajahi','genre='+encodeURIComponent(unsafe)).browseFilters.genre,'')
+ }
+})
