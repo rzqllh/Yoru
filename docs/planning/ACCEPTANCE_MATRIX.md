@@ -106,7 +106,7 @@ For every case record: **ID · phase · test kind · exact SHA · environment/de
 
 ## Test record template (append per executed check or link PR artifact)
 
-`
+```
 ID: AC-...
 Status: NOT RUN | PASS | FAIL | BLOCKED
 Commit SHA:
@@ -119,7 +119,7 @@ Evidence URL (CI, video, screenshot, sanitized log):
 Run timestamp:
 Tester / reviewer:
 Known limitations / next action:
-`
+```
 
 ## Acceptance policy
 
