@@ -68,6 +68,14 @@ async function run(){
   const filtered=await request(path+'&user_id=eq.'+a,tokens[1])
   assert.equal(filtered.status,200)
   assert.deepEqual(filtered.value,[],'Cross-account visibility')
+  for(const invalid of [{},{version:1,progress:[]},{version:1,library:[]}]){
+   const rejected=await request(upload,tokens[0],'POST',{expected_revision:1,next_payload:invalid})
+   assert.ok(rejected.status>=400,'Malformed payload accepted')
+  }
+  for(const method of ['PATCH','DELETE']){
+   const rejected=await request('/rest/v1/yoru_sync_snapshots?user_id=eq.'+a,tokens[1],method,method==='PATCH'?{revision:999}:undefined)
+   assert.ok([401,403].includes(rejected.status),'Direct cross-account modification not denied')
+  }
   const stale=await request(upload,tokens[0],'POST',{expected_revision:0,next_payload:fixture})
   assert.ok(stale.status>=400,'Stale revision unexpectedly accepted')
   const update=await request(upload,tokens[0],'POST',{expected_revision:1,next_payload:fixture})
@@ -75,8 +83,9 @@ async function run(){
   assert.equal(update.value,2)
   const anonWrite=await request(upload,null,'POST',{expected_revision:0,next_payload:fixture})
   assert.ok([401,403,404].includes(anonWrite.status),'Anon RPC write accepted')
-  console.log('SYNC_LIVE_ACCEPTANCE_PASS: two users, isolation, CAS and anon denial')
+  // Report success only after cleanup and the final empty-state verification below.
  }finally{
+  let cleanupFailed=false
   for(let i=0;i<tokens.length;i++){
    if(!inserted[i])continue
    try{
@@ -84,9 +93,13 @@ async function run(){
     assert.equal(cleaned.status,200)
     assert.equal(cleaned.value,true)
    }catch{
+    cleanupFailed=true
     console.error('SYNC_TEST_CLEANUP_FAILED: inspect test user',i+1)
-    process.exitCode=1
    }
   }
+  assert.equal(cleanupFailed,false,'Test cleanup incomplete')
  }
+ const after=await Promise.all(tokens.map(token=>request(path,token)))
+ assert.ok(after.every(r=>r.status===200&&Array.isArray(r.value)&&r.value.length===0),'Final snapshot cleanup not verified')
+ console.log('SYNC_LIVE_ACCEPTANCE_PASS: two users, isolation, CAS, malformed rejection, anon denial and cleanup')
 }

@@ -85,7 +85,7 @@ test('known preference keys do not smuggle secrets or executable remote URLs',()
 
 test('privileged SQL lives in unexposed schema with narrow invoker RPC entrypoints',async()=>{
  const {readFileSync}=await import('node:fs')
- const sql=readFileSync(new URL('../supabase/migrations/20261031_yoru_device_sync.sql',import.meta.url),'utf8')
+ const sql=readFileSync(new URL('../supabase/migrations/20261031072944_yoru_device_sync_initial.sql',import.meta.url),'utf8')
  assert.match(sql,/create schema if not exists yoru_private;/i)
  assert.match(sql,/revoke all on schema yoru_private from public, anon;/i)
  assert.match(sql,/grant usage on schema yoru_private to authenticated;/i)

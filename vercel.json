@@ -19,9 +19,6 @@
     }
   },
   "git": {
-    "deploymentEnabled": {
-      "main": false,
-      "docs/cleanup-public-guides-20261029": false
-    }
+    "deploymentEnabled": false
   }
 }

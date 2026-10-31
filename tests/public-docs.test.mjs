@@ -41,7 +41,7 @@ test('obsolete release asset cleanup workflow is no longer checked in',()=>{
 
 test('engineering main branch is not an automatic production deployment',()=>{
  const config=JSON.parse(readFileSync(resolve(root,'vercel.json'),'utf8'))
- assert.equal(config.git.deploymentEnabled.main,false)
+ assert.equal(config.git.deploymentEnabled,false)
  assert.equal(config.framework,'vite')
  assert.equal(config.rewrites[0].source,'/api/:path*')
 })
