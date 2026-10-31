@@ -976,3 +976,21 @@ test('Anime Popular posters fill equal two-column grid cells on mobile',async({p
   expect(await page.locator('body').evaluate(el=>el.scrollWidth<=window.innerWidth+1)).toBe(true)
  }
 })
+
+test('browse displays loaded title count, not an unverified total across pages',async({page})=>{
+ const second={...anime,id:'mal:2',malId:2,title:'Yoru Test Anime Dua'}
+ await page.route('**/api/anime/discover?**',route=>{
+  const currentPage=Number(new URL(route.request().url()).searchParams.get('page')||1)
+  return route.fulfill({json:{
+   items:currentPage===1?[anime]:[anime,second],
+   page:currentPage,hasNext:currentPage===1
+  }})
+ })
+ await page.goto('/jelajahi')
+ const label=page.locator('.browse-results-header .results-label')
+ await expect(label).toHaveText('1 ditampilkan')
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(1)
+ await page.getByRole('button',{name:/Muat lebih banyak/}).click()
+ await expect(label).toHaveText('2 ditampilkan')
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(2)
+})
