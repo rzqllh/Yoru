@@ -47,11 +47,31 @@ function confidence(episode:number,raw:unknown){
   typeof raw==='string'&&/^\d+$/.test(raw.trim())
  return valid&&Number(raw)===episode?70:0
 }
+/** MAL entries represent separate seasons. Never manufacture season 1 for a title without a verified hint. */
+export function explicitSubtitleSeason(title:string):number|null{
+ // Split cour/part releases cannot safely be mapped to provider season numbering.
+ if(/\b(?:part|cour)\s*\d+\b/i.test(title))return null
+ const match=/\bseason\s+(\d{1,2})\b/i.exec(title)||
+  /\b(\d{1,2})(?:st|nd|rd|th)\s+season\b/i.exec(title)
+ if(!match)return null
+ const number=Number(match[1])
+ return Number.isSafeInteger(number)&&number>=1&&number<=30?number:null
+}
+function seasonIdentity(raw:unknown):number|null{
+ const valid=typeof raw==='number'?Number.isSafeInteger(raw):
+  typeof raw==='string'&&/^\d+$/.test(raw.trim())
+ if(!valid)return null
+ const value=Number(raw)
+ return value>=1&&value<=30?value:null
+}
+function matchesExplicitSeason(expected:number|null,raw:unknown):boolean{
+ return expected===null||seasonIdentity(raw)===expected
+}
 function add(result:SubtitleCandidate[],item:SubtitleCandidate){
  if(item.score<=0||result.length>=90)return
  if(!result.some(x=>x.provider===item.provider&&x.id===item.id))result.push(item)
 }
-export function normalizeSubDl(input:unknown,episode:number):SubtitleCandidate[]{
+export function normalizeSubDl(input:unknown,episode:number,expectedSeason:number|null=null):SubtitleCandidate[]{
  const root=object(input),out:SubtitleCandidate[]=[]
  for(const item of list(root?.subtitles)){
   const sub=object(item);if(!sub)continue
@@ -60,6 +80,8 @@ export function normalizeSubDl(input:unknown,episode:number):SubtitleCandidate[]
    const lang=language(file.language||sub.language||sub.lang)
    const path=string(file.url,250)
    if(!lang||!/^\/subtitle\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+$/.test(path))continue
+   const declaredSeason=file.season_number??file.season??sub.season_number??sub.season
+   if(!matchesExplicitSeason(expectedSeason,declaredSeason))continue
    const score=confidence(episode,file.episode)
    const release=string(file.release_name||file.name||sub.release_name,160)
    add(out,{id:'subdl:'+Buffer.from(path).toString('base64url'),provider:'subdl',
@@ -69,13 +91,14 @@ export function normalizeSubDl(input:unknown,episode:number):SubtitleCandidate[]
  }
  return out
 }
-export function normalizeOpenSubtitles(input:unknown,episode:number):SubtitleCandidate[]{
+export function normalizeOpenSubtitles(input:unknown,episode:number,expectedSeason:number|null=null):SubtitleCandidate[]{
  const out:SubtitleCandidate[]=[]
  for(const row of list(object(input)?.data)){
   const value=object(row),attr=object(value?.attributes)
   if(!value||!attr)continue
   const lang=language(attr.language),files=list(attr.files)
   const feature=object(attr.feature_details)
+  if(!matchesExplicitSeason(expectedSeason,feature?.season_number??feature?.season))continue
   const score=confidence(episode,feature?.episode_number??feature?.episode)
   if(!lang||score===0)continue
   for(const fileValue of files){
@@ -90,7 +113,7 @@ export function normalizeOpenSubtitles(input:unknown,episode:number):SubtitleCan
  return out
 }
 /** SubSource documents the routes, but its response fields must be validated; unknown shapes stay empty. */
-export function normalizeSubSource(input:unknown,episode:number):SubtitleCandidate[]{
+export function normalizeSubSource(input:unknown,episode:number,expectedSeason:number|null=null):SubtitleCandidate[]{
  const root=object(input),out:SubtitleCandidate[]
    =[]
  for(const row of list(root?.data??root?.subtitles)){
@@ -98,6 +121,7 @@ export function normalizeSubSource(input:unknown,episode:number):SubtitleCandida
   const id=String(value.id??'')
   const lang=language(value.language??value.lang)
   if(!/^\d{1,16}$/.test(id)||!lang)continue
+  if(!matchesExplicitSeason(expectedSeason,value.season_number??value.season))continue
   const score=confidence(episode,value.episode??value.episode_number)
   if(!score)continue
   add(out,{id:'subsource:'+id,provider:'subsource',language:lang,
@@ -153,28 +177,36 @@ export function compareSubtitleCandidates(a:SubtitleCandidate,b:SubtitleCandidat
 export async function findSubtitles(input:{title:string;episode:number;type:string;malId?:number}){
  const {title,episode,type,malId}=input
  const query=title.trim().slice(0,120)
+ const explicitSeason=type==='Movie'?null:explicitSubtitleSeason(query)
  if(!query||episode<1||!Number.isSafeInteger(episode))throw new Error('INVALID_SUBTITLE_QUERY')
  const jobs:[SubtitleProvider,Promise<SubtitleCandidate[]>][]=[
   ['subdl',(async()=>{
    const params=new URLSearchParams({film_name:query,languages:'ID,EN',
     unpack:'1',subs_per_page:'30',client:'custom_integration'})
-   if(type!=='Movie'){params.set('type','tv');params.set('season_number','1');params.set('episode_number',String(episode))}
+   if(type!=='Movie'){
+    params.set('type','tv')
+    if(explicitSeason!==null)params.set('season_number',String(explicitSeason))
+    params.set('episode_number',String(episode))
+   }
    else params.set('type','movie')
    const payload=await fetchKnown('subdl','/api/v1/subtitles',params)
-   return normalizeSubDl(payload,episode)
+   return normalizeSubDl(payload,episode,explicitSeason)
   })()],
   ['opensubtitles',(async()=>{
    const params=new URLSearchParams({query,languages:'id,en'})
-   if(type!=='Movie'){params.set('season_number','1');params.set('episode_number',String(episode))}
+   if(type!=='Movie'){
+    if(explicitSeason!==null)params.set('season_number',String(explicitSeason))
+    params.set('episode_number',String(episode))
+   }
    const payload=await fetchKnown('opensubtitles','/api/v1/subtitles',params)
-   return normalizeOpenSubtitles(payload,episode)
+   return normalizeOpenSubtitles(payload,episode,explicitSeason)
   })()],
   ['subsource',(async()=>{
    // The publicly documented API does not publish an example schema.
    // Unknown responses remain untrusted and are never auto-enabled.
    const params=new URLSearchParams({query,language:'id,en',episode:String(episode)})
    const payload=await fetchKnown('subsource','/api/v1/subtitles',params)
-   return normalizeSubSource(payload,episode)
+   return normalizeSubSource(payload,episode,explicitSeason)
   })()],
  ]
  if(malId&&Number.isSafeInteger(malId)&&malId>0)jobs.push(['stremio',(async()=>{
