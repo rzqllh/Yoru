@@ -8,3 +8,5 @@
 - [ ] Reverify clean final head and merge only when production deployment cannot be triggered.
 
 External gates: OTP/RLS live, physical iPhone, live provider/resolver, hosting, #20 release and historical branches deferred.
+
+- [x] Implementation and two unit regressions committed; await exact-head CI/browser.
