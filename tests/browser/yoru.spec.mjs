@@ -41,6 +41,7 @@ test('collection sort choice is accessible and persists through reload',async({p
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.getByRole('dialog',{name:'Detail Yoru Test Anime'}).getByRole('button',{name:/Koleksiku/}).click()
+ await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'}).getByRole('button',{name:/Tersimpan/})).toBeVisible()
  await page.getByRole('button',{name:'Tutup detail anime'}).click()
  await page.goto('/koleksi')
  const sort=page.getByRole('combobox',{name:'Urutkan koleksi'})
