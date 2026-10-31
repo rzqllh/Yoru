@@ -19,11 +19,17 @@ export function sourceMemoryKey(malId:number,episode?:number):string{
 export async function readRememberedSource(
  malId:number,episode:number,read:(key:string)=>Promise<string>,now=Date.now()
 ):Promise<SourceMemory|null>{
+ let scopedKey:string
+ let genericKey:string
  try{
-  const scoped=parseSourceMemory(await read(sourceMemoryKey(malId,episode)),now)
-  if(scoped)return scoped
-  return parseSourceMemory(await read(sourceMemoryKey(malId)),now)
+  scopedKey=sourceMemoryKey(malId,episode)
+  genericKey=sourceMemoryKey(malId)
  }catch{return null}
+ try{
+  const scoped=parseSourceMemory(await read(scopedKey),now)
+  if(scoped)return scoped
+ }catch{/* An unavailable scoped preference must not hide a valid generic fallback. */}
+ try{return parseSourceMemory(await read(genericKey),now)}catch{return null}
 }
 /** Keep legacy per-anime preference as a fallback for next episodes. */
 export async function saveRememberedSource(
@@ -36,7 +42,10 @@ export async function saveRememberedSource(
   const scoped=sourceMemoryKey(malId,episode)
   const generic=sourceMemoryKey(malId)
   const value=JSON.stringify(memory)
-  await Promise.all([write(scoped,value),write(generic,value)])
+  // Persist the episode-specific choice first. A failed generic fallback must not
+  // turn a successful scoped save into a reported failure or update other episodes.
+  await write(scoped,value)
+  try{await write(generic,value)}catch{/* The scoped choice is already saved. */}
   return true
  }catch{return false}
 }
@@ -46,7 +55,7 @@ export function rememberedNativeSource(stream:Pick<Stream,'providerId'|'format'>
  return {version:1,providerId:stream.providerId,format:stream.format,updatedAt:now}
 }
 export function parseSourceMemory(raw:unknown,now=Date.now()):SourceMemory|null{
- if(typeof raw!=='string'||raw.length>240||raw.length===0)return null
+ if(!Number.isSafeInteger(now)||now<1||typeof raw!=='string'||raw.length>240||raw.length===0)return null
  try{
   const value:unknown=JSON.parse(raw)
   if(!value||typeof value!=='object'||Array.isArray(value))return null
@@ -54,7 +63,7 @@ export function parseSourceMemory(raw:unknown,now=Date.now()):SourceMemory|null{
   if(record.version!==1||typeof record.providerId!=='string'||!PROVIDER_ID.test(record.providerId)||
    (record.format!=='hls'&&record.format!=='mp4')||
    typeof record.updatedAt!=='number'||!Number.isSafeInteger(record.updatedAt)||
-   record.updatedAt>now+60_000||now-record.updatedAt>MAX_AGE)return null
+   record.updatedAt<1||record.updatedAt>now+60_000||now-record.updatedAt>MAX_AGE)return null
   return record as SourceMemory
  }catch{return null}
 }
