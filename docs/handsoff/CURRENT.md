@@ -10,3 +10,5 @@ Audit: only open PR #77 draft; issues #44/#78 open; #20 release BLOCKED. No `doc
 Checkpoint rule: record code and test SHA, wait for CI Linux/Windows + Browser E2E Chromium/WebKit on exact head, transfer evidence to PR and issue #44, then delete this folder before merging.
 
 Code checkpoint: source commit `524c372` and regression commit `fe5eba9`. CI and browser tests pending; season mapping still unverified.
+
+Verified test checkpoint on branch head `772798b8b62b4b6df3753c5b3c0deda8a0ab2f53`: CI Linux/Windows SUCCESS (https://github.com/rzqllh/Yoru/actions/runs/41223208391) and Browser E2E Chromium/WebKit SUCCESS (https://github.com/rzqllh/Yoru/actions/runs/41223208392). This is deterministic fixture verification only; production, live provider, season mapping, physical iPhone and release are not verified. The following docs-only commit changes SHA, so final cleanup head requires its own exact-head checks.
