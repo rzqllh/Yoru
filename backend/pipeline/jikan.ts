@@ -16,7 +16,12 @@ async function request(path:string):Promise<Record<string,unknown>> {
   try{
    const response=await fetch(getCatalogEndpoint(path),{signal:controller.signal,headers:{Accept:'application/json','User-Agent':'YoruAnimePortfolio/1.0'}})
    if(!response.ok)throw new Error(`Metadata service returned HTTP ${response.status}`)
-   const data=await response.json() as Record<string,unknown>
+   const payload:unknown=await response.json()
+   if(!payload||typeof payload!=='object'||Array.isArray(payload))throw new Error('INVALID_CATALOG_RESPONSE')
+   const data=payload as Record<string,unknown>
+   const single=/^\/anime\/[1-9]\d*\/full$/.test(path)
+   if(single?(!data.data||typeof data.data!=='object'||Array.isArray(data.data)):!Array.isArray(data.data))
+    throw new Error('INVALID_CATALOG_RESPONSE')
    cache.set(path,{payload:data,expires:Date.now()+CACHE_MS})
    if(cache.size>100)cache.delete(cache.keys().next().value ?? '')
    return data

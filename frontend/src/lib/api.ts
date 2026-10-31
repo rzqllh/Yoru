@@ -1,11 +1,55 @@
 import type {Anime,CatalogResponse,Episode,Stream} from '../types'
-export async function api<T>(url:string,signal?:AbortSignal):Promise<T>{
- const response=await fetch(url,{signal,headers:{Accept:'application/json'}})
- if(!response.ok){let message=`HTTP ${response.status}`;try{const body=await response.json();message=body.message||body.error||message}catch{}throw new Error(message)}
- return response.json() as Promise<T>
+/** Bound the entire response, including body reads; navigation aborts stay silent. */
+export async function api<T>(url:string,signal?:AbortSignal,timeoutMs=30000):Promise<T>{
+ const controller=new AbortController()
+ const abort=()=>controller.abort(signal?.reason)
+ if(signal?.aborted)abort()
+ else signal?.addEventListener('abort',abort,{once:true})
+ let timedOut=false
+ const timer=setTimeout(()=>{timedOut=true;controller.abort()},timeoutMs)
+ try{
+  const response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}})
+  const json=response.headers.get('content-type')?.toLowerCase().includes('application/json')
+  if(!response.ok){
+   let message=`HTTP ${response.status}`
+   if(json){
+    try{
+     const body:unknown=await response.json()
+     if(body&&typeof body==='object'){
+      const record=body as Record<string,unknown>
+      const value=record.message||record.error
+      if(typeof value==='string'&&value.trim())message=value
+     }
+    }catch{/* Retain HTTP status when an error body is malformed. */}
+   }
+   throw new Error(message)
+  }
+  if(!json)throw new Error('Layanan Yoru mengirim respons yang tidak valid. Coba lagi nanti.')
+  try{return await response.json() as T}
+  catch(e){
+   if(controller.signal.aborted)throw e
+   throw new Error('Layanan Yoru mengirim respons yang tidak valid. Coba lagi nanti.')
+  }
+ }catch(e){
+  if(timedOut&&!signal?.aborted)throw new Error('Layanan Yoru terlalu lama merespons. Silakan coba lagi.')
+  throw e
+ }finally{
+  clearTimeout(timer)
+  signal?.removeEventListener('abort',abort)
+ }
 }
-export const catalog=(kind:'season'|'top'|'upcoming',page=1,signal?:AbortSignal)=>api<CatalogResponse>(`/api/anime/discover?kind=${kind}&page=${page}`,signal)
-export const search=(query:string,page=1,signal?:AbortSignal)=>api<CatalogResponse>(`/api/anime/search?q=${encodeURIComponent(query)}&page=${page}`,signal)
+async function catalogResponse(url:string,signal?:AbortSignal):Promise<CatalogResponse>{
+ const result=await api<CatalogResponse>(url,signal,18000)
+ if(!result||!Array.isArray(result.items)||typeof result.hasNext!=='boolean'||!Number.isSafeInteger(result.page)||result.page<1)
+  throw new Error('Data katalog belum dapat dibaca. Silakan coba lagi.')
+ if(!result.items.every(item=>item&&Number.isSafeInteger(item.malId)&&item.malId>0&&item.id===`mal:${item.malId}`&&
+  typeof item.title==='string'&&Array.isArray(item.genres)&&item.genres.every(genre=>typeof genre==='string')&&
+  (item.score===null||(typeof item.score==='number'&&Number.isFinite(item.score)))))
+  throw new Error('Data katalog belum dapat dibaca. Silakan coba lagi.')
+ return result
+}
+export const catalog=(kind:'season'|'top'|'upcoming',page=1,signal?:AbortSignal)=>catalogResponse(`/api/anime/discover?kind=${kind}&page=${page}`,signal)
+export const search=(query:string,page=1,signal?:AbortSignal)=>catalogResponse(`/api/anime/search?q=${encodeURIComponent(query)}&page=${page}`,signal)
 export const detail=(malId:number,signal?:AbortSignal)=>api<Anime>(`/api/anime/${malId}`,signal)
 export const episodes=(malId:number,page=1,signal?:AbortSignal)=>api<{items:Episode[];hasNext:boolean;page:number}>(`/api/anime/${malId}/episodes?page=${page}`,signal)
 export const providerEpisodes=(malId:number,signal?:AbortSignal)=>api<{items:Episode[]}>(`/api/anime/${malId}/provider-episodes`,signal)
@@ -26,7 +70,7 @@ export const browseFiltered=(filters:BrowseRequest,page=1,signal?:AbortSignal)=>
  if(filters.minimumScore)params.set('minScore',String(filters.minimumScore))
  if(filters.year)params.set('year',filters.year)
  if(filters.order!=='default')params.set('order',filters.order)
- return api<CatalogResponse>('/api/anime/browse?'+params.toString(),signal)
+ return catalogResponse('/api/anime/browse?'+params.toString(),signal)
 }
 
 
