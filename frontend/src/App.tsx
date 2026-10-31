@@ -708,7 +708,7 @@ function Browse({
    <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>onFiltersChange({...filters,format:e.target.value})}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
    <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>onFiltersChange({...filters,minimumScore:Number(e.target.value)})}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
    <label>Tahun<select aria-label="Tahun rilis" value={year} onChange={e=>onFiltersChange({...filters,year:e.target.value})}><option value="">Semua tahun</option>{years.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-   <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>onFiltersChange({...filters,order:e.target.value as BrowseFilters['order']})}><option value="default">Relevansi</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
+   <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>onFiltersChange({...filters,order:e.target.value as BrowseFilters['order']})}><option value="default">Paling populer</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
    {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>onFiltersChange(EMPTY_BROWSE_FILTERS)}>Reset filter</button>}
   </fieldset>
   </div>
@@ -733,7 +733,7 @@ function Browse({
    <div>
     <h2>{value?`Hasil pencarian: “${value}”`:kind==='season'?'Musim ini':kind==='top'?'Anime terpopuler':'Pratinjau musim berikutnya'}</h2>
    </div>
-   <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${filteredItems.length} judul`}</span>
+   <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${filteredItems.length} ditampilkan`}</span>
   </div>
   {error&&uniqueItems.length>0&&<div className="config-error" role="alert">
    Belum bisa memuat lebih banyak anime.
