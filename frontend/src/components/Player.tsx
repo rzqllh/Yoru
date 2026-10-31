@@ -37,6 +37,9 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [selectedSubtitle,setSelectedSubtitle]=useState<{id:string;lang:string;url:string}|null>(null)
  const [subtitleOff,setSubtitleOff]=useState(false)
  const [subtitleManual,setSubtitleManual]=useState(false)
+ const [englishOfferDismissedFor,setEnglishOfferDismissedFor]=useState('')
+ const subtitleOfferKey=`${anime?.id??'demo'}:${episode}`
+ const englishOfferDismissed=englishOfferDismissedFor===subtitleOfferKey
  const [subtitlePreference,setSubtitlePreference]=useState<'auto'|'id'|'en'|'off'>('auto')
  const [subtitlePreferenceReady,setSubtitlePreferenceReady]=useState(false)
  const [captionFont,setCaptionFont]=useState<'sans'|'serif'>('sans')
@@ -315,7 +318,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   if(!subtitlePreferenceReady||subtitlePreference==='off'||subtitleManual||subtitleOff||selectedSubtitle||subtitleSearch||!subtitleChoices.length)return
   let alive=true
   void (async()=>{
-   const candidates=subtitlePreference==='en'?subtitleChoices.filter(item=>item.language==='en'):[...subtitleChoices.filter(item=>item.language==='id'),...subtitleChoices.filter(item=>item.language==='en')]
+   // Only an explicit saved English preference permits English auto-selection.
+   const candidates=subtitleChoices.filter(item=>item.language===(subtitlePreference==='en'?'en':'id'))
    for(const item of candidates){
     if(!alive)return
     if(!item.sourceUrl)continue
@@ -331,7 +335,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     setSubtitleState(`Subtitle ${item.label} dipilih otomatis`)
     return
    }
-   if(alive)setSubtitleState('Sub Indo belum tersedia untuk episode ini. Subtitle English juga belum ditemukan.')
+   if(alive)setSubtitleState(subtitleChoices.some(item=>item.language==='en')?'Sub Indo belum tersedia. English hanya digunakan setelah dipilih.':'Sub Indo belum tersedia untuk episode ini.')
   })()
   return()=>{alive=false}
  },[subtitleChoices,subtitleManual,subtitleOff,selectedSubtitle,subtitleSearch,subtitlePreference,subtitlePreferenceReady])
@@ -347,11 +351,9 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   if(!subtitlePreferenceReady)return
   const nativeTracks=Array.from(v.textTracks)
   const preferredLanguage=subtitlePreference==='en'?'en':'id'
-  const fallbackLanguage=subtitlePreference!=='en'&&
-   !nativeTracks.some(track=>track.language.toLowerCase()==='id')?'en':preferredLanguage
   for(const track of nativeTracks){
    track.mode=selectedSubtitle?track.label===selectedSubtitle.id?'showing':'disabled':
-    track.language.toLowerCase()===fallbackLanguage?'showing':'disabled'
+    track.language.toLowerCase()===preferredLanguage?'showing':'disabled'
   }
  },[subtitleOff,selectedSubtitle,stream.format,subtitlePreference,subtitlePreferenceReady])
 
@@ -650,7 +652,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
    <video ref={video} className={captionClasses(normalizeCaptionSettings({font:captionFont,size:captionSize,backdrop:captionBackdrop,textOpacity:captionTextOpacity,backgroundOpacity:captionBackgroundOpacity,outline:captionOutline,position:captionPosition}))} playsInline preload="metadata" crossOrigin="anonymous" onPlay={()=>setIsPaused(false)} onPause={()=>{setIsPaused(true);saveLocal()}} onVolumeChange={()=>{if(video.current){setVolume(video.current.volume);setIsMuted(video.current.muted)}}} onLoadedMetadata={()=>{setReady(true);setDuration(video.current?.duration||0);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onDurationChange={()=>setDuration(video.current?.duration||0)} onTimeUpdate={()=>{setPosition(video.current?.currentTime||0);if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onEnded={()=>{setIsPaused(true);saveLocal();void prepareNextEpisode()}} autoPlay>
-    {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={subtitlePreferenceReady&&!subtitleOff&&!selectedSubtitle&&t.lang===(subtitlePreference==='en'?'en':stream.tracks.some(track=>track.lang==='id')?'id':'en')}/>)}
+    {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={subtitlePreferenceReady&&!subtitleOff&&!selectedSubtitle&&t.lang===(subtitlePreference==='en'?'en':'id')}/>)}
     {selectedSubtitle&&!subtitleOff&&<track key={selectedSubtitle.url} kind="subtitles" srcLang={selectedSubtitle.lang} label={selectedSubtitle.id} src={selectedSubtitle.url} default onLoad={()=>{
      const tracks=video.current?.textTracks
      if(tracks)for(let i=0;i<tracks.length;i++)tracks[i].mode=tracks[i].label===selectedSubtitle.id?'showing':'disabled'
@@ -735,6 +737,25 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    {subtitleChoices.map(item=><button type="button" key={item.id} onClick={()=>{setSubtitleManual(true);void activateSubtitle(item,true)}} aria-pressed={selectedSubtitle?.id===item.id}>
     {item.label} · {item.provider==='stremio'?'Sumber tambahan':'Sumber subtitle'} · Pilihan {subtitleChoices.indexOf(item)+1}
    </button>)}
+   {!subtitleSearch&&!subtitleOff&&!selectedSubtitle&&!englishOfferDismissed&&subtitlePreference!=='en'&&
+    !stream.tracks.some(track=>track.lang==='id')&&!subtitleChoices.some(item=>item.language==='id')&&
+    (stream.tracks.some(track=>track.lang==='en')||subtitleChoices.some(item=>item.language==='en'))&&
+    <fieldset className="subtitle-indonesia-state" aria-label="Konfirmasi subtitle English">
+     <p>Sub Indo belum tersedia. Gunakan subtitle English untuk episode ini?</p>
+     <button type="button" onClick={()=>{
+      const native=stream.tracks.some(track=>track.lang==='en')
+      if(native)chooseNativeSubtitle('en')
+      else{
+       const candidate=subtitleChoices.find(item=>item.language==='en')
+       if(candidate)void activateSubtitle(candidate,true)
+      }
+      setEnglishOfferDismissedFor(subtitleOfferKey)
+     }}>Gunakan subtitle English</button>
+     <button type="button" onClick={()=>{
+      setEnglishOfferDismissedFor(subtitleOfferKey)
+      setSubtitleState('English tidak diaktifkan. Subtitle tetap tidak tersedia.')
+     }}>Tidak sekarang</button>
+    </fieldset>}
    {!subtitleSearch&&!stream.tracks.some(t=>t.lang==='id')&&!subtitleChoices.some(item=>item.language==='id')&&<p className="subtitle-indonesia-state" role="status">Sub Indo belum tersedia untuk episode ini. Tambahkan file SRT atau VTT dari perangkat.</p>}
    <div className="subtitle-upload">
     <label htmlFor="yoru-subtitle-upload"><Upload size={16}/> Tambahkan subtitle dari perangkat</label>

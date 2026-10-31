@@ -123,7 +123,7 @@ Known limitations / next action:
 
 ## Acceptance policy
 
-All rows are **NOT RUN for this new contract** until measured in future phase PRs. Historical CI and implemented fixtures may be cited as earlier evidence in [TRACKING](TRACKING.md), but cannot satisfy user-approved D01–D09 by implication. A new release candidate requires re-executing applicable tests against the exact release SHA, including real-provider/device checks and explicit sign-off [#20](https://github.com/rzqllh/Yoru/issues/20).
+At the original planning baseline, new-contract rows were **NOT RUN**. Rows below are updated only after measured work on specific SHAs. Historical CI and implemented fixtures may be cited as earlier evidence in [TRACKING](TRACKING.md), but cannot satisfy user-approved D01–D09 by implication. A new release candidate requires re-executing applicable tests against the exact release SHA, including real-provider/device checks and explicit sign-off [#20](https://github.com/rzqllh/Yoru/issues/20).
 
 ## New-contract execution log — 2026-10-31
 
@@ -131,3 +131,6 @@ All rows are **NOT RUN for this new contract** until measured in future phase PR
 | --- | --- | --- | --- | --- |
 | AC-SRC-06 D02 | `a91e7ec` (PR #100) | Linux/Windows + Chromium/WebKit fixture | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41220260198), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41220260118). Live source and iPhone NOT RUN; revalidate final docs SHA. |
 | AC-SRC-05 Torrentio | unchanged existing main and D02 branch | live addon | NOT RUN | Hash classification persists; no torrent engine or playable URL inferred. |
+| AC-SUB-01/02 D01 | `d02aef2` PR #101 head | External English-only + native English-only fixtures, Linux/Windows + Chromium/WebKit | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41221159658), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41221159599). No live provider or physical iPhone. Documentation follow-up requires final exact-head rerun. |
+
+**D01 first PR head `0ec7183` — FAIL (lint).** [CI](https://github.com/rzqllh/Yoru/actions/runs/41221002621), [browser workflow](https://github.com/rzqllh/Yoru/actions/runs/41221002597). Two lint errors corrected; `d02aef2` rerun PASS for exact PR code/test head. Final docs SHA requires additional verification.
