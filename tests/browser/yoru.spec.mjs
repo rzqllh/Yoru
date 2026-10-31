@@ -988,6 +988,7 @@ test('browse displays loaded title count, not an unverified total across pages',
  })
  await page.goto('/jelajahi')
  const label=page.locator('.browse-results-header .results-label')
+ await expect(page.getByRole('combobox',{name:'Urutkan anime'}).locator('option[value="default"]')).toHaveText('Paling populer')
  await expect(label).toHaveText('1 ditampilkan')
  await expect(page.locator('.browse-grid .anime-card')).toHaveCount(1)
  await page.getByRole('button',{name:/Muat lebih banyak/}).click()
