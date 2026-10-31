@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import {test} from 'node:test'
-import {createDeviceSyncClient,syncConfig,syncableBackup} from '../frontend/src/lib/device-sync.ts'
+import {createDeviceSyncClient,mergeDownloadedBackup,syncConfig,syncableBackup} from '../frontend/src/lib/device-sync.ts'
 const UUID='11111111-2222-4333-8444-555555555555'
 const SETTINGS={url:'https://example.supabase.co',key:'sb_publishable_example_public_key'}
 const baseline={version:1,library:[],progress:[],preferences:[
@@ -165,4 +165,33 @@ test('live verification tool refuses to run without explicit test credentials',a
  assert.equal(result.status,2)
  assert.match(result.stderr,/Missing YORU_SYNC_TEST_URL/)
  assert.equal(result.stdout,'')
+})
+
+test('cloud merge keeps newer local playback progress and newer remote library changes',()=>{
+ const anime={id:'mal:21',malId:21,title:'Example'}
+ const local={version:1,
+  library:[{anime,status:'planned',updatedAt:100}],
+  progress:[{anime,episode:2,seconds:220,duration:1400,updatedAt:500}],
+  preferences:[{key:'auto-next',value:'off'}]}
+ const remote={version:1,
+  library:[{anime,status:'watching',updatedAt:200}],
+  progress:[{anime,episode:1,seconds:25,duration:1400,updatedAt:400}],
+  preferences:[{key:'auto-next',value:'on'},{key:'playback-speed',value:'1.25'}]}
+ const merged=mergeDownloadedBackup(local,remote)
+ assert.deepEqual(merged.library[0],remote.library[0])
+ assert.deepEqual(merged.progress[0],local.progress[0])
+ assert.deepEqual(merged.preferences,remote.preferences)
+ assert.deepEqual(local.progress[0].episode,2)
+ assert.equal(merged.version,1)
+})
+test('cloud merge resolves timestamp ties to local state and retains non-overlapping entries',()=>{
+ const title=id=>({id:'mal:'+id,malId:id,title:'Anime'})
+ const local={version:1,library:[{anime:title(1),status:'completed',updatedAt:100}],
+  progress:[],preferences:[]}
+ const remote={version:1,library:[{anime:title(1),status:'planned',updatedAt:100},
+   {anime:title(2),status:'planned',updatedAt:120}],progress:[],preferences:[]}
+ const merged=mergeDownloadedBackup(local,remote)
+ assert.deepEqual(merged.library.map(row=>row.status),['completed','planned'])
+ assert.equal(merged.library.length,2)
+ assert.throws(()=>mergeDownloadedBackup(local,{version:1,library:'invalid',progress:[]}),/tidak valid/)
 })
