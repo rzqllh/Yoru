@@ -163,3 +163,5 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 | AC-DATA-05/06 | Static 12-genre allowlists verified in frontend router, backend HTTP validator and Jikan pipeline | **NOT RUN / PLANNED** | Verified source limitation; no dynamic AniList genre/tag implementation or multi-page filter acceptance executed. |
 
 | AC-DATA-08 visible-results count | PR #111 head `0f3db7a`, main merge `ae9bc81` | **PASS (deterministic browser only); LIVE NOT RUN** | [CI](https://github.com/rzqllh/Yoru/actions/runs/41227101975) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41227101983) SUCCESS. Label `N ditampilkan` counts deduped loaded titles across page 1 and page 2; no unsupported total count. Real hosted data/pagination not verified. |
+
+| AC-DATA-05 Tenrai canonical genre options (independent initial API contract) | `feat/y04-tenrai-genre-options-20261101` | **CODED / TESTS NOT RUN** | API endpoint, strict source validation, adult-only genre exclusion, known 12 fallback and cache fixture added. UI, live Tenrai response, AniList genres/tags and full server-side filter support remain NOT VERIFIED. |
