@@ -15,6 +15,12 @@ const testStream={
 }
 test.beforeEach(async({page})=>{
  await page.route('**/api/anime/daily-trends',route=>route.fulfill({status:503,json:{error:'DAILY_TRENDS_UNAVAILABLE'}}))
+ await page.route('**/api/anime/genres',route=>route.fulfill({json:{
+  items:[
+   [1,'Action'],[2,'Adventure'],[4,'Comedy'],[8,'Drama'],[10,'Fantasy'],[14,'Horror'],
+   [7,'Mystery'],[22,'Romance'],[24,'Sci-Fi'],[36,'Slice of Life'],[30,'Sports'],[37,'Supernatural']
+  ].map(([id,name])=>({id,name})),source:'built-in',status:'fallback'
+ }}))
  await page.route('**/api/anime/discover?**',async route=>
   route.fulfill({json:{items:[anime],page:1,hasNext:false}}))
  await page.route('**/api/anime/search?**',async route=>
@@ -994,4 +1000,38 @@ test('browse displays loaded title count, not an unverified total across pages',
  await page.getByRole('button',{name:/Muat lebih banyak/}).click()
  await expect(label).toHaveText('2 ditampilkan')
  await expect(page.locator('.browse-grid .anime-card')).toHaveCount(2)
+})
+
+test('Tenrai genre choices use validated MAL IDs, preserve deep links and keep old names compatible',async({page})=>{
+ const genreRequests=[]
+ await page.route('**/api/anime/genres',route=>route.fulfill({json:{
+  source:'Tenrai',status:'upstream',
+  items:[
+   [1,'Action'],[2,'Adventure'],[4,'Comedy'],[8,'Drama'],[10,'Fantasy'],[14,'Horror'],
+   [7,'Mystery'],[22,'Romance'],[24,'Sci-Fi'],[36,'Slice of Life'],[30,'Sports'],[37,'Supernatural'],
+   [46,'Award Winning']
+  ].map(([id,name])=>({id,name}))
+ }}))
+ await page.route('**/api/anime/browse?**',route=>{
+  const genre=new URL(route.request().url()).searchParams.get('genre')
+  genreRequests.push(genre)
+  return route.fulfill({json:{items:[anime],page:1,hasNext:false}})
+ })
+ await page.goto('/jelajahi')
+ const select=page.getByRole('combobox',{name:'Genre'})
+ await expect(select.locator('option[value="mal:46"]')).toHaveText('Award Winning')
+ await select.selectOption('mal:46')
+ await expect(page).toHaveURL(/genre=mal%3A46/)
+ await expect.poll(()=>genreRequests.at(-1)).toBe('mal:46')
+ await page.reload()
+ await expect(select).toHaveValue('mal:46')
+ await select.selectOption('Action')
+ await expect(page).toHaveURL(/genre=Action/)
+ await expect.poll(()=>genreRequests.at(-1)).toBe('Action')
+})
+
+test('genre taxonomy failure preserves legacy filter choices and discloses partial list',async({page})=>{
+ await page.goto('/jelajahi')
+ await expect(page.getByRole('combobox',{name:'Genre'}).locator('option')).toHaveCount(13)
+ await expect(page.getByText('Daftar genre tambahan belum tersedia. Genre umum tetap bisa dipakai.')).toBeVisible()
 })
