@@ -13,6 +13,8 @@ test('reject unsafe or unconfigured sync endpoints and publishable keys',()=>{
  assert.equal(syncConfig('http://insecure.example',SETTINGS.key),null)
  assert.equal(syncConfig('https://user:pass@example.supabase.co',SETTINGS.key),null)
  assert.equal(syncConfig('https://example.supabase.co/?code=abc',SETTINGS.key),null)
+ assert.equal(syncConfig(SETTINGS.url,'sb_secret_server_only_key'),null)
+ assert.equal(syncConfig(SETTINGS.url,'eyJhbGciOiJIUzI1NiJ9.some.service_role'),null)
  assert.deepEqual(syncConfig(SETTINGS.url,SETTINGS.key),SETTINGS)
 })
 test('cloud snapshot excludes unknown preferences and never stores unrelated secret strings',()=>{
