@@ -50,8 +50,10 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_PUBLIC_KEY
 ```
 
 Do **not** use service-role, secret or management keys in frontend environment
-variables. The publishable key is public by design and does not replace row-level
-authorization. An authenticated access token is required for snapshot requests.
+variables. Only modern `sb_publishable_...` keys are accepted by the sync client; legacy
+JWT keys and `sb_secret_...` credentials are deliberately rejected to avoid
+accidental privileged-key exposure in the browser. The publishable key is
+public by design and does not replace row-level authorization. An authenticated access token is required for snapshot requests.
 
 Rebuild the frontend after changing `VITE_*` variables. The backend currently
 does not serve the Auth endpoints: the browser talks directly to the configured
