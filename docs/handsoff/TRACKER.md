@@ -1,12 +1,11 @@
-# YX-02 temporary tracker
+# YX-02 temporary tracker — tested checkpoint
 
-- [x] Audit main, #44/#78, #77 and prior CI.
-- [x] Isolated branch from main.
-- [x] Guard source ranking from malformed subtitle and quality metadata.
-- [x] Add Node unit regressions (not yet run).
-- [ ] Exact working HEAD CI Linux/Windows and Chromium/WebKit.
-- [ ] Transfer evidence to PR/#44 and delete handoff.
-- [ ] Exact final clean HEAD CI and Chromium/WebKit.
-- [ ] Merge and postmerge verification.
+- [x] Audit and isolated branch.
+- [x] Guard malformed subtitle/quality ranking and add Node unit regressions.
+- [x] Working HEAD `5f0fd22742bdd2c1f98e712092444a97a7d9dfc6` Linux/Windows and Chromium/WebKit SUCCESS.
+- [x] Transfer working evidence to PR #83 / Issue #44.
+- [ ] Delete this folder.
+- [ ] Final clean HEAD CI and browser SUCCESS.
+- [ ] Merge PR #83 and verify main.
 
-No Supabase, production, live provider, iPhone, resolver, release or branch cleanup.
+External gates remain deferred. No production action.
