@@ -14,7 +14,7 @@ function names(value: unknown): string[] { return Array.isArray(value) ? value.m
 
 export function normalizeAnime(raw: JikanRecord): Anime {
   const id = integer(raw.mal_id)
-  if (!id || id <= 0) throw new Error('Invalid MAL anime id')
+  if (id === null || !Number.isSafeInteger(id) || id <= 0) throw new Error('Invalid MAL anime id')
   const jpg = object(object(raw.images).jpg)
   const trailer = object(raw.trailer)
   const title = text(raw.title_english) || text(raw.title) || `Anime #${id}`
@@ -41,6 +41,6 @@ export function normalizeList(rows: unknown): Anime[] {
 export type AnimeEpisode = { id:string; animeId:string; number:number; title:string; filler:boolean; recap:boolean }
 export function normalizeEpisode(animeId:string, raw:JikanRecord): AnimeEpisode {
   const number = integer(raw.mal_id)
-  if(!number || number<1) throw new Error('Invalid episode number')
+  if(number===null || !Number.isSafeInteger(number) || number<1) throw new Error('Invalid episode number')
   return {id:`${animeId}:${number}`,animeId,number,title:text(raw.title)||`Episode ${number}`,filler:raw.filler===true,recap:raw.recap===true}
 }
