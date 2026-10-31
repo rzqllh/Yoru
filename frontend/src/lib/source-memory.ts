@@ -64,7 +64,9 @@ export function parseSourceMemory(raw:unknown,now=Date.now()):SourceMemory|null{
    (record.format!=='hls'&&record.format!=='mp4')||
    typeof record.updatedAt!=='number'||!Number.isSafeInteger(record.updatedAt)||
    record.updatedAt<1||record.updatedAt>now+60_000||now-record.updatedAt>MAX_AGE)return null
-  return record as SourceMemory
+  // Never propagate untrusted extra fields from IndexedDB or imported backups.
+  // Provider identity is a hint only; the selected media is verified again.
+  return {version:1,providerId:record.providerId,format:record.format,updatedAt:record.updatedAt}
  }catch{return null}
 }
 export function preferRememberedSource<T extends Pick<Stream,'providerId'|'format'>>(
