@@ -12,7 +12,8 @@ function isAnime(value:unknown):value is Anime{
 }
 function validLibrary(value:unknown):value is LibraryEntry{
  if(!isRecord(value))return false
- return isAnime(value.anime)&&['planned','watching','completed'].includes(String(value.status))&&isSafeNumber(value.updatedAt)
+ return isAnime(value.anime)&&typeof value.status==='string'&&
+  ['planned','watching','completed'].includes(value.status)&&isSafeNumber(value.updatedAt)
 }
 function validProgress(value:unknown):value is ProgressEntry{
  if(!isRecord(value))return false
