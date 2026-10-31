@@ -32,6 +32,11 @@ Provision a Supabase project owned by the operator. Apply the reviewed migration
 `yoru_sync_snapshots` row per authenticated user, an account-scoped RLS
 SELECT policy, and RPC-only writes/deletion with optimistic-revision checks.
 Direct PostgREST INSERT/UPDATE/DELETE permissions are not granted.
+Privileged functions live in the non-exposed `yoru_private` schema with pinned
+empty search paths and caller-scoped `auth.uid()` checks. Only narrow
+`SECURITY INVOKER` public RPC wrappers are callable by authenticated users.
+Never add `yoru_private` to Supabase's exposed schemas. Verify both authorization
+and optimistic conflict behavior on a staging database before enabling this UI.
 
 Configure **email OTP** templates with `{{ .Token }}`, approved Auth redirect
 allow-list and a functioning SMTP sender. Default project email delivery is
