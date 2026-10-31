@@ -36,3 +36,26 @@ test('no providers configured is different from both providers failing',()=>{
  ],['local','stremio'])
  assert.deepEqual(failing,{items:[],warnings:['local','stremio'],allFailed:true})
 })
+
+test('fulfilled non-array provider payloads degrade without hiding healthy peers',()=>{
+ const result=combineProviderResults([
+  {status:'fulfilled',value:null},
+  {status:'fulfilled',value:{items:[{id:'invalid-wrapper'}]}},
+  {status:'fulfilled',value:[{id:'healthy-source'}]},
+  {status:'fulfilled',value:'not-an-array'}
+ ],['null-provider','object-provider','healthy','string-provider'])
+ assert.deepEqual(result,{
+  items:[{id:'healthy-source'}],
+  warnings:['null-provider','object-provider','string-provider'],
+  allFailed:false
+ })
+ assert.equal(JSON.stringify(result).includes('invalid-wrapper'),false)
+})
+
+test('all fulfilled malformed provider payloads are failures, not healthy empty results',()=>{
+ const malformed=combineProviderResults([
+  {status:'fulfilled',value:null},
+  {status:'fulfilled',value:{length:0}}
+ ],['first','second'])
+ assert.deepEqual(malformed,{items:[],warnings:['first','second'],allFailed:true})
+})
