@@ -15,3 +15,7 @@ Base main: `e5812270dd13843a04bbb4bb15fe921520917856`
 
 ## Status
 CODED: normalization now removes malformed tracks/quality, enforces native candidate URL safety, and adds three deterministic regression tests. Local execution unavailable (repository Git transport inaccessible in this runtime). Exact-head CI and browser results PENDING.
+
+## First CI failure and correction
+- PR #115 first exact-head `7ef4d6f` CI failed because Node `--experimental-strip-types` requires `.ts` on runtime imports. Failure observed in CI job 124662328518 (`ERR_MODULE_NOT_FOUND` for source-readiness); Chromium build also failed. This is NOT a PASS.
+- Corrected runtime import to `./source-readiness.ts` in `c39a34d`. Re-run exact-head CI/Chromium/WebKit required.
