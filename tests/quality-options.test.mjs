@@ -13,3 +13,11 @@ test('duplicate and unsupported manifest heights do not become UI options',()=>{
  ])
  assert.deepEqual(getAvailableQualityLevels([]),[])
 })
+test('malformed HLS level entries are ignored without changing genuine manifest indices',()=>{
+ const levels=[null,undefined,false,'720',{height:'1080'},[],{height:Infinity},
+  {height:720},{height:480},{height:720},{height:1080},{}]
+ assert.deepEqual(getAvailableQualityLevels(levels),[
+  {index:10,height:1080},{index:7,height:720},{index:8,height:480}
+ ])
+ assert.deepEqual(getAvailableQualityLevels([null,undefined,{},[]]),[])
+})
