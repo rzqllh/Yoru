@@ -212,3 +212,14 @@ test('cloud read canonicalizes remote records even after RLS access is granted',
  assert.deepEqual(snapshot.payload.preferences,[])
  assert.deepEqual(snapshot.payload.library[0].anime,{id:'mal:7',malId:7,title:'Anime'})
 })
+
+test('episode source memory remains eligible for cloud sync without carrying stream URLs',()=>{
+ const provider=JSON.stringify({version:1,providerId:'verified-source',format:'hls',updatedAt:Date.now()})
+ const safe=syncableBackup({version:1,library:[],progress:[],preferences:[
+  {key:'source-choice:mal:17:ep:2',value:provider},
+  {key:'source-choice:mal:17:ep:0',value:provider},
+  {key:'source-choice:mal:17:ep:999999',value:provider}
+ ]})
+ assert.deepEqual(safe.preferences?.map(row=>row.key),['source-choice:mal:17:ep:2'])
+ assert.equal(JSON.stringify(safe).includes('https://'),false)
+})
