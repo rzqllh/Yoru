@@ -25,6 +25,26 @@ test('SubSource rejects uncertain shapes and mismatched episodes',()=>{
  assert.equal(normalizeSubSource({data:[{id:'25',language:'Indonesian',episode_number:1}]},1).length,1)
  assert.deepEqual(normalizeSubSource({results:[{url:'https://localhost/srt'}]},1),[])
 })
+test('provider episode matching rejects boolean, array and exponent coercion without losing decimal episode strings',()=>{
+ const malformed=[true,[5],{value:5},'5e0','5.0',5.5]
+ const subdl=normalizeSubDl({subtitles:[{unpack_files:[
+  ...malformed.map((episode,i)=>({episode,language:'ID',url:`/subtitle/20/bad${i}`})),
+  {episode:'05',language:'ID',url:'/subtitle/20/good'}
+ ]}]},5)
+ assert.deepEqual(subdl.map(x=>x.score),[70])
+ assert.equal(subdl.length,1)
+ const opensubtitles=normalizeOpenSubtitles({data:[
+  ...malformed.map((episode,i)=>({attributes:{language:'ind',feature_details:{episode_number:episode},files:[{file_id:i+1}]}})),
+  {attributes:{language:'ind',feature_details:{episode_number:'05'},files:[{file_id:99}]}}
+ ]},5)
+ assert.deepEqual(opensubtitles.map(x=>x.fileId),[99])
+ const subsource=normalizeSubSource({data:[
+  ...malformed.map((episode,i)=>({id:String(i+1),language:'ID',episode_number:episode})),
+  {id:'99',language:'ID',episode_number:'05'}
+ ]},5)
+ assert.deepEqual(subsource.map(x=>x.id),['subsource:99'])
+})
+
 test('SRT to VTT conversion keeps cue text and rejects unknown formats',()=>{
  const result=toWebVtt('1\\n00:00:01,123 --> 00:00:02,500\\nHello\\n')
  assert.ok(result.startsWith('WEBVTT'))
