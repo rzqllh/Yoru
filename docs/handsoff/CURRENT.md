@@ -6,6 +6,6 @@
 - Base main Chromium/WebKit: https://github.com/rzqllh/Yoru/actions/runs/41212085760 — SUCCESS.
 - Scope: `rankNativeStreams` metadata ranking only; reject bitrate/other numeric labels masquerading as height while preserving explicit 720p/1080p and stable ties.
 - Acceptance: unit regression for `1080kbps`, `2160kbps`, `1080px`, explicit `1080p60`, no provider calls; exact-head PR CI + Chromium/WebKit required before merge.
-- State: CODED in branch `4920da27fb56c8517e46c627f49169b5fb9322ed`, tests pending. Do not infer actual stream playability from quality labels.
+- State: VERIFIED on pre-cleanup branch SHA `18aefb6999d91fbda3b9720ae065816295c74507` — Linux/Windows CI https://github.com/rzqllh/Yoru/actions/runs/41217706937 SUCCESS; Chromium/WebKit https://github.com/rzqllh/Yoru/actions/runs/41217706789 SUCCESS. Final cleanup SHA requires fresh checks before merge.. Do not infer actual stream playability from quality labels.
 - Guardrails: no Supabase, provider live, Vercel deployment, release, secrets or historical branch deletion. `vercel.json` disables Git deployments.
 - Before merge: transfer evidence into PR and Issue #44, remove this folder, recheck exact head and `main` CI.
