@@ -2302,6 +2302,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .player-stage video.subtitle-font-sans::cue{font-family:Arial,Helvetica,sans-serif;}
 .player-stage video.subtitle-font-serif::cue{font-family:Georgia,'Times New Roman',serif;}
 .player-stage video.subtitle-size-75::cue{font-size:75%;}
+.player-stage video.subtitle-size-90::cue{font-size:90%;}
 .player-stage video.subtitle-size-100::cue{font-size:100%;}
 .player-stage video.subtitle-size-125::cue{font-size:125%;}
 .player-stage video.subtitle-size-150::cue{font-size:150%;}

@@ -134,3 +134,5 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 | AC-SUB-01/02 D01 | `d02aef2` PR #101 head | External English-only + native English-only fixtures, Linux/Windows + Chromium/WebKit | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41221159658), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41221159599). No live provider or physical iPhone. Documentation follow-up requires final exact-head rerun. |
 
 **D01 first PR head `0ec7183` — FAIL (lint).** [CI](https://github.com/rzqllh/Yoru/actions/runs/41221002621), [browser workflow](https://github.com/rzqllh/Yoru/actions/runs/41221002597). Two lint errors corrected; `d02aef2` rerun PASS for exact PR code/test head. Final docs SHA requires additional verification.
+
+| AC-SUB-04 D09 | next caption defaults branch | Node unit + Chromium/WebKit, physical iPhone | NOT RUN | Verify default 90% cue, sans/50% background, retained old 100%/75% preference, accessible text and video safe areas. Native CSS support on actual Safari still unknown. |
