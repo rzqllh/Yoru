@@ -133,3 +133,5 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 ### 2026-11-01 — Y04 independent genre API slice
 
 - **CODED / PENDING CI:** `feat/y04-tenrai-genre-options-20261101`. New isolated `/api/anime/genres` Tenrai-backed genre-option contract with source provenance and safe fallback; dedicated negative/source-cache/API tests. Phase 04 full dynamic filter integration **NOT DONE**, AniList tag taxonomy **NOT DONE**, live source and production **NOT VERIFIED**. No change to existing 12 static Browse options. See [Phase 04 handoff](handoffs/PHASE_04_HANDOFF.md).
+
+- **PR #116 checkpoint (not a UI release):** source-labeled Tenrai canonical genre options and safe 12-item fallback implemented; code head `27eb458` [CI Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41244040283) + [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41244040288) SUCCESS. Initial TypeScript loader failure corrected; current docs head and final main still require rechecks. Dynamic Browse options, server acceptance of newly listed genres, AniList tags and live Tenrai verification **NOT DONE**.
