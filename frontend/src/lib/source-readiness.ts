@@ -21,7 +21,9 @@ function isAllowedMediaHost(hostname:string):boolean{
 
 /** A configured URL is a candidate, not evidence that the browser can decode it. */
 export function isNativeCandidate(stream:Stream):boolean{
- if(stream.format!=='hls'&&stream.format!=='mp4')return false
+ // Provider payloads are untrusted at runtime, even when typed as Stream.
+ if(!stream||typeof stream!=='object'||(stream.format!=='hls'&&stream.format!=='mp4')||
+  typeof stream.url!=='string')return false
  if(stream.url.startsWith('/demo/'))return true
  try{
   const url=new URL(stream.url)
