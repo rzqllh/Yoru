@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url'
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..')
 const docs=[
- 'README.md','DESIGN.md','docs/public/README.md','docs/public/architecture.md',
+ 'README.md','DESIGN.md','docs/public/README.md','docs/public/architecture.md','docs/public/cloud-sync.md',
  'docs/public/development.md','docs/public/getting-started.md','docs/public/operations.md',
  'docs/public/production-readiness.md','docs/public/providers.md','docs/public/quality-gates.md',
  'docs/public/releases.md','docs/public/security.md','docs/public/troubleshooting.md',
