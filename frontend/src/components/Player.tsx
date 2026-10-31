@@ -43,11 +43,11 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [subtitlePreference,setSubtitlePreference]=useState<'auto'|'id'|'en'|'off'>('auto')
  const [subtitlePreferenceReady,setSubtitlePreferenceReady]=useState(false)
  const [captionFont,setCaptionFont]=useState<'sans'|'serif'>('sans')
- const [captionSize,setCaptionSize]=useState(100)
+ const [captionSize,setCaptionSize]=useState(90)
  const [captionBackdrop,setCaptionBackdrop]=useState<'dark'|'clear'>('dark')
  const [captionScope,setCaptionScope]=useState<'global'|'anime'>('anime')
  const [captionTextOpacity,setCaptionTextOpacity]=useState<50|75|100>(100)
- const [captionBackgroundOpacity,setCaptionBackgroundOpacity]=useState<0|25|50|75|100>(75)
+ const [captionBackgroundOpacity,setCaptionBackgroundOpacity]=useState<0|25|50|75|100>(50)
  const [captionOutline,setCaptionOutline]=useState<0|1|2>(1)
  const [captionPosition,setCaptionPosition]=useState<CaptionPosition>('original')
  const [captionPositionSupported,setCaptionPositionSupported]=useState(false)
@@ -768,7 +768,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
      <option value="sans">Sans-serif</option><option value="serif">Serif</option>
     </select></label>
     <label>Ukuran <select aria-label="Ukuran subtitle" value={captionSize} onChange={event=>saveCaptionStyle(captionFont,Number(event.target.value),captionBackdrop,captionScope)}>
-     {[75,100,125,150].map(size=><option value={size} key={size}>{size}%</option>)}
+     {[75,90,100,125,150].map(size=><option value={size} key={size}>{size}%</option>)}
     </select></label>
 
     <label>Transparansi teks <select aria-label="Transparansi teks subtitle" value={captionTextOpacity} onChange={event=>saveCaptionStyle(captionFont,captionSize,captionBackdrop,captionScope,{textOpacity:Number(event.target.value) as 50|75|100})}>

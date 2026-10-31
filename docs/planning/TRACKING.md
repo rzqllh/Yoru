@@ -28,7 +28,7 @@ Owners below are **responsibility roles**, not claims that any specific person/a
 | SRC-05 / D02 | 01 | Exclude uncontrolled iframe from playable options | MERGED + MAIN CI TESTED (D02 only) | Playback/UX | Legacy `App.tsx` / `Player.tsx` fallback | AC-SRC-06; source-gating regression |
 | SRC-06 / YX-03 | 01 | Honest native quality Auto and resolution labels | PARTIAL | Playback engineering | [#97](https://github.com/rzqllh/Yoru/pull/97) | AC-SRC-07; real manifest levels |
 | SUB-01 / D01 | 02 | English requires explicit confirmation; Sub Indo preferred | MERGED PR #101 / PR-HEAD TESTED; LIVE BLOCKED | Player/UX | `Player.tsx`, [#21](https://github.com/rzqllh/Yoru/pull/21) | AC-SUB-01/02; current native auto-English behaviour must change |
-| SUB-02 / D09 | 02 | Caption presets/font/size/contrast/position | PARTIAL | Player/UX | [#55](https://github.com/rzqllh/Yoru/pull/55), `caption-appearance.ts` | AC-SUB-03/04; browser capability |
+| SUB-02 / D09 | 02 | Caption presets/font/size/contrast/position | D09 DEFAULT TESTED IN PR #103 / MERGE PENDING | Player/UX | [#55](https://github.com/rzqllh/Yoru/pull/55), `caption-appearance.ts` | AC-SUB-03/04; browser capability |
 | SUB-03 | 02 | Subtitle season/cour/episode mapping | PLANNED | API/data | `backend/providers/subtitles.ts` has hardcoded season=1 | AC-SUB-05/06 |
 | SUB-04 | 02 | OpenSubtitles/SubDL/SubSource/Stremio APIs | CODED, LIVE BLOCKED | API engineering + owner inputs | [#21](https://github.com/rzqllh/Yoru/pull/21), [#28](https://github.com/rzqllh/Yoru/pull/28), [#32](https://github.com/rzqllh/Yoru/pull/32) | AC-SUB-07/08; #20 R-G3 |
 | HOME-01 / D06 | 03 | Hero 8s pause/hover/focus/swipe/no old controls | PARTIAL (8s timer only) | UI engineering | `App.tsx` current hero | AC-HOME-01..04 |
@@ -103,3 +103,7 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 - **D01 PR #101 corrected head `d02aef2`:** four jobs SUCCESS at [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41221159658) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41221159599). First head failed lint and is not counted; final docs SHA must be rechecked. Live SubDL/OpenSubtitles/SubSource and iOS acceptance still pending.
 
 - **D01 merge checkpoint:** PR #101 merged to main `7a6086880b89c83a854b79165d7b6e1897b38660`. Exact PR-head checks PASS: [CI](https://github.com/rzqllh/Yoru/actions/runs/41221351877), [browser](https://github.com/rzqllh/Yoru/actions/runs/41221351895). Exact merged-main checks pending when recorded. Phase 02 as a whole remains PARTIAL, G3 blocked.
+
+- **D09 caption defaults slice:** branch `fix/y02-native-caption-defaults-20261031`, 90% size/50% background/system sans default, retains user-overridden settings; tests and physical iPhone NOT RUN at checkpoint. Main handoff #102 merged at `36176a1`.
+
+- **PR #103 D09:** exact code head `b56cae5`, 4/4 checks [CI](https://github.com/rzqllh/Yoru/actions/runs/41222013660), [browser](https://github.com/rzqllh/Yoru/actions/runs/41222013653) SUCCESS. Docs follow-up exact SHA still requires verification; live Safari/legibility unknown.

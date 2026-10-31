@@ -16,3 +16,15 @@ test('old subtitle style settings migrate without losing clear backdrop',()=>{
  assert.equal(migrated.font,'serif')
  assert.equal(migrated.size,125)
 })
+
+test('default native caption preset starts compact, readable and familiar without overwriting legacy values',()=>{
+ assert.equal(DEFAULT_CAPTIONS.font,'sans')
+ assert.equal(DEFAULT_CAPTIONS.size,90)
+ assert.equal(DEFAULT_CAPTIONS.backgroundOpacity,50)
+ assert.equal(DEFAULT_CAPTIONS.outline,1)
+ assert.equal(normalizeCaptionSettings({}).size,90)
+ assert.equal(normalizeCaptionSettings({size:90}).size,90)
+ assert.equal(normalizeCaptionSettings({size:100,backgroundOpacity:75}).size,100)
+ assert.equal(normalizeCaptionSettings({size:100,backgroundOpacity:75}).backgroundOpacity,75)
+ assert.ok(captionClasses(normalizeCaptionSettings({})).includes('subtitle-size-90'))
+})
