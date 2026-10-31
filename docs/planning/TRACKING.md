@@ -1,3 +1,5 @@
+> **Quick latest status:** [CURRENT_STATE.md](CURRENT_STATE.md) — dated, plain-language Done / Partial / Blocker / Next. Verify HEAD before use.
+
 # Yoru — Requirement, Evidence and Blocker Tracker
 
 > **Snapshot:** 2026-10-31 (Asia/Jakarta) · audited `main 2b6c1d4bb518c4345d50e7849af5f8f7ef53aa1b`.  
@@ -29,10 +31,10 @@ Owners below are **responsibility roles**, not claims that any specific person/a
 | SRC-06 / YX-03 | 01 | Honest native quality Auto and resolution labels | PARTIAL | Playback engineering | [#97](https://github.com/rzqllh/Yoru/pull/97) | AC-SRC-07; real manifest levels |
 | SUB-01 / D01 | 02 | English requires explicit confirmation; Sub Indo preferred | MERGED PR #101 / PR-HEAD TESTED; LIVE BLOCKED | Player/UX | `Player.tsx`, [#21](https://github.com/rzqllh/Yoru/pull/21) | AC-SUB-01/02; current native auto-English behaviour must change |
 | SUB-02 / D09 | 02 | Caption presets/font/size/contrast/position | MERGED PR #103 / PR-HEAD TESTED; IPHONE PENDING | Player/UX | [#55](https://github.com/rzqllh/Yoru/pull/55), `caption-appearance.ts` | AC-SUB-03/04; browser capability |
-| SUB-03 | 02 | Subtitle season/cour/episode mapping | PLANNED | API/data | `backend/providers/subtitles.ts` has hardcoded season=1 | AC-SUB-05/06 |
+| SUB-03 | 02 | Subtitle season/cour/episode mapping | PARTIAL: #105/#107 GUARDS MERGED; LIVE MAPPING BLOCKED | API/data | Season-1 default removed by #107; mapping remains partial | AC-SUB-05/06 |
 | SUB-04 | 02 | OpenSubtitles/SubDL/SubSource/Stremio APIs | CODED, LIVE BLOCKED | API engineering + owner inputs | [#21](https://github.com/rzqllh/Yoru/pull/21), [#28](https://github.com/rzqllh/Yoru/pull/28), [#32](https://github.com/rzqllh/Yoru/pull/32) | AC-SUB-07/08; #20 R-G3 |
-| HOME-01 / D06 | 03 | Hero 8s pause/hover/focus/swipe/no old controls | CODED + TESTED IN PR #106; MERGE PENDING | UI engineering | `App.tsx` current hero | AC-HOME-01..04 |
-| HOME-02 / D07 | 03 | Anime Popular label and uniform 2:3 grid | LABEL TESTED; GRID NOT YET | UI engineering | `App.tsx` / `styles.css` | AC-HOME-05/06 |
+| HOME-01 / D06 | 03 | Hero 8s pause/hover/focus/swipe/no old controls | MERGED #106 + CI; IPHONE PENDING | UI engineering | `App.tsx` current hero | AC-HOME-01..04 |
+| HOME-02 / D07 | 03 | Anime Popular label and uniform 2:3 grid | MERGED #106/#108 + CI; IPHONE PENDING | UI engineering | `App.tsx` / `styles.css` | AC-HOME-05/06 |
 | DS-01 / YX-15 | 03 | Shared tokens/cards/forms, responsive/a11y | PARTIAL | Design engineering | `DESIGN.md` and `styles.css` | AC-UX-01..03 |
 | BROWSE-01 / D03 | 04 | Tenrai/MAL identity + AniList enrichment | PLANNED (existing isolated daily/guide data) | Data/API engineering | `backend/pipeline` | AC-DATA-01..04 |
 | BROWSE-02 | 04 | Dynamic AniList genres/tags and honest filters | PLANNED (currently 12) | Data/API engineering | `backend/api/app.ts` + `router.ts` | AC-DATA-05..08 |
@@ -119,3 +121,5 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 - **2026-11-01 — merge-conflict resolution:** PR #107 subtitle-season code and permanent notes from main `dc2bd458` retained; Phase 03 test and notes merged without overwrite. Combined exact-head CI pending.
 
 - **2026-11-01 — D07 Anime Popular grid:** branch `fix/y03-anime-popular-grid-20261101`, targeted full-column 2:3 ranked posters, title width and rank/score separation. 320px/390px browser fixture tests added. CI/physical iPhone NOT RUN; see [Phase 03 handoff](handoffs/PHASE_03_HANDOFF.md).
+
+- **2026-11-01 — Integrated checkpoint:** [#107](https://github.com/rzqllh/Yoru/pull/107) at `dc2bd45`, [#106](https://github.com/rzqllh/Yoru/pull/106) at `f21c4a8`, [#108](https://github.com/rzqllh/Yoru/pull/108) at `b4f35bd` merged. PR heads 4/4 CI+browser PASS. Main #107 and #106 exact SHAs 4/4 PASS; #108 main SHA needs final check. Existing earlier pending/failed rows remain history only. Cloud #77 still draft; live media/subtitle and iPhone not tested; public release #20 blocked. [Current state](CURRENT_STATE.md).

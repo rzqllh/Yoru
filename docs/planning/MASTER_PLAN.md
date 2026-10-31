@@ -105,6 +105,6 @@ Future AniList hybrid filters require validated provenance, pagination/cursors, 
 - **Epics/gates:** [#44](https://github.com/rzqllh/Yoru/issues/44), [#20](https://github.com/rzqllh/Yoru/issues/20), [#78](https://github.com/rzqllh/Yoru/issues/78), [#3](https://github.com/rzqllh/Yoru/issues/3), [#95](https://github.com/rzqllh/Yoru/issues/95).
 - **Actual code:** `frontend/src`, `backend`, `api/index.ts`, `configs`, `tests`, `scripts`, `vercel.json`, `DESIGN.md`.
 - **Existing user/ops docs:** `docs/public/`; revise public docs only when capabilities change and are verified.
-- **Planning index:** [PHASE_PLAN](PHASE_PLAN.md), [TRACKING](TRACKING.md), [ACCEPTANCE_MATRIX](ACCEPTANCE_MATRIX.md), [handoffs](handoffs/PHASE_00_HANDOFF.md).
+- **Planning index:** [CURRENT_STATE](CURRENT_STATE.md), [PHASE_PLAN](PHASE_PLAN.md), [TRACKING](TRACKING.md), [ACCEPTANCE_MATRIX](ACCEPTANCE_MATRIX.md), [handoffs](handoffs/PHASE_00_HANDOFF.md).
 - PRs are isolated by dependency; avoid overlapping App/Player/styles changes; exact-head Linux/Windows and Chromium/WebKit checks before merging; release and deployment are separately authorized.
 - No assumptions about agents/personas: assign real owners for work that is actually dispatched, not imaginary specialist execution.
