@@ -73,3 +73,19 @@ test('only malformed entries do not create false video candidates',()=>{
  assert.equal(result.responded,1)
  assert.deepEqual(result.items,[])
 })
+
+test('uncontrolled iframe-only response is not a playable candidate (D02)',()=>{
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[{
+  format:'embed',url:'https://www.animeembed.com/embed/mal/1/1',tracks:[],subtitleMode:'unknown'
+ }]}}])
+ assert.equal(result.state,'no-direct')
+ assert.deepEqual(result.items,[])
+ assert.equal(result.responded,1)
+})
+test('uncontrolled embed cannot remove valid native candidate',()=>{
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[
+  {format:'embed',url:'https://www.animeembed.com/embed/mal/1/1'},hls
+ ]}}])
+ assert.equal(result.state,'candidates')
+ assert.deepEqual(result.items,[hls])
+})
