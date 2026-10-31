@@ -54,3 +54,8 @@ All external/owner-dependent blockers are **DEFERRED to the final acceptance pha
 - YX-06 episode-scoped source memory PR #79 **MERGED** into `main` as `e5b306086f1e58b44a5a8311da5312ce1f1347ec`. Exact final PR HEAD `6478d35bc4a14eedd9d0636f4325c836a891417e` passed Linux/Windows CI (run 41184402304) and Chromium/WebKit Browser E2E (run 41184406682). Temporary `docs/handsoff/` checkpoint was removed from PR #79 before merging; main remains free of handoff artifacts.
 - PR #77 now needs rebasing or reconciling after main advancement and retains its own temporary handoff. Cloud preference allowlist expanded to support `source-choice:mal:<id>:ep:<episode>` safely, tests added on draft head `723ace9a`; CI must be checked fresh.
 - All externally dependent release/auth/provider/device blockers remain DEFERRED, not completed; no request for credentials at this stage.
+
+## 2026-10-31 YX-13 independent work
+- PR #80 `feat/yx13-library-sorting-20261031` based on main after PR #79. Adds persisted sort modes recent/title/score/year and unit+browser tests. Main merge pending exact-head Chromium E2E. On PR #80 branch, a temporary `docs/handsoff/CURRENT.md` checkpoint exists and must be removed before engineering merge.
+- PR #77 manual cloud sync allowlist and value parser now support `source-choice:mal:<id>:ep:<episode>` and the whitelisted `library-sort` preference, with tests; branch commits `e50a2f3`, `723ace9`, `9a3f514`, `3a91293`. Cloud project live OTP/RLS blockers still deferred, not verified. Main and Supabase database not changed by these draft edits.
+- Resume by refreshing branch HEAD, checking last CI SHA, and continuing independently testable tasks. No credentials required until final acceptance phase.
