@@ -110,6 +110,10 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 
 - **D09 merged:** [PR #103](https://github.com/rzqllh/Yoru/pull/103) main `6b13e0016670ab443ebd6cb1d212534656dff44b`, final head [CI](https://github.com/rzqllh/Yoru/actions/runs/41222189020) + [Browser](https://github.com/rzqllh/Yoru/actions/runs/41222188893) 4/4 SUCCESS. Current merged-main checks pending at checkpoint. New subtitle defaults are code shipped to `main`, NOT production/device/live-verified.
 
+- **2026-11-01 — Phase 02 season guard:** `fix/y02-explicit-season-subtitles-20261101`, code `92a2fd4`, tests `758d97d`. Hardcoded search season 1 removed; explicit season-number titles must match provider season identity; ambiguous/unverified season results fail closed. CI/live providers NOT RUN; see [Phase 02 handoff](handoffs/PHASE_02_HANDOFF.md). This does not close #20 G3.
+
 - **2026-11-01 — Phase 03 D06/D07:** branch `feat/y03-swipe-hero-20261101`, code `e2e4729`, CSS `d85538c`, browser tests `184536a`. Removed hero numbering/controls, added pause and swipe, renamed Anime Popular. **CI NOT RUN, NOT MERGED**, see [Phase 03 handoff](handoffs/PHASE_03_HANDOFF.md).
 
 - **PR #106:** corrected code SHA `3134282` passes [CI](https://github.com/rzqllh/Yoru/actions/runs/41223942927) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41223942739) 4/4. Documentation follow-up is not yet tested; no physical swipe evidence or 2:3 grid polish.
+
+- **2026-11-01 — merge-conflict resolution:** PR #107 subtitle-season code and permanent notes from main `dc2bd458` retained; Phase 03 test and notes merged without overwrite. Combined exact-head CI pending.
