@@ -11,3 +11,6 @@
 
 | Code | CODED | `2b779d80`, `52b7d684`; backup.ts + backup-validation.test.mjs |
 | CI after code | NOT RUN | Await Actions on PR |
+
+| Pre-cleanup exact-head tests | VERIFIED | `35f85b58`; [CI 41229435760](https://github.com/rzqllh/Yoru/actions/runs/41229435760) 2/2 SUCCESS; [Browser 41229435664](https://github.com/rzqllh/Yoru/actions/runs/41229435664) 2/2 SUCCESS |
+| Cleanup-head exact tests | PENDING | Transfer evidence, delete temporary files, rerun |
