@@ -1,11 +1,12 @@
 # YX-02 temporary tracker
 
-- [x] Audit prior main and open external gates.
-- [x] Isolated branch from main `6654894e6ee7ae9013e8f87ac71ecb6ecd9fb411`.
-- [ ] Defensive ranking implementation and unit regression.
-- [ ] Working HEAD CI and Chromium/WebKit.
-- [ ] Copy evidence to PR/#44; delete handoff.
-- [ ] Final clean HEAD CI and Chromium/WebKit; merge only on SUCCESS.
-- [ ] Postmerge main CI and browser verification.
+- [x] Audit main, #44/#78, #77 and prior CI.
+- [x] Isolated branch from main.
+- [x] Guard source ranking from malformed subtitle and quality metadata.
+- [x] Add Node unit regressions (not yet run).
+- [ ] Exact working HEAD CI Linux/Windows and Chromium/WebKit.
+- [ ] Transfer evidence to PR/#44 and delete handoff.
+- [ ] Exact final clean HEAD CI and Chromium/WebKit.
+- [ ] Merge and postmerge verification.
 
-No production, Supabase, live media, iPhone, resolver, release or historical branch actions.
+No Supabase, production, live provider, iPhone, resolver, release or branch cleanup.
