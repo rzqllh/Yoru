@@ -138,3 +138,5 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 | AC-SUB-04 D09 | `b56cae5` PR #103 | Node unit + Chromium/WebKit fixture, Linux/Windows | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41222013660), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41222013653). Saved old settings retained. Actual Safari caption styling, contrast and physical visual legibility NOT RUN. |
 
 | AC-HOME-01/02 D06–D07 | `184536a` on Phase 03 branch | Browser: gesture, hover, focus, reduced motion and keyboard | NOT RUN (CI pending) | 8-second rotation, hover/focus/touch pause, horizontal swipe, vertical scroll, no numbered controls and Anime Popular heading; physical iOS NOT RUN. |
+
+**D06/D07 initial head `c441e28`: FAIL (lint).** Two accessibility lint findings corrected by semantic section and existing-button keyboard focus, pending exact-head test. [CI](https://github.com/rzqllh/Yoru/actions/runs/41223790513).

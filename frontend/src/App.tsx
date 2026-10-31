@@ -428,15 +428,14 @@ function App(){
       </div>
      </div>
 
-     {hero&&<div className="hero-card" role="region" aria-roledescription="carousel"
+     {hero&&<section className="hero-card" aria-roledescription="carousel"
        aria-label="Anime unggulan. Fokuskan area ini lalu tekan panah kiri atau kanan, atau geser mendatar pada layar sentuh."
-       tabIndex={0}
        onMouseEnter={()=>setHeroHovered(true)}
        onMouseLeave={()=>setHeroHovered(false)}
        onFocusCapture={()=>setHeroFocused(true)}
        onBlurCapture={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node|null))setHeroFocused(false)}}
        onKeyDown={event=>{
-        if(event.target!==event.currentTarget||featured.length<2)return
+        if(featured.length<2)return
         if(event.key==='ArrowRight'||event.key==='ArrowLeft'){
          event.preventDefault()
          setFeaturedIndex(i=>(i+(event.key==='ArrowRight'?1:-1)+featured.length)%featured.length)
@@ -480,7 +479,7 @@ function App(){
        </div>
       </div>
       <div className="hero-corner"><span>{dailyAvailable?'TREN HARIAN · ANILIST':'POPULARITAS KATALOG'}</span><ArrowDownRight size={20}/></div>
-     </div>}
+     </section>}
      {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
       <div className="continue-grid">
        {continueList.map(row=><button type="button" key={row.anime.id} className="continue-card" disabled={Boolean(resumingAnimeId)} onClick={()=>void resumeRow(row)}>

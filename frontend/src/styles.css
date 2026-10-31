@@ -2646,7 +2646,7 @@ body {
 .hero-source{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px;font-size:11px;color:var(--soft)}
 .hero-source a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;min-height:44px;display:inline-flex;align-items:center}
 /* The focused carousel is the accessible keyboard alternative to touch swiping. */
-.hero-card:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.hero-card:focus-within{outline:3px solid var(--accent);outline-offset:3px}
 .hero-card{touch-action:pan-y}
 @media(max-width:600px){.hero-source{line-height:1.5}}
 
