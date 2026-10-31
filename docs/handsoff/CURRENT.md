@@ -26,3 +26,9 @@ Status: AUDITED / IMPLEMENTATION PENDING. Work branch: `fix/subtitle-file-id-val
 - Backend `normalizeSubSource` accepts string IDs and safe integer numeric IDs without coercing arrays/objects.
 - Regression fixture in `tests/subtitle-providers.test.mjs` verifies invalid IDs are dropped and valid numeric/decimal-string IDs remain.
 - Code SHA: `2202abd3c9b128132a0d45b27032572188ad5a1c` (after test commit). CI NOT RUN at this checkpoint.
+
+## PR-head verification checkpoint
+- PR #113 exact SHA `cdb662197d241e72d4529e06c774651d1b4ff818`.
+- Linux/Windows CI SUCCESS: https://github.com/rzqllh/Yoru/actions/runs/41234620897
+- Chromium/WebKit SUCCESS: https://github.com/rzqllh/Yoru/actions/runs/41234620827
+- These runs validate the PR checkpoint before this documentation-only update. Final cleaned head requires new exact-head CI.
