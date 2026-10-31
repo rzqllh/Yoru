@@ -12,3 +12,8 @@
 | Merge and post-merge CI/browser | NOT RUN | Only if all gates succeed |
 
 External OTP/RLS, iPhone, provider/subtitle live, resolver permission, hosting, release #20 and historical branch deletion remain deferred.
+
+## Code checkpoint
+- `be9e83607645f649f7ab7db4abcdba7aee50a234`: code and regression tests committed on isolated branch.
+- Unit/Chromium/WebKit CI: PENDING GitHub Actions PR runs.
+- PR evidence and handoff removal: PENDING. No merge yet.
