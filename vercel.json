@@ -20,7 +20,7 @@
   },
   "git": {
     "deploymentEnabled": {
-      "main": false,
+      "main": true,
       "docs/cleanup-public-guides-20261029": false
     }
   }

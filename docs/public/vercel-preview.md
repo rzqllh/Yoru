@@ -1,6 +1,6 @@
 # Vercel Preview — Deployment Adapter
 
-**Status:** preview-only deployment option. The repository has a Vercel-compatible Node function adapter for Hono API paths plus Vite SPA output. A successful deploy does not provide public release approval.
+**Status:** Vercel adapter supports preview branches and owner-authorized automatic deployments from `main`. The repository has a Vercel-compatible Node function adapter for Hono API paths plus Vite SPA output. A successful production deployment does **not** complete public release acceptance or issue #20.
 
 ## Preconditions
 
