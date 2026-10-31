@@ -77,3 +77,22 @@ test('client times out stalled response bodies and preserves caller cancellation
   await assert.rejects(()=>api('/api/health',controller.signal),{name:'AbortError'})
  }finally{globalThis.fetch=original}
 })
+
+test('client preserves caller cancellation while reading an HTTP error body',async()=>{
+ const original=globalThis.fetch
+ try{
+  globalThis.fetch=async(_url,{signal})=>({
+   ok:false,status:503,headers:new Headers({'Content-Type':'application/json'}),
+   json:()=>new Promise((_resolve,reject)=>{
+    if(signal.aborted)reject(signal.reason)
+    else signal.addEventListener('abort',()=>reject(signal.reason),{once:true})
+   })
+  })
+  const controller=new AbortController()
+  const pending=api('/api/anime/discover',controller.signal,1000)
+  await Promise.resolve()
+  controller.abort()
+  await assert.rejects(pending,{name:'AbortError'})
+  await assert.rejects(()=>api('/api/anime/discover',undefined,10),/terlalu lama/)
+ }finally{globalThis.fetch=original}
+})

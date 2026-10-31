@@ -20,7 +20,11 @@ export async function api<T>(url:string,signal?:AbortSignal,timeoutMs=30000):Pro
       const value=record.message||record.error
       if(typeof value==='string'&&value.trim())message=value
      }
-    }catch{/* Retain HTTP status when an error body is malformed. */}
+    }catch(e){
+     // Caller navigation cancellation must not become a misleading HTTP error.
+     if(controller.signal.aborted)throw e
+     // Retain HTTP status when an error body is malformed.
+    }
    }
    throw new Error(message)
   }
