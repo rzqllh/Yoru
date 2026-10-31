@@ -41,7 +41,11 @@ const language=(value:unknown):'id'|'en'|null=>{
 }
 function confidence(episode:number,raw:unknown){
  if(raw===null||raw===undefined||raw==='')return 30
- return Number(raw)===episode?70:0
+ // Provider payloads are untrusted: Number(true) and Number([5]) would
+ // otherwise masquerade as an exact episode match. Decimal strings are common.
+ const valid=typeof raw==='number'?Number.isSafeInteger(raw):
+  typeof raw==='string'&&/^\d+$/.test(raw.trim())
+ return valid&&Number(raw)===episode?70:0
 }
 function add(result:SubtitleCandidate[],item:SubtitleCandidate){
  if(item.score<=0||result.length>=90)return
