@@ -62,3 +62,44 @@ test('episode memory rejects invalid identity, unverified embed and invalid pers
  assert.equal((await readRememberedSource(1,1,async key=>records.get(key)??'',NOW))?.providerId,'legacy-safe')
  assert.equal(await readRememberedSource(1,1,async()=>{throw new Error('Storage unavailable')}),null)
 })
+
+test('scoped read failure falls back to safe anime-wide memory, but invalid IDs do not',async()=>{
+ const fallback=JSON.stringify(rememberedNativeSource(stream('generic-safe'),NOW))
+ const calls=[]
+ const read=async key=>{
+  calls.push(key)
+  if(key==='source-choice:mal:17:ep:2')throw new Error('Scoped IndexedDB read failed')
+  return fallback
+ }
+ assert.equal((await readRememberedSource(17,2,read,NOW))?.providerId,'generic-safe')
+ assert.deepEqual(calls,['source-choice:mal:17:ep:2','source-choice:mal:17'])
+ calls.length=0
+ assert.equal(await readRememberedSource(17,0,read,NOW),null)
+ assert.deepEqual(calls,[])
+})
+
+test('scoped save succeeds despite generic write failure and never writes generic first',async()=>{
+ const saved=new Map()
+ const write=async(key,value)=>{
+  if(key==='source-choice:mal:17')throw new Error('Generic IndexedDB write failed')
+  saved.set(key,value)
+ }
+ assert.equal(await saveRememberedSource(17,2,stream('scoped-safe'),write),true)
+ assert.equal(parseSourceMemory(saved.get('source-choice:mal:17:ep:2'))?.providerId,'scoped-safe')
+ assert.equal(saved.has('source-choice:mal:17'),false)
+ const calls=[]
+ const failScoped=async key=>{
+  calls.push(key)
+  throw new Error('Scoped IndexedDB write failed')
+ }
+ assert.equal(await saveRememberedSource(17,2,stream('scoped-safe'),failScoped),false)
+ assert.deepEqual(calls,['source-choice:mal:17:ep:2'])
+})
+
+test('source memory rejects nonpositive timestamps and invalid current clocks',()=>{
+ const memo=rememberedNativeSource(stream('safe'),NOW)
+ assert.equal(parseSourceMemory(JSON.stringify({...memo,updatedAt:0}),NOW),null)
+ assert.equal(parseSourceMemory(JSON.stringify({...memo,updatedAt:-1}),NOW),null)
+ for(const now of [0,-1,NaN,Infinity,1.5])
+  assert.equal(parseSourceMemory(JSON.stringify(memo),now),null)
+})
