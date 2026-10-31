@@ -14,8 +14,10 @@ cloud connection is made, and Yoru continues working offline with IndexedDB.
 3. On the source device select **Unggah**. If the account already has a snapshot,
    the user must explicitly confirm replacement.
 4. On the destination select **Unduh** and confirm importing. It *merges*
-   imported records using existing backup v1 semantics; matching IDs can be
-   overwritten, and deletes are **not** automatically propagated.
+   imported records using existing backup v1 semantics. Library and playback
+   progress prefer the record with the newer `updatedAt` timestamp (local wins
+   ties). Matching preferences are explicitly replaced from cloud because
+   backup v1 preferences have no update timestamp. Deletes are **not** propagated.
 5. **Hapus cloud** deletes the account's remote snapshot only. Local browser
    data remains until separately deleted.
 
