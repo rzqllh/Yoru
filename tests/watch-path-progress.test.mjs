@@ -19,3 +19,16 @@ test('manual forward and backward progression uses bounded steps, not actual pla
  assert.deepEqual(b,{completed:3,updatedAt:200})
  assert.deepEqual(updateWatchPathProgress(a,3,-1,350),{completed:0,updatedAt:350})
 })
+test('invalid path lengths cannot advance manual progress beyond normalized limits',()=>{
+ for(const count of [-1,81,NaN,Infinity,1.5]){
+  assert.deepEqual(updateWatchPathProgress({completed:2,updatedAt:50},count,1,100),{completed:0,updatedAt:50})
+ }
+ assert.deepEqual(updateWatchPathProgress({completed:79,updatedAt:50},80,1,100),{completed:80,updatedAt:100})
+})
+test('manual progress timestamps never regress or persist invalid clock values',()=>{
+ const start={completed:1,updatedAt:200}
+ assert.deepEqual(updateWatchPathProgress(start,3,1,100),{completed:2,updatedAt:200})
+ assert.deepEqual(updateWatchPathProgress(start,3,1,NaN),{completed:2,updatedAt:200})
+ assert.deepEqual(updateWatchPathProgress(start,3,1,-10),{completed:2,updatedAt:200})
+ assert.deepEqual(updateWatchPathProgress(start,3,0,300),start)
+})
