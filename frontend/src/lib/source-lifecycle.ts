@@ -22,6 +22,15 @@ function isSourceCandidate(value:unknown):value is Stream{
   typeof source.url==='string'&&source.url.trim().length>0
 }
 
+/** Untrusted provider metadata must not invent unsupported unavailable categories or unbounded UI copy. */
+function isUnavailableStream(value:unknown):value is UnavailableStream{
+ if(!value||typeof value!=='object'||Array.isArray(value))return false
+ const item=value as Record<string,unknown>
+ return (item.kind==='torrent'||item.kind==='external'||item.kind==='unsupported')&&
+  typeof item.label==='string'&&item.label.trim().length>0&&item.label.length<=160&&
+  typeof item.reason==='string'&&item.reason.trim().length>0&&item.reason.length<=250
+}
+
 /**
  * Search responses are candidate *metadata*, never proof that video can decode.
  * An individual failed provider must not erase evidence from healthy providers.
@@ -34,7 +43,7 @@ export function summarizeSourceSearch(
  const failed=results.length-responded
  const items=successful.flatMap(r=>r.items).filter(isSourceCandidate).slice(0,60)
  const unavailable=[...new Map(successful.flatMap(r=>r.unavailable??[])
-  .filter(x=>x&&typeof x.reason==='string'&&typeof x.label==='string')
+  .filter(isUnavailableStream)
   .map(item=>[`${item.kind}:${item.label}:${item.reason}`,item] as const)).values()].slice(0,20)
  const state:SourceSearchResult['state']=!responded&&failed?'failed':
   failed?'degraded':items.length?'candidates':'no-direct'
