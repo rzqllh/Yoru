@@ -518,21 +518,23 @@ test('mobile discover groups three categories and filters on one shared surface'
 })
 
 
-test('top ten catalog selector changes featured anime without claiming daily views',async({page})=>{
+test('hero removes numbered controls but remains keyboard navigable',async({page})=>{
  await page.route('**/api/anime/discover?**',async route=>{
   const kind=new URL(route.request().url()).searchParams.get('kind')
   const items=kind==='top'?Array.from({length:10},(_,i)=>({...anime,id:`mal:${i+1}`,malId:i+1,title:`Anime Pilihan ${i+1}`})):[anime]
   await route.fulfill({json:{items,page:1,hasNext:false}})
  })
  await page.goto('/')
- const selector=page.locator('.hero-top-ten')
- await expect(selector).toBeVisible()
- await expect(selector.locator('button')).toHaveCount(10)
- await selector.getByRole('button',{name:/peringkat 2:/i}).click()
+ const hero=page.getByRole('region',{name:/Anime unggulan/})
+ await expect(hero).toBeVisible()
+ await expect(page.locator('.hero-navigation,.hero-top-ten')).toHaveCount(0)
+ await hero.focus()
+ await page.keyboard.press('ArrowRight')
  await expect(page.locator('.hero-copy h2')).toHaveText('Anime Pilihan 2')
- await expect(page.getByText('10 anime populer',{exact:true}).first()).toBeVisible()
+ await page.keyboard.press('ArrowLeft')
+ await expect(page.locator('.hero-copy h2')).toHaveText('Anime Pilihan 1')
+ await expect(page.getByRole('heading',{name:'Anime Popular'})).toBeVisible()
 })
-
 test('library uses its own responsive layout without changing navigation',async({page})=>{
  await page.setViewportSize({width:390,height:844})
  await page.goto('/')
@@ -542,26 +544,33 @@ test('library uses its own responsive layout without changing navigation',async(
 })
 
 
-test('real dated AniList daily trends replace fallback and manually rotate through ten titles',async({page})=>{
+test('AniList hero rotates every 8 seconds, pauses on hover and supports swipe',async({page})=>{
  await page.route('**/api/anime/daily-trends',route=>route.fulfill({json:{
   items:Array.from({length:10},(_,i)=>({...anime,id:'mal:'+(i+100),malId:i+100,title:'Tren AniList '+(i+1)})),
   source:'AniList',sourceUrl:'https://anilist.co',date:'2026-10-29',metric:'daily-media-activity'
  }}))
  await page.clock.install()
  await page.goto('/')
+ const hero=page.getByRole('region',{name:/Anime unggulan/})
  await expect(page.getByText(/Aktivitas AniList · 29 Okt 2026/)).toBeVisible()
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 1')
  await page.clock.fastForward(8000)
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 2')
- await page.getByRole('button',{name:'Jeda pergantian hero'}).click()
+ await hero.hover()
  await page.clock.fastForward(16000)
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 2')
- await page.getByRole('button',{name:'Anime berikutnya'}).click()
+ await page.mouse.move(0,0)
+ await page.clock.fastForward(8000)
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 3')
+ await hero.evaluate(el=>{
+  const touch=(x,y)=>new Touch({identifier:1,target:el,clientX:x,clientY:y})
+  el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:[touch(280,150)],targetTouches:[touch(280,150)],changedTouches:[touch(280,150)]}))
+  el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[],targetTouches:[],changedTouches:[touch(110,157)]}))
+ })
+ await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 4')
  await expect(page.getByRole('link',{name:'Lihat sumber'})).toHaveAttribute('href','https://anilist.co')
 })
-
-test('reduced motion prevents hero auto rotation while controls remain usable',async({page})=>{
+test('reduced motion prevents hero auto-rotation while keyboard access remains',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'})
  await page.route('**/api/anime/daily-trends',route=>route.fulfill({json:{
   items:Array.from({length:10},(_,i)=>({...anime,id:'mal:'+(i+200),malId:i+200,title:'Tren Tenang '+(i+1)})),
@@ -569,14 +578,14 @@ test('reduced motion prevents hero auto rotation while controls remain usable',a
  }}))
  await page.clock.install()
  await page.goto('/')
+ const hero=page.getByRole('region',{name:/Anime unggulan/})
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 1')
  await page.clock.fastForward(9000)
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 1')
- await page.getByRole('button',{name:'Anime berikutnya'}).click()
+ await hero.focus()
+ await page.keyboard.press('ArrowRight')
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren Tenang 2')
 })
-
-
 test('watch guide is a secondary discover route with truthful unsupported chronology',async({page})=>{
  await page.route('**/api/anime/1/watch-guide',route=>route.fulfill({json:{
   source:'AniList',sourceUrl:'https://anilist.co/anime/10',scope:'direct-relations',animeMalId:1,
