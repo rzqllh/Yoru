@@ -46,6 +46,7 @@ import {rankNativeStreams} from './lib/source-ranking'
 import {readRememberedSource,saveRememberedSource,preferRememberedSource} from './lib/source-memory'
 import {summarizeSourceSearch} from './lib/source-lifecycle'
 import {isResumableProgress} from './lib/resume'
+import {sortLibraryEntries,parseLibrarySort,type LibrarySort} from './lib/library-sort'
 import {useDialogFocus} from './lib/useDialogFocus'
 
 type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean}
@@ -759,7 +760,17 @@ function LibraryPage({
  onStatusChange:(anime:Anime,status:LibraryStatus)=>Promise<void>
 }){
  const [filter,setFilter]=useState<'all'|LibraryStatus>('all')
- const saved=useMemo(()=>library.filter(row=>filter==='all'||row.status===filter),[library,filter])
+ const [sortMode,setSortMode]=useState<LibrarySort>('recent')
+ useEffect(()=>{
+  let active=true
+  void getPreference('library-sort','recent').then(value=>{
+   if(active)setSortMode(parseLibrarySort(value))
+  }).catch(()=>{})
+  return()=>{active=false}
+ },[])
+ const saved=useMemo(()=>sortLibraryEntries(
+  library.filter(row=>filter==='all'||row.status===filter),sortMode
+ ),[library,filter,sortMode])
  const continueItems=useMemo(()=>progress.filter(isResumableProgress),[progress])
 
  const isCompletelyEmpty=library.length===0&&progress.length===0
@@ -813,6 +824,18 @@ function LibraryPage({
     </button>)}
    </div>}
 
+   {!isCompletelyEmpty&&<label className="library-sort-control">Urutkan koleksi
+    <select aria-label="Urutkan koleksi" value={sortMode} onChange={event=>{
+     const choice=parseLibrarySort(event.target.value)
+     setSortMode(choice)
+     void setPreference('library-sort',choice).catch(()=>{})
+    }}>
+     <option value="recent">Terakhir disimpan</option>
+     <option value="title">Judul A–Z</option>
+     <option value="score">Skor tertinggi</option>
+     <option value="year">Tahun terbaru</option>
+    </select>
+   </label>}
    {isCompletelyEmpty?<Empty
     icon={Bookmark}
     title="Koleksi masih kosong"

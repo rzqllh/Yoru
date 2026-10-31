@@ -27,7 +27,7 @@ Open Jelajahi → Panduan urutan anime or a title's story link. **Tahun rilis** 
 
 ## Library, resume and backup
 
-Collections, progress, route progress and preferences use local browser storage (IndexedDB). Manual route completion is not evidence of video watched. Source memory and resume are subject to re-verification; previous stream URLs may expire.
+Collections, progress, route progress and preferences use local browser storage (IndexedDB). The collection page supports filtering by watch status and sorting by recently saved, title A–Z, known score or release year; that sort choice is remembered in this browser. Unknown scores/years sort last, rather than inventing metadata. Manual route completion is not evidence of video watched. Source memory and resume are subject to re-verification; previous stream URLs may expire.
 
 Use the in-app backup export/import controls before changing devices, reinstalling the browser or clearing site data. Backups are local files containing library/progress/preferences; treat them as personal data. No account-based sync is implemented.
 

@@ -37,6 +37,20 @@ test.beforeEach(async({page})=>{
  await page.route('**/api/streams?**',async route=>
   route.fulfill({json:{items:[testStream]}}))
 })
+test('collection sort choice is accessible and persists through reload',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.getByRole('dialog',{name:'Detail Yoru Test Anime'}).getByRole('button',{name:/Koleksiku/}).click()
+ await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'}).getByRole('button',{name:/Tersimpan/})).toBeVisible()
+ await page.getByRole('button',{name:'Tutup detail anime'}).click()
+ await page.goto('/koleksi')
+ const sort=page.getByRole('combobox',{name:'Urutkan koleksi'})
+ await expect(sort).toBeVisible()
+ await sort.selectOption('title')
+ await expect(sort).toHaveValue('title')
+ await page.reload()
+ await expect(page.getByRole('combobox',{name:'Urutkan koleksi'})).toHaveValue('title')
+})
 test('desktop: catalog, search, detail, library and playback with Indonesian VTT',async({page})=>{
  await page.goto('/')
  await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)/})).toBeVisible()
