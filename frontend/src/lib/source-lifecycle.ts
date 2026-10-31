@@ -18,7 +18,7 @@ function isProviderSourceResponse(value:unknown):value is ProviderSourceResponse
 function isSourceCandidate(value:unknown):value is Stream{
  if(!value||typeof value!=='object'||Array.isArray(value))return false
  const source=value as Record<string,unknown>
- return (source.format==='hls'||source.format==='mp4'||source.format==='embed')&&
+ return (source.format==='hls'||source.format==='mp4')&&
   typeof source.url==='string'&&source.url.trim().length>0
 }
 
@@ -38,7 +38,7 @@ export function summarizeSourceSearch(
   .map(item=>[`${item.kind}:${item.label}:${item.reason}`,item] as const)).values()].slice(0,20)
  const state:SourceSearchResult['state']=!responded&&failed?'failed':
   failed?'degraded':items.length?'candidates':'no-direct'
- const message=state==='failed'?'Semua penyedia video gagal dihubungi. Pilihan alternatif belum diperiksa.':
+ const message=state==='failed'?'Semua penyedia video gagal dihubungi. Belum ada sumber video terverifikasi.':
   state==='degraded'?`Sebagian penyedia gagal dihubungi (${failed} dari ${results.length}). Semua kandidat video masih perlu diperiksa.`:
   state==='candidates'?`${items.length} kandidat sumber ditemukan. Ketersediaan pemutaran belum diverifikasi.`:
   'Belum ada sumber video langsung yang bisa dipilih dari respons penyedia.'

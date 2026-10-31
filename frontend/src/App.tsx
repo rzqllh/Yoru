@@ -968,17 +968,12 @@ function DetailDialog({
   }
  }
 
- const embedCandidate=(ep:number):Stream=>({
-  providerId:'Video alternatif',
-  format:'embed',
-  url:`https://www.animeembed.com/embed/mal/${info.malId}/${ep}`,
-  subtitleMode:'unknown',tracks:[],
- })
  async function checkAndWatch(stream:Stream,ep:number,manual=false,requestId=++sourceRequest.current){
   if(requestId!==sourceRequest.current)return
   if(stream.format==='embed'){
-   // Explicit external iframe selection is not a native playback verification.
-   onWatch({anime:info,episode:ep,stream,manualSource:manual})
+   // D02: an uncontrolled third-party iframe cannot be a playable source.
+   setError('Video alternatif tanpa kontrol subtitle tidak dapat diputar melalui Yoru.')
+   setSourceFeedback({episode:ep,phase:'no-direct',message:'Gunakan sumber video langsung yang dapat diperiksa.'})
    return
   }
   setPlaying(String(ep))
@@ -994,11 +989,6 @@ function DetailDialog({
    if(requestId!==sourceRequest.current)return
    setError('Sumber ini gagal diperiksa. Pilih sumber lain atau coba kembali.')
    setSourceFeedback({episode:ep,phase:'failed',message:'Kandidat ini belum bisa diputar. Pemeriksaan gagal; kualitas atau subtitle tidak dapat dijamin.'})
-   setChoices(current=>{
-    if(current?.episode!==ep)return current
-    if(current.items.some(candidate=>candidate.format==='embed'))return current
-    return {...current,items:[...current.items,embedCandidate(ep)]}
-   })
   }finally{
    if(requestId===sourceRequest.current)setPlaying('')
   }
@@ -1013,8 +1003,8 @@ function DetailDialog({
   try{
    if(!sources.length){
     if(requestId!==sourceRequest.current)return
-    setChoices({episode:ep.number,items:[embedCandidate(ep.number)]})
-    setSourceFeedback({episode:ep.number,phase:'no-direct',message:'Belum ada kandidat sumber langsung. Video alternatif belum diverifikasi.'})
+    setChoices({episode:ep.number,items:[]})
+    setSourceFeedback({episode:ep.number,phase:'no-direct',message:'Belum ada sumber video langsung. Video alternatif tanpa kontrol subtitle tidak ditawarkan.'})
     return
    }
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
@@ -1024,7 +1014,7 @@ function DetailDialog({
    if(requestId!==sourceRequest.current)return
    const native=preferRememberedSource(rankNativeStreams(summary.items),remembered)
    if(!native.length){
-    setChoices({episode:ep.number,items:[embedCandidate(ep.number)],unavailable:summary.unavailable})
+    setChoices({episode:ep.number,items:[],unavailable:summary.unavailable})
     setSourceFeedback({episode:ep.number,phase:summary.state,message:summary.message})
     return
    }
@@ -1096,12 +1086,13 @@ function DetailDialog({
       <strong>Pilih video · Episode {choices.episode}</strong>
       <button type="button" className="icon-button" onClick={()=>{sourceRequest.current++;setChoices(null);setSourceFeedback(null);setPlaying('')}} aria-label="Tutup pilihan sumber"><X size={15}/></button>
      </div>
+     {choices.items.length===0&&<p role="status" className="source-unavailable">Belum ada video yang dapat diperiksa. Video alternatif tanpa kontrol subtitle tidak ditawarkan.</p>}
      <div className="source-options">
       {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
        <MonitorPlay size={17}/>
        <span>
-        <strong>{stream.format==='embed'?'Coba video alternatif':stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Subtitle menyatu':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia':'Bahasa subtitle belum diketahui'}</strong>
-        <small>{stream.format==='embed'?'Pengaturan dan pilihan subtitle mungkin berbeda':'Video akan diperiksa sebelum diputar'}</small>
+        <strong>{stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Subtitle menyatu':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia':'Bahasa subtitle belum diketahui'}</strong>
+        <small>Video akan diperiksa sebelum diputar</small>
        </span>
        <Play size={16}/>
       </button>)}

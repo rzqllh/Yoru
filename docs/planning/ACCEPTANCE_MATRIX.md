@@ -124,3 +124,10 @@ Known limitations / next action:
 ## Acceptance policy
 
 All rows are **NOT RUN for this new contract** until measured in future phase PRs. Historical CI and implemented fixtures may be cited as earlier evidence in [TRACKING](TRACKING.md), but cannot satisfy user-approved D01–D09 by implication. A new release candidate requires re-executing applicable tests against the exact release SHA, including real-provider/device checks and explicit sign-off [#20](https://github.com/rzqllh/Yoru/issues/20).
+
+## New-contract execution log — 2026-10-31
+
+| Case | Commit tested | Environment | Status | Result / next evidence |
+| --- | --- | --- | --- | --- |
+| AC-SRC-06 D02 | `a91e7ec` (PR #100) | Linux/Windows + Chromium/WebKit fixture | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41220260198), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41220260118). Live source and iPhone NOT RUN; revalidate final docs SHA. |
+| AC-SRC-05 Torrentio | unchanged existing main and D02 branch | live addon | NOT RUN | Hash classification persists; no torrent engine or playable URL inferred. |

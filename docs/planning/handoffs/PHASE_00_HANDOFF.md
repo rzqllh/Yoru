@@ -65,3 +65,5 @@ README.md, DESIGN.md, docs/public/*, frontend/src, backend, api/index.ts, vercel
 ## Checkpoint history
 
 - **2026-10-31 — BASELINE / PLANNING:** handoff initialized from repository, epic/gate and user-approved UX/CX decisions. No code, cloud, production configuration or release change in this handoff.
+
+- **2026-10-31 — VERIFIED DOCUMENTATION INTEGRATION:** [PR #98](https://github.com/rzqllh/Yoru/pull/98) merged to main at [`ab5f1723267570cecc63ea765332dccabc6c9a76`](https://github.com/rzqllh/Yoru/commit/ab5f1723267570cecc63ea765332dccabc6c9a76). Exact PR head `e89c8878a2fb982710c6d04f1e09ab406c5ff493` [CI](https://github.com/rzqllh/Yoru/actions/runs/41219416064) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41219416053) completed SUCCESS. 14 planning Markdown files added, no application changes. The recorded CI runs validate the PR head, not the merged commit. Baseline planning is now persisted on main. This is **Phase 00 documentation integrated**, not certification of all release/architecture checks. Next: Phase 01 D02 source-choice gating in isolated branch `fix/y01-uncontrolled-embed-gate-20261031`; #20 remains BLOCKED.

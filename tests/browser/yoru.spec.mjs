@@ -377,20 +377,17 @@ test('quick links navigate to different views: current season vs saved progress'
  await expect(page.getByRole('heading',{name:'Lanjut menonton'})).toBeVisible()
  await expect(page.getByText('Belum ada tontonan untuk dilanjutkan')).toBeVisible()
 })
-test('anime without configured sources provides clearly labelled external embed attempt',async({page})=>{
- await page.route('**/api/anime/1/provider-episodes',async route=>route.fulfill({json:{items:[]}}))
+test('anime without configured sources hides uncontrolled iframe choices (D02)',async({page})=>{
+ await page.route('**/api/anime/1/provider-episodes',route=>route.fulfill({json:{items:[]}}))
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
- await expect(page.getByText(/Coba video alternatif/i)).toBeVisible()
- await page.locator('.source-options button').first().click()
- await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
- const frame=page.getByTitle('Video alternatif · Episode 1')
- await expect(frame).toHaveAttribute('src','https://www.animeembed.com/embed/mal/1/1')
- await expect(page.getByText('Mode video alternatif',{exact:true})).toBeVisible()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog.getByText(/Belum ada sumber video langsung/)).toBeVisible()
+ await expect(dialog.locator('.source-options button')).toHaveCount(0)
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
+ await expect(page.locator('iframe[src*="animeembed.com"]')).toHaveCount(0)
 })
-
-
 test('browse search failure clears stale results instead of showing old anime',async({page})=>{
  await page.route('**/api/anime/search?**',async route=>{
   await route.fulfill({status:503,json:{error:'CATALOG_UNAVAILABLE',message:'Katalog sedang tidak tersedia'}})
@@ -433,27 +430,19 @@ test('glass watch screen has Yoru-owned transport and local subtitle upload',asy
  await expect(player.locator('video track[src^="blob:"]')).toHaveCount(1)
 })
 
-test('embedded fallback keeps an honest Yoru subtitle panel',async({page})=>{
- await page.route('https://www.animeembed.com/**',route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Video alternative</title>'}))
- await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[]}}))
- await test.step('Choose an episode without playable native streams',async()=>{
-  await page.goto('/')
-  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
-  await page.locator('.episode-list .episode-row').first().click()
-  await expect(page.locator('.source-picker .source-options button')).toHaveCount(1)
- })
- await test.step('Select the explicit embedded fallback',async()=>{
-  await page.locator('.source-picker .source-options button').first().click()
-  await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
- })
- await test.step('Expose a truthful subtitle limitation and no fake seek',async()=>{
-  const player=page.getByRole('main',{name:'Layar tonton'})
-  await player.locator('.player-subtitle-trigger').click()
-  await expect(player.getByText(/diatur oleh pemutar video alternatif/i)).toBeVisible()
-  await expect(player.getByRole('slider',{name:'Posisi video'})).toHaveCount(0)
- })
+test('embed-only provider data cannot open uncontrolled player (D02)',async({page})=>{
+ await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[{
+  providerId:'public-embed',format:'embed',
+  url:'https://www.animeembed.com/embed/mal/1/1',subtitleMode:'unknown',tracks:[]
+ }]}}))
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.locator('.episode-list .episode-row').first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog.getByText(/Belum ada video yang dapat diperiksa/)).toBeVisible()
+ await expect(dialog.locator('.source-options button')).toHaveCount(0)
+ await expect(page.locator('iframe[src*="animeembed.com"]')).toHaveCount(0)
 })
-
 test('browse filters loaded anime and header has a single deliberate discovery entry',async({page})=>{
  await page.goto('/')
  await expect(page.locator('.topbar .search-control')).toHaveCount(0)
@@ -656,7 +645,7 @@ test('caption styling settings persist and remain scoped to the native video pla
  await expect(page.locator('video')).toHaveClass(/subtitle-bg-25/)
 })
 
-test('Torrentio hash-only video is clearly disabled while verified-source fallback stays selectable',async({page})=>{
+test('Torrentio hash-only metadata stays disabled without uncontrolled iframe fallback',async({page})=>{
  await page.route('**/api/streams?**',route=>route.fulfill({json:{
   items:[],unavailable:[{kind:'torrent',label:'Torrentio 1080p',reason:'Torrent membutuhkan mesin streaming/resolver yang terhubung; belum bisa diputar langsung.'}]
  }}))
@@ -667,7 +656,7 @@ test('Torrentio hash-only video is clearly disabled while verified-source fallba
  const disabled=dialog.getByRole('button',{name:'Torrentio 1080p · Belum bisa diputar'})
  await expect(disabled).toBeDisabled()
  await expect(dialog.getByText('Torrent membutuhkan mesin streaming/resolver yang terhubung; belum bisa diputar langsung.')).toBeVisible()
- await expect(dialog.getByRole('button',{name:/Coba video alternatif/})).toBeEnabled()
+ await expect(dialog.locator('.source-options button:not([disabled])')).toHaveCount(0)
  await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
 })
 
@@ -794,7 +783,7 @@ test('provider outage displays failure rather than falsely claiming no video exi
  await page.locator('.episode-list .episode-row').first().click()
  const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
  await expect(dialog.getByRole('status').filter({hasText:'Semua penyedia video gagal dihubungi.'})).toBeVisible()
- await expect(dialog.getByRole('button',{name:/Coba video alternatif/})).toBeEnabled()
+ await expect(dialog.locator('.source-options button:not([disabled])')).toHaveCount(0)
  await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
 })
 test('mixed provider failures retain candidates and report partial metadata uncertainty',async({page})=>{
