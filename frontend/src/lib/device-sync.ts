@@ -11,7 +11,7 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const EMAIL=/^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,30}$/
 const CODE=/^\d{6,10}$/
 const MAX_BYTES=500_000
-const SYNCABLE=/^(?:auto-next|playback-speed|subtitle-default-language|subtitle-offset:mal:[1-9]\d{0,8}|subtitle-style:(?:global|mal:[1-9]\d{0,8})|watch-path:[a-z0-9-]{1,90}|source-choice:mal:[1-9]\d{0,8})$/
+const SYNCABLE=/^(?:auto-next|playback-speed|subtitle-default-language|subtitle-offset:mal:[1-9]\d{0,8}|subtitle-style:(?:global|mal:[1-9]\d{0,8})|watch-path:[a-z0-9-]{1,90}|source-choice:mal:[1-9]\d{0,8}(?::ep:[1-9]\d{0,4})?)$/
 const record=(value:unknown):value is Record<string,unknown>=>typeof value==='object'&&value!==null&&!Array.isArray(value)
 const validRevision=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>0
 export function syncConfig(url:unknown,key:unknown):{url:string;key:string}|null{
