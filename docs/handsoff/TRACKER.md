@@ -3,9 +3,9 @@
 | Item | Status | Evidence |
 | --- | --- | --- |
 | Audit main/PR/CI/#44/#78 | VERIFIED | Base `f36e95c`; base CI + browser SUCCESS |
-| Fractional/unsafe upstream MAL anime ID guard | PLANNED | `backend/pipeline/normalize.ts` |
-| Fractional/unsafe episode number guard | PLANNED | `backend/pipeline/normalize.ts` |
-| Unit regression tests | NOT RUN | `tests/catalog-identity.test.mjs` |
+| Fractional/unsafe upstream MAL anime ID guard | CODED, UNTESTED | `backend/pipeline/normalize.ts` |
+| Fractional/unsafe episode number guard | CODED, UNTESTED | `backend/pipeline/normalize.ts` |
+| Unit regression tests | CODED, NOT RUN | `tests/catalog-identity.test.mjs` |
 | PR CI Linux/Windows + Chromium/WebKit | NOT RUN | Pending PR |
 | Live provider, iPhone, cloud, production, #20 | DEFERRED | External gates; not in scope |
 
