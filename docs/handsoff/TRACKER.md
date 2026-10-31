@@ -10,3 +10,7 @@
 | Publish evidence PR/#44 | PENDING | PR discussion |
 | Remove handoff before main merge | PENDING | tree inspection |
 | Live acceptance/release | DEFERRED | #77, #78, #20 |
+
+| First PR CI attempt | FAILED | https://github.com/rzqllh/Yoru/actions/runs/41243589382 — ERR_MODULE_NOT_FOUND, fixed in `c39a34d` |
+| Browser first attempt | FAILED | https://github.com/rzqllh/Yoru/actions/runs/41243589492 — Chromium build, recheck needed |
+| Runtime import fix | CODED, NOT YET TESTED | `c39a34d` |
