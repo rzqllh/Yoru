@@ -940,3 +940,39 @@ test('D01: declining English-only offer keeps native English track inactive',asy
  await expect(player.locator('video track[srclang="en"][default]')).toHaveCount(0)
  await expect(player.getByText(/English tidak diaktifkan/)).toBeVisible()
 })
+
+test('Anime Popular posters fill equal two-column grid cells on mobile',async({page})=>{
+ await page.route('**/api/anime/discover?**',route=>{
+  const kind=new URL(route.request().url()).searchParams.get('kind')
+  const items=kind==='top'?Array.from({length:10},(_,i)=>({...anime,id:`mal:${i+1}`,malId:i+1,title:i===2?'A Very Long Fullmetal Alchemist Brotherhood Title':`Popular Anime ${i+1}`})):[anime]
+  return route.fulfill({json:{items,page:1,hasNext:false}})
+ })
+ for(const width of [390,320]){
+  await page.setViewportSize({width,height:844})
+  await page.goto('/')
+  const section=page.locator('.content-section').filter({has:page.getByRole('heading',{name:'Anime Popular'})})
+  const tiles=section.locator('.ranked-anime')
+  await expect(tiles).toHaveCount(10)
+  const geometry=await tiles.evaluateAll(nodes=>nodes.slice(0,4).map(node=>{
+   const cell=node.getBoundingClientRect()
+   const card=node.querySelector('.anime-card')?.getBoundingClientRect()
+   const art=node.querySelector('.card-art')?.getBoundingClientRect()
+   const number=node.querySelector('.ranked-anime-number')?.getBoundingClientRect()
+   const score=node.querySelector('.score-tag')?.getBoundingClientRect()
+   return {left:cell.left,top:cell.top,width:cell.width,card:card?.width,
+    posterWidth:art?.width,posterHeight:art?.height,
+    badgesOverlap:Boolean(number&&score&&number.right>score.left&&score.right>number.left&&number.bottom>score.top)}
+  }))
+  expect(geometry).toHaveLength(4)
+  for(const item of geometry){
+   expect(Math.abs(item.width-item.card)).toBeLessThan(2)
+   expect(Math.abs(item.width-item.posterWidth)).toBeLessThan(2)
+   expect(Math.abs(item.posterHeight/item.posterWidth-1.5)).toBeLessThan(0.04)
+   expect(item.badgesOverlap).toBe(false)
+  }
+  expect(Math.abs(geometry[0].width-geometry[1].width)).toBeLessThan(2)
+  expect(Math.abs(geometry[0].left-geometry[2].left)).toBeLessThan(2)
+  expect(Math.abs(geometry[0].top-geometry[1].top)).toBeLessThan(2)
+  expect(await page.locator('body').evaluate(el=>el.scrollWidth<=window.innerWidth+1)).toBe(true)
+ }
+})

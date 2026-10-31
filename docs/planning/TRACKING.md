@@ -117,3 +117,5 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 - **PR #106:** corrected code SHA `3134282` passes [CI](https://github.com/rzqllh/Yoru/actions/runs/41223942927) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41223942739) 4/4. Documentation follow-up is not yet tested; no physical swipe evidence or 2:3 grid polish.
 
 - **2026-11-01 — merge-conflict resolution:** PR #107 subtitle-season code and permanent notes from main `dc2bd458` retained; Phase 03 test and notes merged without overwrite. Combined exact-head CI pending.
+
+- **2026-11-01 — D07 Anime Popular grid:** branch `fix/y03-anime-popular-grid-20261101`, targeted full-column 2:3 ranked posters, title width and rank/score separation. 320px/390px browser fixture tests added. CI/physical iPhone NOT RUN; see [Phase 03 handoff](handoffs/PHASE_03_HANDOFF.md).

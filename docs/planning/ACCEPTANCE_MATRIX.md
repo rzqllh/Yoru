@@ -144,3 +144,5 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 **D06/D07 initial head `c441e28`: FAIL (lint).** Two accessibility lint findings corrected by semantic section and existing-button keyboard focus, pending exact-head test. [CI](https://github.com/rzqllh/Yoru/actions/runs/41223790513).
 
 **D06/D07 `3134282` — PASS (fixtures):** [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41223942927), [Chromium/WebKit E2E](https://github.com/rzqllh/Yoru/actions/runs/41223942739). Full iOS swipe/scroll interaction NOT RUN; final docs SHA pending.
+
+| AC-HOME-05/06 D07 | `fix/y03-anime-popular-grid-20261101` | Browser mobile 320px/390px card layout | NOT RUN | All rank-card widths equal grid cells, posters 2:3 with stable dimensions, rank and score badges separate, no horizontal overflow; physical iPhone NOT RUN. |
