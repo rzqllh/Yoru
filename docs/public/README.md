@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | [Getting started](getting-started.md) | Users, developers | Node prerequisites, local demo, installable PWA |
 | [Using Yoru](using-yoru.md) | Users | Search, source states, player, progress, backup |
+| [Cross-device sync](cloud-sync.md) | Users, operators | Optional manual snapshot sync, OTP, RLS and limitations |
 | [Providers](providers.md) | Operators | Authorized HTTPS media, addon setup and subtitles |
 | [Watch Guide](watch-order.md) | Users, editors | Release-year vs verified chronology, route provenance |
 | [Troubleshooting](troubleshooting.md) | Everyone | Decision-tree diagnosis and safe data recovery |
