@@ -33,7 +33,7 @@ import {
  X,
 } from 'lucide-react'
 import type {Anime,Episode,LibraryEntry,LibraryStatus,ProgressEntry,Stream} from './types'
-import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered,dailyTrends,type DailyTrendResponse,type UnavailableStream} from './lib/api'
+import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered,dailyTrends,getBrowseGenreOptions,type AnimeGenreOption,type DailyTrendResponse,type UnavailableStream} from './lib/api'
 import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime,getPreference,setPreference} from './lib/db'
 import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
 import {EMPTY_BROWSE_FILTERS,getBreadcrumbs,parseRoute,routeToPath,type BrowseFilters,type RouteState} from './lib/router'
@@ -65,6 +65,7 @@ const navItems:[RouteState['page'],string,typeof Home,string][]=[
  ['settings','Pengaturan',Settings2,'/pengaturan'],
 ]
 
+const LEGACY_BROWSE_GENRES=['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'] as const
 const SKELETON_KEYS=['a','b','c','d','e','f','g','h','i','j','k','l']
 const posterPlaceholder='radial-gradient(circle at 68% 25%,#3a3e35 0%,#202422 35%,#13161a 75%)'
 
@@ -619,10 +620,28 @@ function Browse({
  const [next,setNext]=useState(false)
  const [page,setPage]=useState(1)
  const [retry,setRetry]=useState(0)
+ const [genreOptions,setGenreOptions]=useState<AnimeGenreOption[]>([])
+ const [genreAvailability,setGenreAvailability]=useState<'loading'|'upstream'|'fallback'>('loading')
+ useEffect(()=>{
+  const controller=new AbortController()
+  getBrowseGenreOptions(controller.signal).then(response=>{
+   if(controller.signal.aborted)return
+   setGenreOptions(response.items)
+   setGenreAvailability(response.status)
+  }).catch(()=>{
+   if(!controller.signal.aborted)setGenreAvailability('fallback')
+  })
+  return()=>controller.abort()
+ },[])
  const {genre,format,minimumScore,year,order}=filters
  const activeFilters=Boolean(genre||format||minimumScore||year||order!=='default')
  const value=query.trim()
  const usesServerFilters=activeFilters
+ const choiceList=(genreOptions.length?genreOptions.map(item=>({
+  value:(LEGACY_BROWSE_GENRES as readonly string[]).includes(item.name)?item.name:'mal:'+item.id,
+  label:item.name
+ })):LEGACY_BROWSE_GENRES.map(name=>({value:name,label:name})))
+ const genreUnavailable=Boolean(genre&&!choiceList.some(item=>item.value===genre))
 
  // biome-ignore lint/correctness/useExhaustiveDependencies: normalized query and kind changes reset page.
  useEffect(()=>{
@@ -704,7 +723,11 @@ function Browse({
      {([['season','Musim ini'],['top','Populer'],['upcoming','Akan datang']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
     </fieldset>
    </div>
-   <label>Genre<select aria-label="Genre" value={genre} onChange={e=>onFiltersChange({...filters,genre:e.target.value})}><option value="">Semua genre</option>{['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'].map(g=><option key={g} value={g}>{g}</option>)}</select></label>
+   <label>Genre<select aria-label="Genre" value={genre} onChange={e=>onFiltersChange({...filters,genre:e.target.value})}>
+    <option value="">Semua genre</option>
+    {choiceList.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
+    {genreUnavailable&&<option value={genre} disabled>Genre ini sedang tidak tersedia</option>}
+   </select></label>
    <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>onFiltersChange({...filters,format:e.target.value})}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
    <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>onFiltersChange({...filters,minimumScore:Number(e.target.value)})}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
    <label>Tahun<select aria-label="Tahun rilis" value={year} onChange={e=>onFiltersChange({...filters,year:e.target.value})}><option value="">Semua tahun</option>{years.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
@@ -712,6 +735,8 @@ function Browse({
    {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>onFiltersChange(EMPTY_BROWSE_FILTERS)}>Reset filter</button>}
   </fieldset>
   </div>
+  {genreAvailability==='fallback'&&<p className="browse-filter-note" role="status">Daftar genre tambahan belum tersedia. Genre umum tetap bisa dipakai.</p>}
+  {genreUnavailable&&<p className="browse-filter-note" role="status">Genre pada tautan ini belum tersedia. Pilih genre lain atau reset filter.</p>}
   {activeFilters&&<p className="browse-filter-note">Filter aktif · Berlaku untuk seluruh katalog.</p>}
   {activeFilters&&<fieldset className="browse-active-chips"><legend className="sr-only">Filter aktif</legend>
    <span>Filter aktif:</span>
