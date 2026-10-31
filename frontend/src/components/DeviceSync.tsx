@@ -1,6 +1,6 @@
 import {useMemo,useState} from 'react'
 import {exportUserData,importUserData} from '../lib/db'
-import {createDeviceSyncClient,syncConfig,type DeviceSyncSession} from '../lib/device-sync'
+import {createDeviceSyncClient,mergeDownloadedBackup,syncConfig,type DeviceSyncSession} from '../lib/device-sync'
 
 export default function DeviceSync({onNotify,onDataChanged}:{
  onNotify:(message:string)=>void;onDataChanged:()=>void
@@ -66,7 +66,8 @@ export default function DeviceSync({onNotify,onDataChanged}:{
     const remote=await client.read(session)
     if(!remote){setMessage('Belum ada cadangan di akun cloud ini.');return}
     if(!window.confirm('Gabungkan cadangan cloud ke browser ini? Entri yang sama dapat ditimpa.'))return
-    await importUserData(remote.payload);onDataChanged();setMessage('Cadangan cloud dipulihkan di browser ini.')
+    const merged=mergeDownloadedBackup(await exportUserData(),remote.payload)
+    await importUserData(merged);onDataChanged();setMessage('Data cloud digabung; progres yang lebih baru dipertahankan.')
    })}>Unduh</button>
   </div>
   <div className="setting-row">
