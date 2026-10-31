@@ -733,7 +733,7 @@ function Browse({
    <div>
     <h2>{value?`Hasil pencarian: “${value}”`:kind==='season'?'Musim ini':kind==='top'?'Anime terpopuler':'Pratinjau musim berikutnya'}</h2>
    </div>
-   <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${filteredItems.length} judul`}</span>
+   <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${filteredItems.length} ditampilkan`}</span>
   </div>
   {error&&uniqueItems.length>0&&<div className="config-error" role="alert">
    Belum bisa memuat lebih banyak anime.
