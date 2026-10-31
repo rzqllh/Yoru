@@ -223,3 +223,14 @@ test('episode source memory remains eligible for cloud sync without carrying str
  assert.deepEqual(safe.preferences?.map(row=>row.key),['source-choice:mal:17:ep:2'])
  assert.equal(JSON.stringify(safe).includes('https://'),false)
 })
+
+test('only bounded local collection-sort choices are transferable',()=>{
+ const safe=syncableBackup({version:1,library:[],progress:[],preferences:[
+  {key:'library-sort',value:'year'}
+ ]})
+ assert.deepEqual(safe.preferences,[{key:'library-sort',value:'year'}])
+ const rejected=syncableBackup({version:1,library:[],progress:[],preferences:[
+  {key:'library-sort',value:'__proto__'}
+ ]})
+ assert.deepEqual(rejected.preferences,[])
+})
