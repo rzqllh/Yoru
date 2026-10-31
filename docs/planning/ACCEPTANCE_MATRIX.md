@@ -129,5 +129,5 @@ All rows are **NOT RUN for this new contract** until measured in future phase PR
 
 | Case | Commit tested | Environment | Status | Result / next evidence |
 | --- | --- | --- | --- | --- |
-| AC-SRC-06 D02 | `36d34d0` branch before handoff | Node unit, Chromium, WebKit | NOT RUN (CI pending) | Reject uncontrolled embed-only and missing-source choices; no iframe; preserve native. Results to be attached to Phase 01 handoff. |
+| AC-SRC-06 D02 | `a91e7ec` (PR #100) | Linux/Windows + Chromium/WebKit fixture | PASS (deterministic) | [CI](https://github.com/rzqllh/Yoru/actions/runs/41220260198), [Browser](https://github.com/rzqllh/Yoru/actions/runs/41220260118). Live source and iPhone NOT RUN; revalidate final docs SHA. |
 | AC-SRC-05 Torrentio | unchanged existing main and D02 branch | live addon | NOT RUN | Hash classification persists; no torrent engine or playable URL inferred. |
