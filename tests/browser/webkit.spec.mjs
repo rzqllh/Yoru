@@ -36,3 +36,23 @@ test('WebKit iPhone-sized layout keeps navigation and unverified fallback access
  const noHorizontalOverflow=await page.locator('body').evaluate(el=>el.scrollWidth<=window.innerWidth+1)
  expect(noHorizontalOverflow).toBeTruthy()
 })
+
+for(const failure of ['html','malformed-catalog']){
+ test(`catalog recovers from ${failure} without a page crash`,async({page})=>{
+  let broken=true
+  const errors=[]
+  page.on('pageerror',error=>errors.push(error.message))
+  await page.route('**/api/anime/daily-trends',route=>route.fulfill({status:503,json:{error:'DAILY_TRENDS_UNAVAILABLE'}}))
+  await page.route('**/api/anime/discover?**',route=>{
+   if(!broken)return route.fulfill({json:{items:[anime],page:1,hasNext:false}})
+   return failure==='html'?route.fulfill({contentType:'text/html',body:'<div id="root"></div>'}):
+    route.fulfill({json:{items:null,page:1,hasNext:false}})
+  })
+  await page.goto('/')
+  await expect(page.getByText('Katalog belum dapat dimuat')).toBeVisible()
+  broken=false
+  await page.getByRole('button',{name:'Coba lagi',exact:true}).first().click()
+  await expect(page.getByRole('button',{name:'Buka Yoru WebKit Fixture'}).first()).toBeVisible()
+  expect(errors).toEqual([])
+ })
+}
