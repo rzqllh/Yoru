@@ -44,9 +44,10 @@ import DeviceSync from './components/DeviceSync'
 import WatchGuide from './components/WatchGuide'
 import {verifyNativeSource} from './lib/source-readiness'
 import {rankNativeStreams} from './lib/source-ranking'
-import {sourceMemoryKey,rememberedNativeSource,parseSourceMemory,preferRememberedSource} from './lib/source-memory'
+import {readRememberedSource,saveRememberedSource,preferRememberedSource} from './lib/source-memory'
 import {summarizeSourceSearch} from './lib/source-lifecycle'
 import {isResumableProgress} from './lib/resume'
+import {sortLibraryEntries,parseLibrarySort,type LibrarySort} from './lib/library-sort'
 import {useDialogFocus} from './lib/useDialogFocus'
 
 type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean}
@@ -71,7 +72,12 @@ const SKELETON_KEYS=['a','b','c','d','e','f','g','h','i','j','k','l']
 const posterPlaceholder='radial-gradient(circle at 68% 25%,#3a3e35 0%,#202422 35%,#13161a 75%)'
 
 function Poster({anime,aspect='portrait'}:{anime:Anime;aspect?:'portrait'|'wide'}){
- return <div className={`poster ${aspect}`} style={{backgroundImage:anime.poster?`linear-gradient(180deg,transparent 40%,rgba(0,0,0,.3)),url("${anime.poster.replaceAll('"','%22')}")`:posterPlaceholder}} role="img" aria-label={`Poster ${anime.title}`}><span className="poster-glow"/></div>
+ const [failedPoster,setFailedPoster]=useState<string|null>(null)
+ const poster=typeof anime.poster==='string'&&anime.poster.length>0?anime.poster:null
+ return <div className={`poster ${aspect}`} style={{backgroundImage:posterPlaceholder}} role="img" aria-label={`Poster ${anime.title}`}>
+  {poster&&poster!==failedPoster&&<img className="poster-image" src={poster} alt="" aria-hidden="true" loading="lazy" decoding="async" onError={()=>setFailedPoster(poster)}/>}
+  <span className="poster-glow"/>
+ </div>
 }
 
 function MiniLabel({children}:{children:React.ReactNode}){
@@ -149,10 +155,10 @@ async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:strin
   const providers=await providerEpisodes(malId)
   const matches=providers.items.filter(item=>item.number===episode&&item.providerId!=='public-embed').slice(0,6)
   const resolved=await Promise.allSettled(matches.map(item=>streams(item.id)))
-  const stored=await getPreference(sourceMemoryKey(malId),'').catch(()=> '')
+  const remembered=await readRememberedSource(malId,episode,key=>getPreference(key,''))
   const candidates=preferRememberedSource(rankNativeStreams(
    resolved.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
-  ).filter(source=>source.url!==exceptUrl),parseSourceMemory(stored))
+  ).filter(source=>source.url!==exceptUrl),remembered)
   const visited=new Set<string>()
   for(const candidate of candidates){
    if(visited.has(candidate.url))continue
@@ -160,8 +166,7 @@ async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:strin
    if(visited.size>6)break
    try{
     await verifyNativeSource(candidate,10000)
-    const memory=rememberedNativeSource(candidate)
-    if(memory)void setPreference(sourceMemoryKey(malId),JSON.stringify(memory)).catch(()=>{})
+    void saveRememberedSource(malId,episode,candidate,setPreference)
     return candidate
    }catch{/* test other native */}
   }
@@ -761,7 +766,17 @@ function LibraryPage({
  onStatusChange:(anime:Anime,status:LibraryStatus)=>Promise<void>
 }){
  const [filter,setFilter]=useState<'all'|LibraryStatus>('all')
- const saved=useMemo(()=>library.filter(row=>filter==='all'||row.status===filter),[library,filter])
+ const [sortMode,setSortMode]=useState<LibrarySort>('recent')
+ useEffect(()=>{
+  let active=true
+  void getPreference('library-sort','recent').then(value=>{
+   if(active)setSortMode(parseLibrarySort(value))
+  }).catch(()=>{})
+  return()=>{active=false}
+ },[])
+ const saved=useMemo(()=>sortLibraryEntries(
+  library.filter(row=>filter==='all'||row.status===filter),sortMode
+ ),[library,filter,sortMode])
  const continueItems=useMemo(()=>progress.filter(isResumableProgress),[progress])
 
  const isCompletelyEmpty=library.length===0&&progress.length===0
@@ -815,6 +830,18 @@ function LibraryPage({
     </button>)}
    </div>}
 
+   {!isCompletelyEmpty&&<label className="library-sort-control">Urutkan koleksi
+    <select aria-label="Urutkan koleksi" value={sortMode} onChange={event=>{
+     const choice=parseLibrarySort(event.target.value)
+     setSortMode(choice)
+     void setPreference('library-sort',choice).catch(()=>{})
+    }}>
+     <option value="recent">Terakhir disimpan</option>
+     <option value="title">Judul A–Z</option>
+     <option value="score">Skor tertinggi</option>
+     <option value="year">Tahun terbaru</option>
+    </select>
+   </label>}
    {isCompletelyEmpty?<Empty
     icon={Bookmark}
     title="Koleksi masih kosong"
@@ -962,8 +989,7 @@ function DetailDialog({
    await verifyNativeSource(stream)
    if(requestId!==sourceRequest.current)return
    setSourceFeedback({episode:ep,phase:'verified',message:'Video native lolos pemeriksaan browser.'})
-   const memory=rememberedNativeSource(stream)
-   if(memory)void setPreference(sourceMemoryKey(info.malId),JSON.stringify(memory)).catch(()=>{})
+   void saveRememberedSource(info.malId,ep,stream,setPreference)
    onWatch({anime:info,episode:ep,stream,manualSource:manual})
   }catch{
    if(requestId!==sourceRequest.current)return
@@ -995,9 +1021,9 @@ function DetailDialog({
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
    if(requestId!==sourceRequest.current)return
    const summary=summarizeSourceSearch(results)
-   const remembered=await getPreference(sourceMemoryKey(info.malId),'').catch(()=> '')
+   const remembered=await readRememberedSource(info.malId,ep.number,key=>getPreference(key,''))
    if(requestId!==sourceRequest.current)return
-   const native=preferRememberedSource(rankNativeStreams(summary.items),parseSourceMemory(remembered))
+   const native=preferRememberedSource(rankNativeStreams(summary.items),remembered)
    if(!native.length){
     setChoices({episode:ep.number,items:[embedCandidate(ep.number)],unavailable:summary.unavailable})
     setSourceFeedback({episode:ep.number,phase:summary.state,message:summary.message})

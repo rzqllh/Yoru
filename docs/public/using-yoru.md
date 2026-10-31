@@ -27,10 +27,10 @@ Open Jelajahi → Panduan urutan anime or a title's story link. **Tahun rilis** 
 
 ## Library, resume and backup
 
-Collections, progress, route progress and preferences use local browser storage (IndexedDB). Manual route completion is not evidence of video watched. Source memory and resume are subject to re-verification; previous stream URLs may expire.
+Collections, progress, route progress and preferences use local browser storage (IndexedDB). The collection page supports filtering by watch status and sorting by recently saved, title A–Z, known score or release year; that sort choice is remembered in this browser. Unknown scores/years sort last, rather than inventing metadata. Manual route completion is not evidence of video watched. Source memory and resume are subject to re-verification; previous stream URLs may expire.
 
-Use the in-app backup export/import controls before changing devices, reinstalling the browser or clearing site data. Backups are local files containing library/progress/preferences; treat them as personal data. No account-based sync is implemented.
+Use the in-app backup export/import controls before changing devices, reinstalling the browser or clearing site data. Backups are local files containing library/progress/preferences; treat them as personal data. Optional builds with the cross-device candidate provide manually triggered snapshots only after configuration and acceptance; see [Cloud sync](cloud-sync.md). Automatic background synchronization is not implemented.
 
 ## Privacy and support
 
-Yoru does not provide managed accounts or cloud backup. External catalogue, media and subtitle requests reveal information to their respective providers. See [Security and privacy](security.md) and [Troubleshooting](troubleshooting.md).
+Default builds do not enable cloud backup. The opt-in snapshot candidate uses Supabase email OTP; live OTP, cross-account and device acceptance remain required before enabling it. External catalogue, media and subtitle requests reveal information to their respective providers. See [Security and privacy](security.md) and [Troubleshooting](troubleshooting.md).

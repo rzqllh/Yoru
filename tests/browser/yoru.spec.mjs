@@ -46,6 +46,20 @@ test('cloud sync is inactive without configured Supabase project and does not bl
  expect(cloudRequests).toBe(0)
  await expect(page.getByRole('button',{name:'Ekspor'})).toBeEnabled()
 })
+test('collection sort choice is accessible and persists through reload',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await page.getByRole('dialog',{name:'Detail Yoru Test Anime'}).getByRole('button',{name:/Koleksiku/}).click()
+ await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'}).getByRole('button',{name:/Tersimpan/})).toBeVisible()
+ await page.getByRole('button',{name:'Tutup detail anime'}).click()
+ await page.goto('/koleksi')
+ const sort=page.getByRole('combobox',{name:'Urutkan koleksi'})
+ await expect(sort).toBeVisible()
+ await sort.selectOption('title')
+ await expect(sort).toHaveValue('title')
+ await page.reload()
+ await expect(page.getByRole('combobox',{name:'Urutkan koleksi'})).toHaveValue('title')
+})
 test('desktop: catalog, search, detail, library and playback with Indonesian VTT',async({page})=>{
  await page.goto('/')
  await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)/})).toBeVisible()
@@ -72,20 +86,21 @@ test('a verified native source remembers only its provider identity for later pl
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
  await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
- const getChoice=()=>page.evaluate(async()=>{
+ const getChoice=(key='source-choice:mal:1')=>page.evaluate(async key=>{
   const request=indexedDB.open('yoru-local-v1')
   return await new Promise((resolve,reject)=>{
    request.onerror=()=>reject(request.error)
    request.onsuccess=()=>{
     const db=request.result
     const tx=db.transaction('preferences','readonly')
-    const get=tx.objectStore('preferences').get('source-choice:mal:1')
+    const get=tx.objectStore('preferences').get(key)
     get.onsuccess=()=>{db.close();resolve(get.result?.value??'')}
     get.onerror=()=>{db.close();reject(get.error)}
    }
   })
- })
+ },key)
  await expect.poll(async()=>JSON.parse(await getChoice()).providerId).toBe('fixture')
+ await expect.poll(async()=>JSON.parse(await getChoice('source-choice:mal:1:ep:1')).providerId).toBe('fixture')
  const remembered=JSON.parse(await getChoice())
  expect(remembered).toMatchObject({version:1,providerId:'fixture',format:'hls'})
  expect(JSON.stringify(remembered)).not.toContain('/demo/')

@@ -36,3 +36,50 @@ test('WebKit iPhone-sized layout keeps navigation and unverified fallback access
  const noHorizontalOverflow=await page.locator('body').evaluate(el=>el.scrollWidth<=window.innerWidth+1)
  expect(noHorizontalOverflow).toBeTruthy()
 })
+
+for(const failure of ['html','malformed-catalog']){
+ test(`catalog recovers from ${failure} without a page crash`,async({page})=>{
+  let broken=true
+  const errors=[]
+  page.on('pageerror',error=>errors.push(error.message))
+  await page.route('**/api/anime/daily-trends',route=>route.fulfill({status:503,json:{error:'DAILY_TRENDS_UNAVAILABLE'}}))
+  await page.route('**/api/anime/discover?**',route=>{
+   if(!broken)return route.fulfill({json:{items:[anime],page:1,hasNext:false}})
+   return failure==='html'?route.fulfill({contentType:'text/html',body:'<div id="root"></div>'}):
+    route.fulfill({json:{items:null,page:1,hasNext:false}})
+  })
+  await page.goto('/')
+  await expect(page.getByText('Katalog belum dapat dimuat')).toBeVisible()
+  broken=false
+  await page.getByRole('button',{name:'Coba lagi',exact:true}).first().click()
+  await expect(page.getByRole('button',{name:'Buka Yoru WebKit Fixture'}).first()).toBeVisible()
+  expect(errors).toEqual([])
+ })
+}
+
+test('catalog posters decode lazily inside a reserved image box',async({page})=>{
+ const poster='https://images.example.test/yoru.svg'
+ await page.route(poster,route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="150" height="210"><rect width="150" height="210" fill="#52664b"/></svg>'}))
+ await page.route('**/api/anime/discover?**',route=>route.fulfill({json:{items:[{...anime,poster}],page:1,hasNext:false}}))
+ await page.goto('/jelajahi')
+ const box=page.locator('.browse-grid .poster').first()
+ const image=box.locator('img')
+ await expect(image).toHaveAttribute('loading','lazy')
+ await expect(image).toHaveAttribute('decoding','async')
+ await expect.poll(()=>image.evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true)
+ const size=await box.boundingBox()
+ expect(size.width).toBeGreaterThan(50)
+ expect(size.height).toBeGreaterThan(size.width)
+})
+
+test('a failed poster keeps its accessible placeholder and reserved space',async({page})=>{
+ const poster='https://images.example.test/missing.svg'
+ await page.route(poster,route=>route.fulfill({status:404,body:''}))
+ await page.route('**/api/anime/discover?**',route=>route.fulfill({json:{items:[{...anime,poster}],page:1,hasNext:false}}))
+ await page.goto('/jelajahi')
+ const box=page.locator('.browse-grid .poster').first()
+ await expect(box).toHaveAttribute('aria-label','Poster Yoru WebKit Fixture')
+ await expect(box.locator('img')).toHaveCount(0)
+ expect((await box.boundingBox()).height).toBeGreaterThan(50)
+ await expect(page.getByRole('button',{name:'Buka Yoru WebKit Fixture'})).toBeVisible()
+})
