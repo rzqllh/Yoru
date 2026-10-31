@@ -75,3 +75,18 @@ test('backup v1 can optionally include safe preferences without breaking old exp
   [null],
  ])assert.equal(validateBackup({...backup,preferences}),false)
 })
+
+test('malformed imported library status is rejected without coercion or exceptions',()=>{
+ const maliciousStatuses=[
+  JSON.parse('{"toString":null,"valueOf":null}'),
+  {toString:'watching'},
+  {toString(){return 'watching'}},
+  ['watching'],null,0,false
+ ]
+ for(const status of maliciousStatuses){
+  const malformed={...backup,library:[{...row,status}]}
+  assert.doesNotThrow(()=>validateBackup(malformed))
+  assert.equal(validateBackup(malformed),false)
+ }
+ assert.equal(validateBackup({...backup,library:[{...row,status:'watching'}]}),true)
+})
