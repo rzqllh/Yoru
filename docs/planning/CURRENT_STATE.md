@@ -82,3 +82,5 @@ At `b4f35bd`, PRs #107, #106 and #108 have merged. Exact main `b4f35bd` [Linux/W
 ### 2026-11-01 — Phase 04 genre filter follow-up branch (CODED/PENDING)
 
 - [#116](https://github.com/rzqllh/Yoru/pull/116) merged as `ae43a69`: safe, source-labelled Tenrai genre-options API. Follow-up branch `feat/y04-genre-filter-ui-20261101` wires API options to Browse, preserves legacy URL names and validates added MAL numeric options server-side. Tests and PR checks are pending, so this is **not yet in main or production**. AniList tags, actual upstream and physical device verification remain separate blockers.
+
+- **PR #117 code verification:** on branch `feat/y04-genre-filter-ui-20261101` head `9fa0143`, dynamic source-backed MAL genre options now route through UI/URL/server and deterministic [CI](https://github.com/rzqllh/Yoru/actions/runs/41244704532) + [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41244698662) report SUCCESS. No live Tenrai query/physical iPhone; public release and cloud remain gated. Final docs SHA and merge must be independently verified.
