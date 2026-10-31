@@ -31,8 +31,8 @@ Owners below are **responsibility roles**, not claims that any specific person/a
 | SUB-02 / D09 | 02 | Caption presets/font/size/contrast/position | MERGED PR #103 / PR-HEAD TESTED; IPHONE PENDING | Player/UX | [#55](https://github.com/rzqllh/Yoru/pull/55), `caption-appearance.ts` | AC-SUB-03/04; browser capability |
 | SUB-03 | 02 | Subtitle season/cour/episode mapping | PLANNED | API/data | `backend/providers/subtitles.ts` has hardcoded season=1 | AC-SUB-05/06 |
 | SUB-04 | 02 | OpenSubtitles/SubDL/SubSource/Stremio APIs | CODED, LIVE BLOCKED | API engineering + owner inputs | [#21](https://github.com/rzqllh/Yoru/pull/21), [#28](https://github.com/rzqllh/Yoru/pull/28), [#32](https://github.com/rzqllh/Yoru/pull/32) | AC-SUB-07/08; #20 R-G3 |
-| HOME-01 / D06 | 03 | Hero 8s pause/hover/focus/swipe/no old controls | PARTIAL (8s timer only) | UI engineering | `App.tsx` current hero | AC-HOME-01..04 |
-| HOME-02 / D07 | 03 | Anime Popular label and uniform 2:3 grid | PLANNED | UI engineering | `App.tsx` / `styles.css` | AC-HOME-05/06 |
+| HOME-01 / D06 | 03 | Hero 8s pause/hover/focus/swipe/no old controls | CODED + TESTED IN PR #106; MERGE PENDING | UI engineering | `App.tsx` current hero | AC-HOME-01..04 |
+| HOME-02 / D07 | 03 | Anime Popular label and uniform 2:3 grid | LABEL TESTED; GRID NOT YET | UI engineering | `App.tsx` / `styles.css` | AC-HOME-05/06 |
 | DS-01 / YX-15 | 03 | Shared tokens/cards/forms, responsive/a11y | PARTIAL | Design engineering | `DESIGN.md` and `styles.css` | AC-UX-01..03 |
 | BROWSE-01 / D03 | 04 | Tenrai/MAL identity + AniList enrichment | PLANNED (existing isolated daily/guide data) | Data/API engineering | `backend/pipeline` | AC-DATA-01..04 |
 | BROWSE-02 | 04 | Dynamic AniList genres/tags and honest filters | PLANNED (currently 12) | Data/API engineering | `backend/api/app.ts` + `router.ts` | AC-DATA-05..08 |
@@ -111,3 +111,5 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 - **D09 merged:** [PR #103](https://github.com/rzqllh/Yoru/pull/103) main `6b13e0016670ab443ebd6cb1d212534656dff44b`, final head [CI](https://github.com/rzqllh/Yoru/actions/runs/41222189020) + [Browser](https://github.com/rzqllh/Yoru/actions/runs/41222188893) 4/4 SUCCESS. Current merged-main checks pending at checkpoint. New subtitle defaults are code shipped to `main`, NOT production/device/live-verified.
 
 - **2026-11-01 — Phase 03 D06/D07:** branch `feat/y03-swipe-hero-20261101`, code `e2e4729`, CSS `d85538c`, browser tests `184536a`. Removed hero numbering/controls, added pause and swipe, renamed Anime Popular. **CI NOT RUN, NOT MERGED**, see [Phase 03 handoff](handoffs/PHASE_03_HANDOFF.md).
+
+- **PR #106:** corrected code SHA `3134282` passes [CI](https://github.com/rzqllh/Yoru/actions/runs/41223942927) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41223942739) 4/4. Documentation follow-up is not yet tested; no physical swipe evidence or 2:3 grid polish.

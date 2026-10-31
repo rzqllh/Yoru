@@ -140,3 +140,5 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 | AC-HOME-01/02 D06–D07 | `184536a` on Phase 03 branch | Browser: gesture, hover, focus, reduced motion and keyboard | NOT RUN (CI pending) | 8-second rotation, hover/focus/touch pause, horizontal swipe, vertical scroll, no numbered controls and Anime Popular heading; physical iOS NOT RUN. |
 
 **D06/D07 initial head `c441e28`: FAIL (lint).** Two accessibility lint findings corrected by semantic section and existing-button keyboard focus, pending exact-head test. [CI](https://github.com/rzqllh/Yoru/actions/runs/41223790513).
+
+**D06/D07 `3134282` — PASS (fixtures):** [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41223942927), [Chromium/WebKit E2E](https://github.com/rzqllh/Yoru/actions/runs/41223942739). Full iOS swipe/scroll interaction NOT RUN; final docs SHA pending.
