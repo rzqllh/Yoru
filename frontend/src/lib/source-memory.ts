@@ -6,9 +6,39 @@ export type SourceMemory={version:1;providerId:string;format:'hls'|'mp4';updated
 const PROVIDER_ID=/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$/
 const MAX_AGE=90*24*60*60*1000
 const MAX_ANIME=999999999
-export function sourceMemoryKey(malId:number):string{
+export function sourceMemoryKey(malId:number,episode?:number):string{
  if(!Number.isSafeInteger(malId)||malId<1||malId>MAX_ANIME)throw new Error('INVALID_ANIME_ID')
- return `source-choice:mal:${malId}`
+ if(episode!==undefined&&(!Number.isSafeInteger(episode)||episode<1||episode>20000))
+  throw new Error('INVALID_EPISODE')
+ const base=`source-choice:mal:${malId}`
+ return episode===undefined?base:`${base}:ep:${episode}`
+}
+/** Episode-specific memory takes precedence over legacy per-anime memory.
+ * Both store only provider IDs: every candidate must still pass media preflight.
+ */
+export async function readRememberedSource(
+ malId:number,episode:number,read:(key:string)=>Promise<string>,now=Date.now()
+):Promise<SourceMemory|null>{
+ try{
+  const scoped=parseSourceMemory(await read(sourceMemoryKey(malId,episode)),now)
+  if(scoped)return scoped
+  return parseSourceMemory(await read(sourceMemoryKey(malId)),now)
+ }catch{return null}
+}
+/** Keep legacy per-anime preference as a fallback for next episodes. */
+export async function saveRememberedSource(
+ malId:number,episode:number,stream:Pick<Stream,'providerId'|'format'>,
+ write:(key:string,value:string)=>Promise<unknown>
+):Promise<boolean>{
+ const memory=rememberedNativeSource(stream)
+ if(!memory)return false
+ try{
+  const scoped=sourceMemoryKey(malId,episode)
+  const generic=sourceMemoryKey(malId)
+  const value=JSON.stringify(memory)
+  await Promise.all([write(scoped,value),write(generic,value)])
+  return true
+ }catch{return false}
 }
 export function rememberedNativeSource(stream:Pick<Stream,'providerId'|'format'>,now=Date.now()):SourceMemory|null{
  if((stream.format!=='hls'&&stream.format!=='mp4')||typeof stream.providerId!=='string'||
