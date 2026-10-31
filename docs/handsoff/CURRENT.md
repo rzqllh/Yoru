@@ -1,9 +1,11 @@
 # Yoru — working checkpoint (31 Oct 2026)
 
-Scope: isolated YX-06 source-memory reliability only. Base main `264617033cc2e5d26fba3ffdf76cea061d8bba99`.
+Scope: isolated YX-06 source-memory reliability. Base main `264617033cc2e5d26fba3ffdf76cea061d8bba99`.
 
-Audit: main exact-head CI Linux/Windows SUCCESS (https://github.com/rzqllh/Yoru/actions/runs/41185978061) and Chromium/WebKit SUCCESS (https://github.com/rzqllh/Yoru/actions/runs/41185978026). PR #77 remains DRAFT and not live-verified; #78 remains open; #44 remains open. Production release #20 remains BLOCKED.
+Audit: main Linux/Windows CI SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41185978061 and Chromium/WebKit SUCCESS https://github.com/rzqllh/Yoru/actions/runs/41185978026. PR #77 DRAFT/not mergeable and #78 open, both without live OTP/RLS; #44 open; #20 release BLOCKED. Only open PR at initial audit: #77.
 
-Implementation plan: preserve episode-first source memory and generic fallback on an individual scoped-read failure; ensure scoped preference is written before optional generic fallback; reject invalid clock values. No playback authorization or media validation change. Add focused unit regressions, run exact-head CI and browser E2E before any merge.
+CODED: `frontend/src/lib/source-memory.ts` now reads generic memory when scoped preference read fails; validates IDs before attempting fallback; writes scoped memory before best-effort generic memory; rejects invalid now and nonpositive persisted timestamps. Added focused unit regressions in `tests/source-memory.test.mjs`. No provider URL, token, media verification, Supabase, hosting or player changes.
 
-Checkpoint state: PLANNED. Not CODED, TESTED or LIVE_VERIFIED. Temporary working notes only; transfer evidence to PR/#44 and delete docs/handsoff before merge.
+TESTED: pending exact-head CI Linux/Windows and Chromium/WebKit. LIVE_VERIFIED: NO. Do not claim PASS yet.
+
+Checkpoint: source changes `f8259a9`; unit tests `d13f59d`. Temporary handoff only; transfer final evidence to PR/#44 and remove this folder before merge.
