@@ -18,3 +18,21 @@ test('ties preserve original provider order and never claim unverified 4K',()=>{
  const b={...a,url:'https://b.test/media.m3u8'}
  assert.deepEqual(rankNativeStreams([a,b]).map(s=>s.url),[a.url,b.url])
 })
+
+test('malformed subtitle and quality metadata cannot hide healthy native candidates',()=>{
+ const malformed=[
+  {format:'hls',quality:'720p',subtitleMode:'unknown',tracks:null,providerId:'missing-tracks'},
+  {format:'mp4',quality:720,subtitleMode:'soft',tracks:[null,{lang:42}],providerId:'bad-track'},
+  {format:'hls',quality:'720p',subtitleMode:'soft',tracks:[{lang:'ID'}],providerId:'healthy'}
+ ]
+ const ranked=rankNativeStreams(malformed)
+ assert.deepEqual(ranked.map(x=>x.providerId),['healthy','missing-tracks','bad-track'])
+ assert.equal(ranked.length,3)
+})
+test('untrusted non-Indonesian tracks do not receive an invented subtitle ranking bonus',()=>{
+ const sources=[
+  {format:'hls',quality:'480p',subtitleMode:'unknown',tracks:[{lang:null}],providerId:'invalid-lang'},
+  {format:'mp4',quality:'480p',subtitleMode:'soft',tracks:[{lang:'id'}],providerId:'verified-id'}
+ ]
+ assert.deepEqual(rankNativeStreams(sources).map(x=>x.providerId),['verified-id','invalid-lang'])
+})
