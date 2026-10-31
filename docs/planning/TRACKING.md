@@ -142,3 +142,7 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 - **NOT DONE:** Complete AniList genre/tag taxonomy, source-provenance enrichment, live Tenrai search matrix, independent performance/device gate, and release #20. No production/deployment configuration change.
 
 - **PR #117 exact code evidence:** `9fa0143` [CI Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41244704532) + [Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41244698662) SUCCESS. Dynamic Tenrai/MAL genres now implemented in isolated branch UI/router/server, not yet merged or deployed at this checkpoint; AniList tags and live media/devices remain NOT VERIFIED.
+
+### 2026-11-01 — Y04 merged API + UI status
+
+- **MERGED:** #116 `ae43a69` genre-option API + safe fallback; #117 `4157fec` dynamic source-backed MAL genre UI/router/server filters. #117 PR head `f9982aa` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41244901215) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41244896643) SUCCESS. Exact merged-main [CI](https://github.com/rzqllh/Yoru/actions/runs/41245111173) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41245111417) initiated, pending final conclusion at time of checkpoint. **AC-DATA-05/06 PARTIAL**: live provider and AniList taxonomy/tags not accepted. Production unchanged and #20 NO-GO.
