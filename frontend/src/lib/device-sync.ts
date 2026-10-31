@@ -1,4 +1,4 @@
-import {validateBackup,type Backup} from './backup'
+import {validateBackup,type Backup} from './backup.ts'
 
 // Manual, user-initiated cloud snapshots. Session exists only in React memory;
 // no refresh token, remote media URL or provider credential is persisted here.
