@@ -1101,6 +1101,7 @@ test('Phase 05 episode pagination loads 100 titles without overlapping requests'
   const start=(p-1)*24+1
   const count=Math.max(0,Math.min(24,101-start))
   const items=Array.from({length:count},(_,i)=>({...episode,id:`mal:1:${start+i}`,number:start+i,title:`Episode ${start+i}`}))
+  if(p===2)items.unshift({...episode,id:'mal:1:24',number:24,title:'Episode 24'})
   return route.fulfill({json:{items,page:p,hasNext:p<5}})
  })
  await page.goto('/anime/1')
@@ -1128,7 +1129,11 @@ test('Phase 05 failed episode page can retry without losing loaded episodes',asy
  await page.route('**/api/anime/1/provider-episodes',route=>route.fulfill({json:{items:[]}}))
  await page.route('**/api/anime/1/episodes?**',route=>{
   const p=Number(new URL(route.request().url()).searchParams.get('page')||1)
-  if(p===2&&++secondPageCalls===1)return route.fulfill({status:503,json:{error:'Provider sementara tidak tersedia'}})
+  if(p===2){
+   secondPageCalls++
+   if(secondPageCalls===1)return route.fulfill({status:503,json:{error:'Provider sementara tidak tersedia'}})
+   if(secondPageCalls===2)return route.fulfill({json:{items:[episode],page:1,hasNext:false}})
+  }
   const start=(p-1)*24+1
   const items=Array.from({length:24},(_,i)=>({...episode,id:`mal:1:${start+i}`,number:start+i,title:`Episode ${start+i}`}))
   return route.fulfill({json:{items,page:p,hasNext:p<2}})
@@ -1143,10 +1148,14 @@ test('Phase 05 failed episode page can retry without losing loaded episodes',asy
  await expect(load).toBeEnabled()
  await expect(rows).toHaveCount(24)
  await load.click()
+ await expect(dialog.locator('.detail-error')).toContainText('Tidak dapat mengambil daftar episode berikutnya')
+ await expect(rows).toHaveCount(24)
+ await expect(load).toBeEnabled()
+ await load.click()
  await expect(rows).toHaveCount(48)
  await expect(dialog.locator('.detail-error')).toHaveCount(0)
  await expect(load).toHaveCount(0)
- expect(secondPageCalls).toBe(2)
+ expect(secondPageCalls).toBe(3)
 })
 
 test('Phase 05 detail has a direct URL, supports Back/Forward and reload, and fills mobile viewport',async({page})=>{
