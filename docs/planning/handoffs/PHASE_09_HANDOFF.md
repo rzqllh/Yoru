@@ -79,3 +79,14 @@ vercel.json, api/index.ts, docs/public/production-readiness.md, docs/public/oper
 
 - Verify actual deployed SHA, health/catalog, real authorized native playback and subtitles with physical Safari, ingress security and rollback. Torrentio torrent descriptor ≠ playable source; resolver is separately owner-gated. #20 G1–G6 still NO-GO.
 - **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.
+
+## 2026-11-01 — Live hosted catalog probe and health verification
+
+- **Environment:** Windows local test execution connecting to production HTTPS endpoint `https://yoru-omega.vercel.app`.
+- **Command:** `node scripts/verify-hosted-catalog.mjs https://yoru-omega.vercel.app`.
+- **Observed:**
+  - `/`: HTTP 200, valid SPA root HTML (`<div id="root">`).
+  - `/api/health`: HTTP 200, JSON `{status: "ok", service: "anime-pwa-api", version: 1}`, strict headers (`x-content-type-options: nosniff`, `x-frame-options: DENY`, `cache-control: no-store`, CSP with `frame-ancestors 'none'`).
+  - `/api/anime/discover?kind=top&page=1`: HTTP 200, JSON containing 24 canonical MAL anime items.
+- **Scope limit:** Verifies hosted frontend shell, API routing and Tenrai catalog connectivity on the deployed production instance. Does not certify live native video playback, subtitle provider downloads, physical iPhone Safari, or automatic main deployment (which remains disabled via `vercel.json` `deploymentEnabled: false`).
+- **Release gate #20:** Remains **NO-GO**. G1–G4 and owner release GO required before public launch.

@@ -2,6 +2,14 @@
 
 # Yoru — Requirement, Evidence and Blocker Tracker
 
+### 2026-11-01 — Phase 01 Stremio/Torrentio config audit & opt-in manifest probe (#148, #149)
+
+- **Merged main HEAD:** `a5c2468cb22e61c58dbfda6e92c52bf1dc400fa1` after [PR #148](https://github.com/rzqllh/Yoru/pull/148) (`b267396`) and [PR #149](https://github.com/rzqllh/Yoru/pull/149) (`a5c2468`).
+- **PR #148 (Offline secret-safe Stremio config audit):** added `scripts/verify-stremio-config.mjs` and `scripts/stremio-config-report.mjs` (`npm run verify:stremio:config`). Validates syntax, structure, mapped IDs and suppresses URLs/credentials. PR head [CI #41289805155](https://github.com/rzqllh/Yoru/actions/runs/41289805155) and [Browser #41289805202](https://github.com/rzqllh/Yoru/actions/runs/41289805202) SUCCESS.
+- **PR #149 (Opt-in live manifest probe):** added `scripts/verify-stremio-manifests.mjs` and `scripts/stremio-manifest-report.mjs` (`npm run verify:stremio:manifests -- --live`). Bounded DNS-pinned GET against configured manifests; no redirects or stream downloads. Exact merged-main [CI #41290727699](https://github.com/rzqllh/Yoru/actions/runs/41290727699) and [Browser E2E #41290727670](https://github.com/rzqllh/Yoru/actions/runs/41290727670) SUCCESS (4/4 jobs).
+- **Hosted production health verified:** `https://yoru-omega.vercel.app` verified live via `verifyHostedCatalog`: `/`, `/api/health`, and `/api/anime/discover?kind=top&page=1` return HTTP 200 with JSON and security headers.
+- **Release status:** #20 remains NO-GO (live media, real subtitle API keys, physical iPhone, and owner release GO required).
+
 ### 2026-11-01 — Phase 05 long episode pagination correctness (#147)
 
 - [PR #147](https://github.com/rzqllh/Yoru/pull/147), code/test head `91fb3d4b41324c37f00d56c7bab74ba36ded0ee7`: serializes next-page episode requests (synchronous in-flight guard, disabled/aria-busy loading UI), aborts outstanding requests on detail exit/change, resets page cursor, validates response page number, deduplicates overlapping episode identities, and keeps loaded rows available for retry after HTTP/invalid-page failure.
@@ -32,7 +40,7 @@ Owners below are **responsibility roles**, not claims that any specific person/a
 | BASE-01 | 00 | Repository inventory, existing source, CI and gates | PARTIAL | Engineering | [main](https://github.com/rzqllh/Yoru/commit/2b6c1d4bb518c4345d50e7849af5f8f7ef53aa1b), [#44](https://github.com/rzqllh/Yoru/issues/44) | Recheck before implementation |
 | SRC-01 / YX-01 | 01 | Resume checked source/progress and no silent fallback | PARTIAL | Playback engineering | [#52](https://github.com/rzqllh/Yoru/pull/52), [#88](https://github.com/rzqllh/Yoru/pull/88) | AC-SRC-01, 02; representative actual media |
 | SRC-02 / YX-02 | 01 | Source state/candidate validation/ranking | PARTIAL | Playback engineering | [#86](https://github.com/rzqllh/Yoru/pull/86), [#97](https://github.com/rzqllh/Yoru/pull/97) | AC-SRC-03, 04; live G1/G2 |
-| SRC-03 / YX-18 | 01 | Distinguish Stremio direct URL/hash/external | VERIFIED CODE | API engineering | `backend/providers/stremio-core.ts`, [#51](https://github.com/rzqllh/Yoru/pull/51) | AC-SRC-05; real addon fixture/provider |
+| SRC-03 / YX-18 | 01 | Distinguish Stremio direct URL/hash/external + config/manifest audit | MERGED #148/#149 + MAIN CI TESTED | API engineering | `backend/providers/stremio.ts`, [#148](https://github.com/rzqllh/Yoru/pull/148), [#149](https://github.com/rzqllh/Yoru/pull/149) | AC-SRC-05; verify:stremio:config, verify:stremio:manifests |
 | SRC-04 / YX-19 | 01 | Torrentio-only torrent engine/resolver | BLOCKED — ARCHITECTURE NOT APPROVED | Product owner + security | [#44](https://github.com/rzqllh/Yoru/issues/44) | Explicit opt-in/rights/hosting/browser plan; no automatic torrent start |
 | SRC-05 / D02 | 01 | Exclude uncontrolled iframe from playable options | MERGED + MAIN CI TESTED (D02 only) | Playback/UX | Legacy `App.tsx` / `Player.tsx` fallback | AC-SRC-06; source-gating regression |
 | SRC-06 / YX-03 | 01 | Honest native quality Auto and resolution labels | PARTIAL | Playback engineering | [#97](https://github.com/rzqllh/Yoru/pull/97) | AC-SRC-07; real manifest levels |
