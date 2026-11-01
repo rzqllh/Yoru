@@ -2,6 +2,7 @@ import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import {
  AlertTriangle,
  ArrowDownRight,
+ ArrowLeft,
  ArrowRight,
  ArrowUpRight,
  Bookmark,
@@ -46,6 +47,7 @@ import {summarizeSourceSearch} from './lib/source-lifecycle'
 import {isResumableProgress,resolveDetailResumeTarget} from './lib/resume'
 import {sortLibraryEntries,parseLibrarySort,type LibrarySort} from './lib/library-sort'
 import {useDialogFocus} from './lib/useDialogFocus'
+import {useIsMobile} from './lib/useIsMobile'
 
 type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean}
 
@@ -173,6 +175,7 @@ async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:strin
 }
 
 function App(){
+ const isMobile=useIsMobile()
  const [route,setRoute]=useState<RouteState>(()=>parseRoute(window.location.pathname,window.location.search))
  const [selected,setSelected]=useState<Anime|null>(null)
  const [detailError,setDetailError]=useState('')
@@ -427,7 +430,7 @@ function App(){
   onClose={closeWatch}
  />}
 
- <div className="app-shell" hidden={Boolean(playback)}>
+ <div className={`app-shell${isMobile&&route.page==='detail'&&selected?' detail-mobile-active':''}`} hidden={Boolean(playback)}>
   <aside className={`sidebar ${mobileNav?'is-open':''}`}>
    <div className="sidebar-brand">
     <AppLogo/>
@@ -618,6 +621,16 @@ function App(){
      onOpenAnime={malId=>{void detail(malId).then(openDetail).catch(()=>setToast('Detail anime belum bisa dimuat'))}}
     /></div>}
 
+    {route.page==='detail'&&isMobile&&selected&&<DetailMobilePage
+     anime={selected}
+     isSaved={library.some(e=>e.anime.id===selected.id)}
+     progress={progress}
+     onClose={closeDetail}
+     onToggleSave={()=>void toggleSave(selected)}
+     onWatch={value=>{setPlayback(value);setSelected(null)}}
+     onOpenGuide={()=>{const malId=selected.malId;setSelected(null);navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId:malId})}}
+    />}
+
     {route.page==='detail'&&!selected&&<div className="page-body"><Empty icon={detailError?WifiOff:LoaderCircle} title={detailError?'Detail belum tersedia':'Memuat detail anime…'} body={detailError||'Mengambil metadata untuk tautan anime ini.'} action={<button type="button" className="btn btn-outline" onClick={closeDetail}>Kembali ke Jelajahi</button>}/></div>}
 
     {route.page==='library'&&<LibraryPage
@@ -665,7 +678,7 @@ function App(){
    </button>)}
   </nav>
 
-  {!playback&&route.page==='detail'&&selected&&<DetailDialog
+  {!playback&&!isMobile&&route.page==='detail'&&selected&&<DetailDialog
    anime={selected}
    isSaved={library.some(e=>e.anime.id===selected.id)}
    progress={progress}
@@ -1012,11 +1025,10 @@ function LibraryPage({
  </div>
 }
 
-function DetailDialog({
+function DetailBody({
  anime,
  isSaved,
  progress,
- onClose,
  onToggleSave,
  onWatch,
  onOpenGuide,
@@ -1024,12 +1036,10 @@ function DetailDialog({
  anime:Anime
  isSaved:boolean
  progress?:ProgressEntry[]
- onClose:()=>void
  onToggleSave:()=>void
  onWatch:(p:Playback)=>void
  onOpenGuide:()=>void
 }){
- const dialogRef=useDialogFocus()
  const pickerRef=useRef<HTMLDivElement>(null)
  const [info,setInfo]=useState<Anime>(anime)
  const [listed,setListed]=useState<Episode[]>([])
@@ -1215,99 +1225,171 @@ function DetailDialog({
   }
  }
 
- return <div className="modal-backdrop detail-page-view">
-  <div ref={dialogRef} tabIndex={-1} className="detail-modal" role="dialog" aria-modal="true" aria-label={`Detail ${info.title}`}>
-   <button type="button" className="modal-close icon-button glass" onClick={onClose} aria-label="Tutup detail anime" title="Kembali ke halaman sebelumnya"><X size={20}/></button>
-   <div className="detail-cover" style={{backgroundImage:info.cover?`linear-gradient(0deg,#13161d,rgba(19,22,29,.6) 40%,rgba(19,22,29,.15)),url("${info.cover.replaceAll('"','%22')}")`:undefined}}/>
-   <main className="detail-page-main" id="detail-main-content">
-    <header className="detail-main">
-     <div className="detail-poster"><Poster anime={info}/></div>
-     <section className="detail-info" aria-labelledby="detail-title">
-      <MiniLabel>DETAIL ANIME</MiniLabel>
-      <h1 id="detail-title">{info.title}</h1>
-      {info.japaneseTitle&&<p className="detail-japanese">{info.japaneseTitle}</p>}
-      <div className="detail-facts">
-       <span className="hero-rating" title="Skor komunitas"><Star size={14} fill="currentColor"/> {scoreDisplay(info.score)} / 10</span>
-       <span>{yearLabel(info.year)}</span>
-       <span>{info.type}</span>
-       <span>{info.status}</span>
-        {info.rating&&<span>{info.rating}</span>}
-      </div>
-      <div className="genre-tags">{info.genres.map(g=><span key={g}>{g}</span>)}</div>
-      <section className="detail-synopsis-section" aria-label="Sinopsis anime">
-       <p className={`detail-synopsis ${more?'expanded':''}`}>{info.synopsis||'Sinopsis belum tersedia dari metadata.'}</p>
-       {info.synopsis.length>280&&<button type="button" className="read-more" onClick={()=>setMore(v=>!v)}>{more?'Sembunyikan':'Baca selengkapnya'} <ChevronDown size={14}/></button>}
-      </section>
-      <nav className="detail-actions" aria-label="Aksi anime">
-       <button type="button" className="btn btn-primary" disabled={loading||!targetEpisode} onClick={()=>{if(targetEpisode)void play(targetEpisode)}}>
-        <Play size={16} fill="currentColor"/> {loading?'Memuat episode…':resumableProgress?`Lanjutkan Episode ${resumableProgress.episode}`:displayed.length?'Periksa sumber episode':'Episode belum tersedia'}
-       </button>
-       <button type="button" className="btn btn-outline" onClick={onToggleSave}>
-        {isSaved?<Check size={16}/>:<Plus size={16}/>} {isSaved?'Tersimpan':'Koleksiku'}
-       </button>
-       <button type="button" className="btn btn-outline" onClick={onOpenGuide}><Layers3 size={16}/> Urutan cerita</button>
-      </nav>
-     </section>
-    </header>
-
-    <section className="detail-episodes" aria-labelledby="episodes-heading">
-     <div className="section-heading">
-      <div>
-       <h2 id="episodes-heading">Daftar episode</h2>
-      </div>
-      <span className="episode-count">
-       {available.filter(e=>e.providerId!=='public-embed').length>0?'Ada kandidat sumber · belum diperiksa':'Belum menemukan kandidat video'}
-      </span>
+ return <>
+  <div className="detail-cover" style={{backgroundImage:info.cover?`linear-gradient(0deg,#13161d,rgba(19,22,29,.6) 40%,rgba(19,22,29,.15)),url("${info.cover.replaceAll('"','%22')}")`:undefined}}/>
+  <div className="detail-page-main" id="detail-main-content">
+   <header className="detail-main">
+    <div className="detail-poster"><Poster anime={info}/></div>
+    <section className="detail-info" aria-labelledby="detail-title">
+     <MiniLabel>DETAIL ANIME</MiniLabel>
+     <h1 id="detail-title">{info.title}</h1>
+     {info.japaneseTitle&&<p className="detail-japanese">{info.japaneseTitle}</p>}
+     <div className="detail-facts">
+      <span className="hero-rating" title="Skor komunitas"><Star size={14} fill="currentColor"/> {scoreDisplay(info.score)} / 10</span>
+      <span>{yearLabel(info.year)}</span>
+      <span>{info.type}</span>
+      <span>{info.status}</span>
+       {info.rating&&<span>{info.rating}</span>}
      </div>
-     {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
-     {sourceFeedback&&<p className={`source-feedback source-feedback-${sourceFeedback.phase}`} role="status">
-      <Info size={15}/>{sourceFeedback.message}
-     </p>}
-
-     {choices&&<div className="source-picker" ref={pickerRef}>
-      <div className="source-title">
-       <strong>Pilih video · Episode {choices.episode}</strong>
-       <button type="button" className="icon-button" onClick={()=>{sourceRequest.current++;setChoices(null);setSourceFeedback(null);setPlaying('')}} aria-label="Tutup pilihan sumber"><X size={15}/></button>
-      </div>
-      {choices.items.length===0&&<p role="status" className="source-unavailable">Belum ada video yang dapat diperiksa. Video alternatif tanpa kontrol subtitle tidak ditawarkan.</p>}
-      <div className="source-options">
-       {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
-        <MonitorPlay size={17}/>
-        <span>
-         <strong>{stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Subtitle menyatu':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia':'Bahasa subtitle belum diketahui'}</strong>
-         <small>Video akan diperiksa sebelum diputar</small>
-        </span>
-        <Play size={16}/>
-       </button>)}
-       {choices.unavailable?.map(candidate=><button type="button" disabled key={`${candidate.kind}:${candidate.label}:${candidate.reason}`} title={candidate.reason} aria-label={`${candidate.label} · Belum bisa diputar`}>
-        <Info size={17}/>
-        <span><strong>{candidate.label} · Belum bisa diputar</strong><small>{candidate.reason}</small></span>
-       </button>)}
-      </div>
-     </div>}
-
-     {loading?<div className="detail-loading"><LoaderCircle className="spin" size={18}/> Memuat episode…</div>:displayed.length?<div className="episode-list">
-      {displayed.map(ep=>{
-       const streamReady=availableMap.get(ep.number)?.some(e=>e.providerId!=='public-embed')??false
-       const isCurrentProgress=animeProgress?.episode===ep.number
-       const epProgressState=isCurrentProgress?progressState:'NEVER_STARTED'
-       const isResumable=epProgressState==='RESUMABLE'&&!!animeProgress
-       const isCompleted=epProgressState==='COMPLETED'
-       return <button type="button" key={ep.number} className={`episode-row ${streamReady?'available':''}`} onClick={()=>void play(ep)} disabled={!!playing}>
-        <span className="episode-number">{String(ep.number).padStart(2,'0')}</span>
-        <div>
-         <strong>{ep.title}</strong>
-         <small>{isResumable&&animeProgress?`Lanjut (${durationDisplay(animeProgress.seconds)} / ${durationDisplay(animeProgress.duration)}) · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:isCompleted?`Selesai ditonton · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}</small>
-        </div>
-        {(isResumable||isCompleted)&&<div className="progress-track"><div style={{width:`${Math.min(100,isCompleted?100:animeProgress?.duration?(animeProgress.seconds/animeProgress.duration)*100:10)}%`}}/></div>}
-        <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<MonitorPlay size={15}/>}</span>
-       </button>
-      })}
-     </div>:<Empty icon={Film} title="Episode belum tersedia" body="Daftar episode belum ditemukan dalam metadata."/>}
-
-     {hasNext&&<button type="button" className="load-episodes" disabled={loading||loadingMore} aria-busy={loadingMore} onClick={()=>void loadNext()}>{loadingMore?'Memuat episode…':'Muat episode berikutnya'} <ChevronDown size={15}/></button>}
+     <div className="genre-tags">{info.genres.map(g=><span key={g}>{g}</span>)}</div>
+     <section className="detail-synopsis-section" aria-label="Sinopsis anime">
+      <p className={`detail-synopsis ${more?'expanded':''}`}>{info.synopsis||'Sinopsis belum tersedia dari metadata.'}</p>
+      {info.synopsis.length>280&&<button type="button" className="read-more" onClick={()=>setMore(v=>!v)}>{more?'Sembunyikan':'Baca selengkapnya'} <ChevronDown size={14}/></button>}
+     </section>
+     <nav className="detail-actions" aria-label="Aksi anime">
+      <button type="button" className="btn btn-primary" disabled={loading||!targetEpisode} onClick={()=>{if(targetEpisode)void play(targetEpisode)}}>
+       <Play size={16} fill="currentColor"/> {loading?'Memuat episode…':resumableProgress?`Lanjutkan Episode ${resumableProgress.episode}`:displayed.length?'Periksa sumber episode':'Episode belum tersedia'}
+      </button>
+      <button type="button" className="btn btn-outline" onClick={onToggleSave}>
+       {isSaved?<Check size={16}/>:<Plus size={16}/>} {isSaved?'Tersimpan':'Koleksiku'}
+      </button>
+      <button type="button" className="btn btn-outline" onClick={onOpenGuide}><Layers3 size={16}/> Urutan cerita</button>
+     </nav>
     </section>
-   </main>
+   </header>
+
+   <section className="detail-episodes" aria-labelledby="episodes-heading">
+    <div className="section-heading">
+     <div>
+      <h2 id="episodes-heading">Daftar episode</h2>
+     </div>
+     <span className="episode-count">
+      {available.filter(e=>e.providerId!=='public-embed').length>0?'Ada kandidat sumber · belum diperiksa':'Belum menemukan kandidat video'}
+     </span>
+    </div>
+    {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
+    {sourceFeedback&&<p className={`source-feedback source-feedback-${sourceFeedback.phase}`} role="status">
+     <Info size={15}/>{sourceFeedback.message}
+    </p>}
+
+    {choices&&<div className="source-picker" ref={pickerRef}>
+     <div className="source-title">
+      <strong>Pilih video · Episode {choices.episode}</strong>
+      <button type="button" className="icon-button" onClick={()=>{sourceRequest.current++;setChoices(null);setSourceFeedback(null);setPlaying('')}} aria-label="Tutup pilihan sumber"><X size={15}/></button>
+     </div>
+     {choices.items.length===0&&<p role="status" className="source-unavailable">Belum ada video yang dapat diperiksa. Video alternatif tanpa kontrol subtitle tidak ditawarkan.</p>}
+     <div className="source-options">
+      {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
+       <MonitorPlay size={17}/>
+       <span>
+        <strong>{stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Subtitle menyatu':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia':'Bahasa subtitle belum diketahui'}</strong>
+        <small>Video akan diperiksa sebelum diputar</small>
+       </span>
+       <Play size={16}/>
+      </button>)}
+      {choices.unavailable?.map(candidate=><button type="button" disabled key={`${candidate.kind}:${candidate.label}:${candidate.reason}`} title={candidate.reason} aria-label={`${candidate.label} · Belum bisa diputar`}>
+       <Info size={17}/>
+       <span><strong>{candidate.label} · Belum bisa diputar</strong><small>{candidate.reason}</small></span>
+      </button>)}
+     </div>
+    </div>}
+
+    {loading?<div className="detail-loading"><LoaderCircle className="spin" size={18}/> Memuat episode…</div>:displayed.length?<div className="episode-list">
+     {displayed.map(ep=>{
+      const streamReady=availableMap.get(ep.number)?.some(e=>e.providerId!=='public-embed')??false
+      const isCurrentProgress=animeProgress?.episode===ep.number
+      const epProgressState=isCurrentProgress?progressState:'NEVER_STARTED'
+      const isResumable=epProgressState==='RESUMABLE'&&!!animeProgress
+      const isCompleted=epProgressState==='COMPLETED'
+      return <button type="button" key={ep.number} className={`episode-row ${streamReady?'available':''}`} onClick={()=>void play(ep)} disabled={!!playing}>
+       <span className="episode-number">{String(ep.number).padStart(2,'0')}</span>
+       <div>
+        <strong>{ep.title}</strong>
+        <small>{isResumable&&animeProgress?`Lanjut (${durationDisplay(animeProgress.seconds)} / ${durationDisplay(animeProgress.duration)}) · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:isCompleted?`Selesai ditonton · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}</small>
+       </div>
+       {(isResumable||isCompleted)&&<div className="progress-track"><div style={{width:`${Math.min(100,isCompleted?100:animeProgress?.duration?(animeProgress.seconds/animeProgress.duration)*100:10)}%`}}/></div>}
+       <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<MonitorPlay size={15}/>}</span>
+      </button>
+     })}
+    </div>:<Empty icon={Film} title="Episode belum tersedia" body="Daftar episode belum ditemukan dalam metadata."/>}
+
+    {hasNext&&<button type="button" className="load-episodes" disabled={loading||loadingMore} aria-busy={loadingMore} onClick={()=>void loadNext()}>{loadingMore?'Memuat episode…':'Muat episode berikutnya'} <ChevronDown size={15}/></button>}
+   </section>
+  </div>
+ </>
+}
+
+function DetailMobilePage({
+ anime,
+ isSaved,
+ progress,
+ onClose,
+ onToggleSave,
+ onWatch,
+ onOpenGuide,
+}:{
+ anime:Anime
+ isSaved:boolean
+ progress?:ProgressEntry[]
+ onClose:()=>void
+ onToggleSave:()=>void
+ onWatch:(p:Playback)=>void
+ onOpenGuide:()=>void
+}){
+ useEffect(()=>{
+  const handleKeyDown=(event:KeyboardEvent)=>{
+   if(event.key==='Escape')onClose()
+  }
+  window.addEventListener('keydown',handleKeyDown)
+  return()=>window.removeEventListener('keydown',handleKeyDown)
+ },[onClose])
+
+ return <div className="detail-mobile-page">
+  <nav className="detail-mobile-topbar" aria-label="Navigasi detail">
+   <button type="button" className="page-back-button icon-button glass" onClick={onClose} aria-label="Kembali ke halaman sebelumnya" title="Kembali ke halaman sebelumnya">
+    <ArrowLeft size={20}/>
+   </button>
+  </nav>
+  <DetailBody
+   anime={anime}
+   isSaved={isSaved}
+   progress={progress}
+   onToggleSave={onToggleSave}
+   onWatch={onWatch}
+   onOpenGuide={onOpenGuide}
+  />
+ </div>
+}
+
+function DetailDialog({
+ anime,
+ isSaved,
+ progress,
+ onClose,
+ onToggleSave,
+ onWatch,
+ onOpenGuide,
+}:{
+ anime:Anime
+ isSaved:boolean
+ progress?:ProgressEntry[]
+ onClose:()=>void
+ onToggleSave:()=>void
+ onWatch:(p:Playback)=>void
+ onOpenGuide:()=>void
+}){
+ const dialogRef=useDialogFocus()
+ return <div className="modal-backdrop detail-page-view">
+  <div ref={dialogRef} tabIndex={-1} className="detail-modal" role="dialog" aria-modal="true" aria-label={`Detail ${anime.title}`}>
+   <button type="button" className="modal-close icon-button glass" onClick={onClose} aria-label="Tutup detail anime" title="Kembali ke halaman sebelumnya"><X size={20}/></button>
+   <DetailBody
+    anime={anime}
+    isSaved={isSaved}
+    progress={progress}
+    onToggleSave={onToggleSave}
+    onWatch={onWatch}
+    onOpenGuide={onOpenGuide}
+   />
   </div>
  </div>
 }

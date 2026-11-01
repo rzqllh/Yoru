@@ -500,18 +500,19 @@ test('mobile routed detail scrolls in the full-page viewport, never behind it',a
  await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[]}}))
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
- const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
- await expect(dialog).toBeVisible()
- await expect.poll(()=>page.evaluate(()=>document.body.style.position)).toBe('fixed')
- const scrollArea=page.locator('.detail-page-view')
- await expect.poll(()=>scrollArea.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true)
- await scrollArea.evaluate(el=>{el.scrollTop=el.scrollHeight})
- await expect.poll(()=>scrollArea.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
- await dialog.locator('.episode-list .episode-row').first().click()
- const picker=dialog.locator('.source-picker')
+ await expect(page.getByRole('dialog')).toHaveCount(0)
+ const mobilePage=page.locator('.detail-mobile-page')
+ await expect(mobilePage).toBeVisible()
+ await expect.poll(()=>page.evaluate(()=>document.body.style.position)).not.toBe('fixed')
+ await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollHeight>window.innerHeight)).toBe(true)
+ await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight))
+ await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBeGreaterThan(0)
+ await mobilePage.locator('.episode-list .episode-row').first().click()
+ const picker=mobilePage.locator('.source-picker')
  await expect(picker).toBeVisible()
  await expect(picker).toBeInViewport({ratio:0.35})
- await dialog.getByRole('button',{name:'Tutup detail anime'}).click()
+ await page.getByRole('button',{name:'Kembali ke halaman sebelumnya'}).click()
+ await expect(mobilePage).toHaveCount(0)
  await expect.poll(()=>page.evaluate(()=>document.body.style.position)).not.toBe('fixed')
 })
 
@@ -1172,11 +1173,11 @@ test('Phase 05 detail has a direct URL, supports Back/Forward and reload, and fi
  await page.reload()
  await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toBeVisible()
  await page.setViewportSize({width:390,height:844})
- const bounds=await page.locator('.detail-modal').boundingBox()
+ const bounds=await page.locator('.detail-mobile-page').boundingBox()
  expect(bounds).not.toBeNull()
  expect(bounds.x).toBeGreaterThanOrEqual(-1)
  expect(bounds.width).toBeGreaterThanOrEqual(389)
- expect(await page.locator('.detail-page-view').evaluate(el=>Math.abs(el.getBoundingClientRect().width-window.innerWidth))).toBeLessThan(2)
+ await expect(page.getByRole('dialog')).toHaveCount(0)
 })
 
 test('Phase 05 invalid detail ID does not fetch unrelated anime',async({page})=>{
@@ -1567,19 +1568,38 @@ test('AC-DETAIL-04: progress on episode absent from metadata does not synthesize
  await expect(dialog.locator('.episode-list .episode-row').filter({hasText:/Episode 99/})).toHaveCount(0)
 })
 
-test('D04: mobile routed detail renders semantic main landmark, sectioning and safe-area',async({page})=>{
+test('D04: mobile routed detail behaves as genuine full page, distinguishing from desktop modal dialog',async({page})=>{
+ // 1. Mobile viewport: genuine full-page view, NO dialog, document scrolls
  await page.setViewportSize({width:390,height:844})
+ await page.goto('/anime/1')
+ await expect(page.getByRole('dialog')).toHaveCount(0)
+ const mobilePage=page.locator('.detail-mobile-page')
+ await expect(mobilePage).toBeVisible()
+ await expect.poll(()=>page.evaluate(()=>document.body.style.position)).not.toBe('fixed')
+
+ // Semantic document hierarchy
+ const detailContent=page.locator('.detail-page-main#detail-main-content')
+ await expect(detailContent).toBeVisible()
+ await expect(detailContent.locator('h1#detail-title')).toHaveText('Yoru Test Anime')
+ await expect(detailContent.locator('section[aria-label="Sinopsis anime"]')).toBeVisible()
+ await expect(detailContent.locator('section[aria-labelledby="episodes-heading"]')).toBeVisible()
+ await expect(detailContent.locator('h2#episodes-heading')).toHaveText('Daftar episode')
+
+ // Topbar back button navigates back
+ const backButton=page.getByRole('button',{name:'Kembali ke halaman sebelumnya'})
+ await expect(backButton).toBeVisible()
+ await backButton.click()
+ await expect(page).toHaveURL(/\/jelajahi$/)
+ await expect(mobilePage).toHaveCount(0)
+
+ // 2. Desktop viewport: accessible modal dialog with focus trap and body lock
+ await page.setViewportSize({width:1280,height:720})
  await page.goto('/anime/1')
  const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
  await expect(dialog).toBeVisible()
- // Semantic landmarks inside detail page
- const mainLandmark=dialog.locator('main.detail-page-main#detail-main-content')
- await expect(mainLandmark).toBeVisible()
- await expect(mainLandmark.locator('h1#detail-title')).toHaveText('Yoru Test Anime')
- await expect(mainLandmark.locator('section[aria-label="Sinopsis anime"]')).toBeVisible()
- await expect(mainLandmark.locator('section[aria-labelledby="episodes-heading"]')).toBeVisible()
- await expect(mainLandmark.locator('h2#episodes-heading')).toHaveText('Daftar episode')
- // Close returns to browse
- await page.getByRole('button',{name:'Tutup detail anime'}).click()
+ await expect(dialog).toHaveAttribute('aria-modal','true')
+ await expect.poll(()=>page.evaluate(()=>document.body.style.position)).toBe('fixed')
+ await dialog.getByRole('button',{name:'Tutup detail anime'}).click()
  await expect(dialog).toHaveCount(0)
+ await expect.poll(()=>page.evaluate(()=>document.body.style.position)).not.toBe('fixed')
 })
