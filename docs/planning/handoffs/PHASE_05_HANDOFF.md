@@ -63,3 +63,9 @@ frontend/src/App.tsx, frontend/src/lib/router.ts, frontend/src/styles.css, front
 ## Checkpoint history
 
 - **2026-10-31 — BASELINE / PLANNING:** handoff initialized from repository, epic/gate and user-approved UX/CX decisions. No code, cloud, production configuration or release change in this handoff.
+
+## 2026-11-01 — Fail-closed empty episode detail, PR #124
+
+- **Problem observed in main `50d80ed`:** the detail primary CTA had `displayed[0] || {number:1,...}` and could manufacture an Episode 1 when metadata and provider lists were empty. That is inconsistent with source truthfulness / AC-DETAIL-03.
+- **Code:** [PR #124](https://github.com/rzqllh/Yoru/pull/124) removes the fabricated fallback; the main source-check CTA remains disabled while loading and if no episode is listed, with a clear **Episode belum tersedia** label. This does not create/play an unverified stream or alter source picker logic. A browser fixture returns empty metadata+provider episode lists, asserts button disabled, no episode rows and no stream lookup.
+- **Status:** CODED IN ISOLATED DRAFT PR; exact-head Linux/Windows, Chromium/WebKit and merged-main checks **PENDING** until separately verified. Phase 05 D04 full-page route and browse-scroll/history persistence are still NOT IMPLEMENTED. No Supabase, Vercel, provider, schema, release or router modifications.
