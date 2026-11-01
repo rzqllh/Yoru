@@ -43,7 +43,7 @@ import {verifyNativeSource} from './lib/source-readiness'
 import {rankNativeStreams} from './lib/source-ranking'
 import {readRememberedSource,saveRememberedSource,preferRememberedSource} from './lib/source-memory'
 import {summarizeSourceSearch} from './lib/source-lifecycle'
-import {isResumableProgress} from './lib/resume'
+import {isResumableProgress,resolveDetailResumeTarget} from './lib/resume'
 import {sortLibraryEntries,parseLibrarySort,type LibrarySort} from './lib/library-sort'
 import {useDialogFocus} from './lib/useDialogFocus'
 
@@ -321,6 +321,34 @@ function App(){
   window.addEventListener('keydown',key)
   return()=>window.removeEventListener('keydown',key)
  },[route,selected,playback,navigateState,closeDetail])
+
+ useEffect(()=>{
+  if(playback){
+   document.title=playback.demo?'Contoh Pemutar · yoru.':`Episode ${playback.episode} · ${playback.anime?.title||'Pemutar'} · yoru.`
+   return
+  }
+  if(route.page==='detail'){
+   document.title=selected?`${selected.title} · yoru.`:'Detail Anime · yoru.'
+   return
+  }
+  if(route.page==='browse'){
+   document.title='Jelajahi · yoru.'
+   return
+  }
+  if(route.page==='guide'){
+   document.title='Panduan Urutan · yoru.'
+   return
+  }
+  if(route.page==='library'){
+   document.title='Koleksi · yoru.'
+   return
+  }
+  if(route.page==='settings'){
+   document.title='Pengaturan · yoru.'
+   return
+  }
+  document.title='yoru. — Anime, your way.'
+ },[playback,route.page,selected])
 
  const dailyAvailable=daily?.items.length===10
  const featured=dailyAvailable?daily.items:top.data.slice(0,10)
@@ -640,6 +668,7 @@ function App(){
   {!playback&&route.page==='detail'&&selected&&<DetailDialog
    anime={selected}
    isSaved={library.some(e=>e.anime.id===selected.id)}
+   progress={progress}
    onClose={closeDetail}
    onToggleSave={()=>void toggleSave(selected)}
    onWatch={value=>{setPlayback(value);setSelected(null)}}
@@ -986,6 +1015,7 @@ function LibraryPage({
 function DetailDialog({
  anime,
  isSaved,
+ progress,
  onClose,
  onToggleSave,
  onWatch,
@@ -993,6 +1023,7 @@ function DetailDialog({
 }:{
  anime:Anime
  isSaved:boolean
+ progress?:ProgressEntry[]
  onClose:()=>void
  onToggleSave:()=>void
  onWatch:(p:Playback)=>void
@@ -1076,6 +1107,11 @@ function DetailDialog({
   for(const ep of available)entries.set(ep.number,{...entries.get(ep.number),...ep})
   return[...entries.values()].sort((a,b)=>a.number-b.number)
  },[listed,available])
+
+ const {animeProgress,resumableProgress,targetEpisode}=useMemo(
+  ()=>resolveDetailResumeTarget(displayed,progress,info),
+  [displayed,progress,info]
+ )
 
  async function loadNext(){
   if(loading||!hasNext||nextPageInFlight.current)return
@@ -1187,7 +1223,7 @@ function DetailDialog({
     <div className="detail-poster"><Poster anime={info}/></div>
     <div className="detail-info">
      <MiniLabel>DETAIL ANIME</MiniLabel>
-     <h2>{info.title}</h2>
+     <h1 id="detail-title">{info.title}</h1>
      {info.japaneseTitle&&<p className="detail-japanese">{info.japaneseTitle}</p>}
      <div className="detail-facts">
       <span className="hero-rating" title="Skor komunitas"><Star size={14} fill="currentColor"/> {scoreDisplay(info.score)} / 10</span>
@@ -1200,8 +1236,8 @@ function DetailDialog({
      <p className={`detail-synopsis ${more?'expanded':''}`}>{info.synopsis||'Sinopsis belum tersedia dari metadata.'}</p>
      {info.synopsis.length>280&&<button type="button" className="read-more" onClick={()=>setMore(v=>!v)}>{more?'Sembunyikan':'Baca selengkapnya'} <ChevronDown size={14}/></button>}
      <div className="detail-actions">
-      <button type="button" className="btn btn-primary" disabled={loading||displayed.length===0} onClick={()=>{if(displayed[0])void play(displayed[0])}}>
-       <Play size={16} fill="currentColor"/> {loading?'Memuat episode…':displayed.length?'Periksa sumber episode':'Episode belum tersedia'}
+      <button type="button" className="btn btn-primary" disabled={loading||!targetEpisode} onClick={()=>{if(targetEpisode)void play(targetEpisode)}}>
+       <Play size={16} fill="currentColor"/> {loading?'Memuat episode…':resumableProgress?`Lanjutkan Episode ${resumableProgress.episode}`:displayed.length?'Periksa sumber episode':'Episode belum tersedia'}
       </button>
       <button type="button" className="btn btn-outline" onClick={onToggleSave}>
        {isSaved?<Check size={16}/>:<Plus size={16}/>} {isSaved?'Tersimpan':'Koleksiku'}
@@ -1250,12 +1286,16 @@ function DetailDialog({
     {loading?<div className="detail-loading"><LoaderCircle className="spin" size={18}/> Memuat episode…</div>:displayed.length?<div className="episode-list">
      {displayed.map(ep=>{
       const streamReady=availableMap.get(ep.number)?.some(e=>e.providerId!=='public-embed')??false
+      const isCurrentProgress=animeProgress?.episode===ep.number
+      const isResumable=isCurrentProgress&&isResumableProgress(animeProgress)
+      const isCompleted=isCurrentProgress&&!isResumable
       return <button type="button" key={ep.number} className={`episode-row ${streamReady?'available':''}`} onClick={()=>void play(ep)} disabled={!!playing}>
        <span className="episode-number">{String(ep.number).padStart(2,'0')}</span>
        <div>
         <strong>{ep.title}</strong>
-        <small>{streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}</small>
+        <small>{isResumable?`Lanjut (${durationDisplay(animeProgress.seconds)} / ${durationDisplay(animeProgress.duration)}) · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:isCompleted?`Selesai ditonton · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}</small>
        </div>
+       {isCurrentProgress&&<div className="progress-track"><div style={{width:`${Math.min(100,isCompleted?100:animeProgress.duration?(animeProgress.seconds/animeProgress.duration)*100:10)}%`}}/></div>}
        <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<MonitorPlay size={15}/>}</span>
       </button>
      })}
