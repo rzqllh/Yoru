@@ -90,3 +90,9 @@ backend/providers/subtitles.ts, frontend/src/components/Player.tsx, frontend/src
 
 - Federate independent Stremio addon `subtitles` (if manifest declares it) with existing direct OpenSubtitles, SubSource, SubDL APIs; Torrentio stream addon is not a shortcut to their APIs. Match season/cour/episode, signed grants, Indonesian-first/English-consent/Off and physical Safari subtitles.
 - **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.
+
+## 2026-11-01 — Native and direct subtitle language normalizer checkpoints
+
+- **MERGED:** [PR #128](https://github.com/rzqllh/Yoru/pull/128) at `659265fd42f823292b37bfe2e4e47641d274d772` unifies Stremio embedded native track and independent addon `/subtitles` language aliases (`id`, `ind`, `id-ID`, `en`, `eng`, `en-US`) into `id`/`en`. Non-Indonesia/English subtitle addon results remain excluded; no implicit translation, English auto-consent bypass or hard-sub control. Exact code PR head `454f90f` [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41267363857) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41267363890) SUCCESS (fixture).
+- **IN REVIEW:** [PR #129](https://github.com/rzqllh/Yoru/pull/129) similarly validates direct OpenSubtitles, SubDL and SubSource regional codes with strict ISO language matching. Its exact CI/browser and merge outcome must be verified before claiming integrated PASS.
+- G3 remains **BLOCKED** for actual authorized provider subtitle downloads/season/cour mapping, and physical iPhone text legibility remains **NOT RUN**. Do not infer real Indonesian availability from fixture normalization.
