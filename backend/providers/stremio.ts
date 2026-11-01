@@ -50,6 +50,10 @@ async function fetchJsonPinned(url:URL):Promise<unknown>{
   req.end()
  })
 }
+/** Probe only the configured, validated manifest using the same DNS-pinned safe GET. */
+export async function probeStremioManifest(addon:StremioAddon):Promise<unknown>{
+ return fetchJsonPinned(new URL(addon.manifestUrl))
+}
 /** Only canonical decimal MAL IDs may resolve configured Stremio mappings. */
 const validMappedId=(raw:string)=>/^[1-9]\d{0,7}$/.exec(raw)?.[0]===raw
 
