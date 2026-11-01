@@ -175,6 +175,9 @@ async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:strin
 function App(){
  const [route,setRoute]=useState<RouteState>(()=>parseRoute(window.location.pathname,window.location.search))
  const [selected,setSelected]=useState<Anime|null>(null)
+ const [detailError,setDetailError]=useState('')
+ const detailCache=useRef<Anime|null>(null)
+ const detailReturn=useRef<{path:string;scroll:number;title:string}|null>(null)
  const [playback,setPlayback]=useState<Playback|null>(null)
  const [toast,setToast]=useState('')
  const [mobileNav,setMobileNav]=useState(false)
@@ -221,10 +224,51 @@ function App(){
   if(!replace&&!preserveScroll)window.scrollTo({top:0,behavior:'instant'})
  },[])
 
+ const openDetail=useCallback((anime:Anime)=>{
+  if(route.page!=='detail')detailReturn.current={path:window.location.pathname+window.location.search,scroll:window.scrollY,title:anime.title}
+  detailCache.current=anime
+  setSelected(anime)
+  setDetailError('')
+  navigateState({...route,page:'detail',detailMalId:anime.malId},false,true)
+ },[route,navigateState])
+
+ const closeDetail=useCallback(()=>{
+  setSelected(null)
+  if(route.page==='detail'&&detailReturn.current){window.history.back();return}
+  navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''},true)
+ },[route.page,navigateState])
+
+ useEffect(()=>{
+  if(route.page!=='detail'||!route.detailMalId)return
+  const cached=detailCache.current
+  if(cached?.malId===route.detailMalId){setSelected(cached);setDetailError('');return}
+  const controller=new AbortController()
+  setSelected(null)
+  setDetailError('')
+  void detail(route.detailMalId,controller.signal).then(anime=>{
+   if(controller.signal.aborted)return
+   detailCache.current=anime
+   setSelected(anime)
+  }).catch(()=>{if(!controller.signal.aborted)setDetailError('Detail anime belum dapat dimuat. Coba kembali dari Jelajahi.')})
+  return()=>controller.abort()
+ },[route.page,route.detailMalId])
+
  useEffect(()=>{
   function onPopState(){
-   setRoute(parseRoute(window.location.pathname,window.location.search))
-   window.scrollTo({top:0,behavior:'instant'})
+   const next=parseRoute(window.location.pathname,window.location.search)
+   setRoute(next)
+   setSelected(next.page==='detail'&&detailCache.current?.malId===next.detailMalId?detailCache.current:null)
+   const snapshot=detailReturn.current
+   if(snapshot&&next.page!=='detail'&&snapshot.path===window.location.pathname+window.location.search){
+    window.requestAnimationFrame(()=>{
+     window.scrollTo({top:snapshot.scroll,behavior:'instant'})
+     // The original card unmounts on route transitions; restore focus to its new DOM instance.
+     const matching=Array.from(document.querySelectorAll<HTMLButtonElement>('button[aria-label]'))
+      .find(button=>button.getAttribute('aria-label')===`Buka ${snapshot.title}`)
+     matching?.focus({preventScroll:true})
+    })
+    detailReturn.current=null
+   }else window.scrollTo({top:0,behavior:'instant'})
   }
   window.addEventListener('popstate',onPopState)
   return()=>window.removeEventListener('popstate',onPopState)
@@ -259,7 +303,7 @@ function App(){
     window.setTimeout(()=>searchInputRef.current?.focus(),50)
    }
    if(event.key==='Escape'){
-    if(selected){setSelected(null)}
+    if(selected){closeDetail()}
     else if(playback){
      const wasDemo=Boolean(playback.demo)
      setPlayback(null)
@@ -271,7 +315,7 @@ function App(){
   }
   window.addEventListener('keydown',key)
   return()=>window.removeEventListener('keydown',key)
- },[route,selected,playback,navigateState])
+ },[route,selected,playback,navigateState,closeDetail])
 
  const dailyAvailable=daily?.items.length===10
  const featured=dailyAvailable?daily.items:top.data.slice(0,10)
@@ -297,11 +341,11 @@ function App(){
     setSelected(null)
     setPlayback({anime:row.anime,episode:row.episode,stream,manualSource:false})
    }else{
-    setSelected(row.anime)
+    openDetail(row.anime)
     setToast('Belum ada video yang siap. Pilih sumber lain untuk episode ini.')
    }
   }catch{
-   if(attempt===resumeAttempt.current){setSelected(row.anime);setToast('Sumber belum bisa diperiksa. Coba lagi dari detail anime.')}
+   if(attempt===resumeAttempt.current){openDetail(row.anime);setToast('Sumber belum bisa diperiksa. Coba lagi dari detail anime.')}
   }finally{
    if(attempt===resumeAttempt.current)setResumingAnimeId(null)
   }
@@ -326,6 +370,7 @@ function App(){
  const closeWatch=()=>{
   const shouldRestoreDemo=Boolean(playback?.demo)
   setPlayback(null)
+  if(route.page==='detail')closeDetail()
   window.scrollTo({top:0,behavior:'instant'})
   if(shouldRestoreDemo)window.requestAnimationFrame(()=>{
    document.querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')?.focus()
@@ -471,7 +516,7 @@ function App(){
        <p>{description(hero.synopsis).slice(0,210)+(hero.synopsis.length>210?'…':'')}</p>
        <div className="hero-source"><span>{dailyAvailable?`Aktivitas AniList · ${sourceDate} (UTC)`:'Popularitas katalog · MyAnimeList'}</span>{dailyAvailable&&<a href={daily.sourceUrl} target="_blank" rel="noopener noreferrer">Lihat sumber</a>}</div>
        <div className="hero-actions">
-        <button type="button" className="btn btn-primary" onClick={()=>setSelected(hero)}>
+        <button type="button" className="btn btn-primary" onClick={()=>openDetail(hero)}>
          <Play size={16} fill="currentColor"/> Buka anime
         </button>
         <button type="button" className="btn btn-outline" onClick={()=>void toggleSave(hero)}>
@@ -500,7 +545,7 @@ function App(){
       title="Musim ini"
       action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:'',shortcut:'season'})}>Lihat semua <ArrowRight size={16}/></button>}
      >
-      {season.error&&!season.data.length?<Empty icon={WifiOff} title="Katalog belum dapat dimuat" body="Layanan metadata sedang tidak merespons. Silakan coba kembali." action={<button type="button" className="btn btn-outline" onClick={season.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{season.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):season.data.slice(0,6).map(a=><Card key={a.id} anime={a} onOpen={setSelected}/>)}</div>}
+      {season.error&&!season.data.length?<Empty icon={WifiOff} title="Katalog belum dapat dimuat" body="Layanan metadata sedang tidak merespons. Silakan coba kembali." action={<button type="button" className="btn btn-outline" onClick={season.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{season.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):season.data.slice(0,6).map(a=><Card key={a.id} anime={a} onOpen={openDetail}/>)}</div>}
      </Section>
 
      <Section
@@ -508,11 +553,11 @@ function App(){
       title="Anime Popular"
       action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'top',libraryView:'all',searchQuery:''})}>Lihat semua <ArrowRight size={16}/></button>}
      >
-      {!dailyAvailable&&top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{!dailyAvailable&&top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):featured.map((a,i)=><div className="ranked-anime" key={a.id}><span className="ranked-anime-number">{i+1}</span><Card anime={a} onOpen={setSelected}/></div>)}</div>}
+      {!dailyAvailable&&top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{!dailyAvailable&&top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):featured.map((a,i)=><div className="ranked-anime" key={a.id}><span className="ranked-anime-number">{i+1}</span><Card anime={a} onOpen={openDetail}/></div>)}</div>}
      </Section>
      <Section eyebrow="MUSIM SELANJUTNYA" title="Segera tayang"
       action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'upcoming',libraryView:'all',searchQuery:''})}>Lihat pratinjau <ArrowRight size={16}/></button>}>
-      {upcoming.error&&!upcoming.data.length?<Empty icon={WifiOff} title="Pratinjau belum tersedia" body="Coba lagi untuk melihat judul yang akan datang." action={<button type="button" className="btn btn-outline" onClick={upcoming.retry}>Coba lagi</button>}/>:<div className="card-grid">{upcoming.loading?SKELETON_KEYS.slice(0,4).map(key=><CardSkeleton key={key}/>):upcoming.data.slice(0,4).map(a=><Card key={a.id} anime={a} onOpen={setSelected}/>)}</div>}
+      {upcoming.error&&!upcoming.data.length?<Empty icon={WifiOff} title="Pratinjau belum tersedia" body="Coba lagi untuk melihat judul yang akan datang." action={<button type="button" className="btn btn-outline" onClick={upcoming.retry}>Coba lagi</button>}/>:<div className="card-grid">{upcoming.loading?SKELETON_KEYS.slice(0,4).map(key=><CardSkeleton key={key}/>):upcoming.data.slice(0,4).map(a=><Card key={a.id} anime={a} onOpen={openDetail}/>)}</div>}
      </Section>
     </>}
 
@@ -525,22 +570,24 @@ function App(){
      onTabChange={kind=>navigateState({...route,page:'browse',browseKind:kind,searchQuery:'',shortcut:undefined})}
      onQueryChange={q=>navigateState({...route,page:'browse',searchQuery:q},true)}
      onFiltersChange={filters=>navigateState({...route,page:'browse',browseFilters:filters},false,true)}
-     onOpen={setSelected}
+     onOpen={openDetail}
     />}
 
     {route.page==='guide'&&<WatchGuide
      malId={route.guideMalId??null}
      onPick={malId=>navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId:malId})}
      onBack={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''})}
-     onOpenAnime={malId=>{void detail(malId).then(setSelected).catch(()=>setToast('Detail anime belum bisa dimuat'))}}
+     onOpenAnime={malId=>{void detail(malId).then(openDetail).catch(()=>setToast('Detail anime belum bisa dimuat'))}}
     />}
+
+    {route.page==='detail'&&!selected&&<div className="page-body"><Empty icon={detailError?WifiOff:LoaderCircle} title={detailError?'Detail belum tersedia':'Memuat detail anime…'} body={detailError||'Mengambil metadata untuk tautan anime ini.'} action={<button type="button" className="btn btn-outline" onClick={closeDetail}>Kembali ke Jelajahi</button>}/></div>}
 
     {route.page==='library'&&<LibraryPage
      view={route.libraryView}
      onViewChange={v=>navigateState({page:'library',browseKind:'season',libraryView:v,searchQuery:'',shortcut:v==='continue'?'continue':undefined})}
      library={library}
      progress={progress}
-     onOpen={setSelected}
+     onOpen={openDetail}
      onResume={row=>{void resumeRow(row)}}
      resumingAnimeId={resumingAnimeId}
      onBrowse={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''})}
@@ -580,10 +627,10 @@ function App(){
    </button>)}
   </nav>
 
-  {selected&&<DetailDialog
+  {route.page==='detail'&&selected&&<DetailDialog
    anime={selected}
    isSaved={library.some(e=>e.anime.id===selected.id)}
-   onClose={()=>setSelected(null)}
+   onClose={closeDetail}
    onToggleSave={()=>void toggleSave(selected)}
    onWatch={value=>{setPlayback(value);setSelected(null)}}
    onOpenGuide={()=>{const malId=selected.malId;setSelected(null);navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId:malId})}}
@@ -1086,7 +1133,7 @@ function DetailDialog({
   }
  }
 
- return <div className="modal-backdrop">
+ return <div className="modal-backdrop detail-page-view">
   <div ref={dialogRef} tabIndex={-1} className="detail-modal" role="dialog" aria-modal="true" aria-label={`Detail ${info.title}`}>
    <button type="button" className="modal-close icon-button glass" onClick={onClose} aria-label="Tutup detail anime"><X size={20}/></button>
    <div className="detail-cover" style={{backgroundImage:info.cover?`linear-gradient(0deg,#13161d,rgba(19,22,29,.6) 40%,rgba(19,22,29,.15)),url("${info.cover.replaceAll('"','%22')}")`:undefined}}/>

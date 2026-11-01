@@ -2758,3 +2758,22 @@ body {
 .browse-active-chips button:hover{border-color:var(--accent)}
 .browse-active-chips button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.browse-active-chips{gap:6px}.browse-active-chips button{flex:0 1 auto}}
+
+/* Phase 05: the shareable detail route is edge-to-edge on mobile, without a bottom-sheet frame. */
+@media(max-width:600px){
+ .app-shell:has(.detail-page-view) .workspace,
+ .app-shell:has(.detail-page-view) .mobile-bottom{display:none}
+ .modal-backdrop.detail-page-view{
+  position:fixed;inset:0;z-index:70;display:block;
+  overflow-y:auto;overflow-x:hidden;padding:0;
+  background:var(--canvas);backdrop-filter:none;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch
+ }
+ .detail-page-view .detail-modal,
+ .modal-backdrop.detail-page-view .detail-modal{
+  width:100%;max-width:none;min-height:100dvh;height:auto;max-height:none;
+  border:0;border-radius:0;margin:0;overflow:visible;box-shadow:none;
+  padding-bottom:env(safe-area-inset-bottom,0px);scrollbar-gutter:auto
+ }
+ .detail-page-view .modal-close{top:calc(12px + env(safe-area-inset-top,0px));right:16px;min-width:44px;min-height:44px}
+}

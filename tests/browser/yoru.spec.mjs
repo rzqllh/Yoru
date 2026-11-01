@@ -494,7 +494,7 @@ test('watch page replaces catalog rather than opening a modal over its scroll',a
 })
 
 
-test('mobile detail source picker scrolls inside dialog rather than behind it',async({page})=>{
+test('mobile routed detail scrolls in the full-page viewport, never behind it',async({page})=>{
  await page.setViewportSize({width:390,height:680})
  await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[]}}))
  await page.goto('/')
@@ -502,9 +502,10 @@ test('mobile detail source picker scrolls inside dialog rather than behind it',a
  const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
  await expect(dialog).toBeVisible()
  await expect.poll(()=>page.evaluate(()=>document.body.style.position)).toBe('fixed')
- await expect.poll(()=>dialog.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true)
- await dialog.evaluate(el=>{el.scrollTop=el.scrollHeight})
- await expect.poll(()=>dialog.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
+ const scrollArea=page.locator('.detail-page-view')
+ await expect.poll(()=>scrollArea.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true)
+ await scrollArea.evaluate(el=>{el.scrollTop=el.scrollHeight})
+ await expect.poll(()=>scrollArea.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
  await dialog.locator('.episode-list .episode-row').first().click()
  const picker=dialog.locator('.source-picker')
  await expect(picker).toBeVisible()
@@ -1080,4 +1081,32 @@ test('detail does not invent episode one when metadata and providers list no epi
  await expect(action).toBeDisabled()
  await expect(dialog.locator('.episode-list .episode-row')).toHaveCount(0)
  expect(streamRequests).toBe(0)
+})
+test('Phase 05 detail has a direct URL, supports Back/Forward and reload, and fills mobile viewport',async({page})=>{
+ await page.goto('/jelajahi')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ await expect(page).toHaveURL(/\/anime\/1$/)
+ await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toBeVisible()
+ await page.getByRole('button',{name:'Tutup detail anime'}).click()
+ await expect(page).toHaveURL(/\/jelajahi$/)
+ await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toHaveCount(0)
+ await page.goForward()
+ await expect(page).toHaveURL(/\/anime\/1$/)
+ await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toBeVisible()
+ await page.reload()
+ await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toBeVisible()
+ await page.setViewportSize({width:390,height:844})
+ const bounds=await page.locator('.detail-modal').boundingBox()
+ expect(bounds).not.toBeNull()
+ expect(bounds.x).toBeGreaterThanOrEqual(-1)
+ expect(bounds.width).toBeGreaterThanOrEqual(389)
+ expect(await page.locator('.detail-page-view').evaluate(el=>Math.abs(el.getBoundingClientRect().width-window.innerWidth))).toBeLessThan(2)
+})
+
+test('Phase 05 invalid detail ID does not fetch unrelated anime',async({page})=>{
+ let calls=0
+ await page.route('**/api/anime/1000',route=>{calls++;return route.fulfill({json:anime})})
+ await page.goto('/anime/1e3')
+ await expect(page.getByRole('heading',{name:'Beranda'})).toBeVisible()
+ expect(calls).toBe(0)
 })
