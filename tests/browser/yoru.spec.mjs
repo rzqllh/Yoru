@@ -1089,6 +1089,66 @@ test('detail does not invent episode one when metadata and providers list no epi
  await expect(dialog.locator('.episode-list .episode-row')).toHaveCount(0)
  expect(streamRequests).toBe(0)
 })
+test('Phase 05 episode pagination loads 100 titles without overlapping requests',async({page})=>{
+ const requested=[]
+ let releasePageTwo=()=>{}
+ const pageTwoGate=new Promise(resolve=>{releasePageTwo=resolve})
+ await page.route('**/api/anime/1/provider-episodes',route=>route.fulfill({json:{items:[]}}))
+ await page.route('**/api/anime/1/episodes?**',async route=>{
+  const p=Number(new URL(route.request().url()).searchParams.get('page')||1)
+  requested.push(p)
+  if(p===2)await pageTwoGate
+  const start=(p-1)*24+1
+  const count=Math.max(0,Math.min(24,101-start))
+  const items=Array.from({length:count},(_,i)=>({...episode,id:`mal:1:${start+i}`,number:start+i,title:`Episode ${start+i}`}))
+  return route.fulfill({json:{items,page:p,hasNext:p<5}})
+ })
+ await page.goto('/anime/1')
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ const rows=dialog.locator('.episode-list .episode-row')
+ const load=dialog.getByRole('button',{name:/Muat episode berikutnya/})
+ await expect(rows).toHaveCount(24)
+ await load.click()
+ await expect(load).toBeDisabled()
+ await expect(load).toHaveAttribute('aria-busy','true')
+ expect(requested.filter(p=>p===2)).toHaveLength(1)
+ releasePageTwo()
+ await expect(rows).toHaveCount(48)
+ for(const count of [72,96,100]){
+  await load.click()
+  await expect(rows).toHaveCount(count)
+ }
+ await expect(dialog.locator('.load-episodes')).toHaveCount(0)
+ expect(requested).toEqual([1,2,3,4,5])
+ await expect(rows.last()).toContainText('Episode 100')
+})
+
+test('Phase 05 failed episode page can retry without losing loaded episodes',async({page})=>{
+ let secondPageCalls=0
+ await page.route('**/api/anime/1/provider-episodes',route=>route.fulfill({json:{items:[]}}))
+ await page.route('**/api/anime/1/episodes?**',route=>{
+  const p=Number(new URL(route.request().url()).searchParams.get('page')||1)
+  if(p===2&&++secondPageCalls===1)return route.fulfill({status:503,json:{error:'Provider sementara tidak tersedia'}})
+  const start=(p-1)*24+1
+  const items=Array.from({length:24},(_,i)=>({...episode,id:`mal:1:${start+i}`,number:start+i,title:`Episode ${start+i}`}))
+  return route.fulfill({json:{items,page:p,hasNext:p<2}})
+ })
+ await page.goto('/anime/1')
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ const rows=dialog.locator('.episode-list .episode-row')
+ const load=dialog.locator('.load-episodes')
+ await expect(rows).toHaveCount(24)
+ await load.click()
+ await expect(dialog.locator('.detail-error')).toContainText('Tidak dapat mengambil daftar episode berikutnya')
+ await expect(load).toBeEnabled()
+ await expect(rows).toHaveCount(24)
+ await load.click()
+ await expect(rows).toHaveCount(48)
+ await expect(dialog.locator('.detail-error')).toHaveCount(0)
+ await expect(load).toHaveCount(0)
+ expect(secondPageCalls).toBe(2)
+})
+
 test('Phase 05 detail has a direct URL, supports Back/Forward and reload, and fills mobile viewport',async({page})=>{
  await page.goto('/jelajahi')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
