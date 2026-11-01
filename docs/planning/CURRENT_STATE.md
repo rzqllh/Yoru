@@ -1,5 +1,14 @@
 # Yoru — Current State & New-Chat Recovery
 
+### 2026-11-01 — Phase 01 Stremio/Torrentio config audit & opt-in manifest probe (#148, #149)
+
+- **Verified main HEAD:** `a5c2468cb22e61c58dbfda6e92c52bf1dc400fa1`, following merged [PR #148](https://github.com/rzqllh/Yoru/pull/148) (`b267396`) and [PR #149](https://github.com/rzqllh/Yoru/pull/149) (`a5c2468`).
+- **PR #148 audit contract:** Adds `scripts/verify-stremio-config.mjs` and `scripts/stremio-config-report.mjs` (`npm run verify:stremio:config`). Read-only, offline validation inspecting `STREMIO_ADDONS_JSON` or ignored `configs/stremio.local.json`. Never exposes manifest URLs, tokens, path segments, or raw configuration (AC-SRC-05). PR head [CI #41289805155](https://github.com/rzqllh/Yoru/actions/runs/41289805155) **SUCCESS** and [Browser E2E #41289805202](https://github.com/rzqllh/Yoru/actions/runs/41289805202) **SUCCESS**.
+- **PR #149 live manifest probe:** Adds `scripts/verify-stremio-manifests.mjs` and `scripts/stremio-manifest-report.mjs` (`npm run verify:stremio:manifests`). Explicit `--live` opt-in required; executes DNS-pinned, bounded GET requests against configured addon manifests without following redirects or downloading media. Suppresses URLs, private paths, and error details. Merged-main [CI #41290727699](https://github.com/rzqllh/Yoru/actions/runs/41290727699) **SUCCESS** (Windows smoke + validate) and [Browser E2E #41290727670](https://github.com/rzqllh/Yoru/actions/runs/41290727670) **SUCCESS** (Chromium + WebKit smoke).
+- **Local environment audit:** `configs/stremio.local.json` is `false`; `STREMIO_ADDONS_JSON` is `false`. Offline audit returns `NOT_CONFIGURED`, `source: "none"`, `addonCount: 0`. Live manifest check blocked by absence of operator addon configuration.
+- **Hosted production health verified:** Live probe via `verifyHostedCatalog('https://yoru-omega.vercel.app')` returns HTTP 200 for `/`, `/api/health` (`{"status":"ok","service":"anime-pwa-api","version":1}` with strict nosniff/DENY/CSP security headers), and `/api/anime/discover?kind=top&page=1` (24 valid items).
+- **Public release gate #20 status:** **NO-GO**. Live provider media playback, real subtitle API keys, physical iPhone Safari, and owner release approval remain unfulfilled. No production deployment or paid changes performed.
+
 ### 2026-11-01 — Phase 05 long episode pagination correctness (#147)
 
 - [PR #147](https://github.com/rzqllh/Yoru/pull/147), code/test head `91fb3d4b41324c37f00d56c7bab74ba36ded0ee7`: serializes next-page episode requests (synchronous in-flight guard, disabled/aria-busy loading UI), aborts outstanding requests on detail exit/change, resets page cursor, validates response page number, deduplicates overlapping episode identities, and keeps loaded rows available for retry after HTTP/invalid-page failure.

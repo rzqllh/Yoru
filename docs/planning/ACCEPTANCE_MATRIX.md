@@ -1,5 +1,12 @@
 # Yoru — Acceptance Matrix and Evidence Templates
 
+### 2026-11-01 — AC-SRC-05 Stremio config audit & opt-in manifest probe (#148, #149)
+
+- **PR #148 (Offline secret-safe configuration audit):** CLI `npm run verify:stremio:config` inspects `STREMIO_ADDONS_JSON` or local ignored `configs/stremio.local.json`. Never exposes manifest URLs, tokens, path segments, or raw configuration. PR head `1f27464`: [Linux/Windows CI #41289805155](https://github.com/rzqllh/Yoru/actions/runs/41289805155) **SUCCESS** and [Browser E2E #41289805202](https://github.com/rzqllh/Yoru/actions/runs/41289805202) **SUCCESS**. Exit code 2 when unconfigured; exit code 0 when valid config loaded without leaking secrets.
+- **PR #149 (Opt-in live manifest audit):** CLI `npm run verify:stremio:manifests` with mandatory `--live` argument performs DNS-pinned HTTPS GET against configured addon manifests. Never follows redirects or downloads stream/media segments. Suppresses URL paths and raw errors. Exact merged-main `a5c2468`: [Linux/Windows CI #41290727699](https://github.com/rzqllh/Yoru/actions/runs/41290727699) **SUCCESS** and [Chromium/WebKit Browser #41290727670](https://github.com/rzqllh/Yoru/actions/runs/41290727670) **SUCCESS** (4/4 jobs).
+- **Hosted production health verified:** `verifyHostedCatalog('https://yoru-omega.vercel.app')` returns HTTP 200 on `/`, `/api/health`, and `/api/anime/discover?kind=top&page=1` with valid metadata items and strict security headers.
+- **Status:** **PASS deterministic unit & contract suites / LIVE MEDIA & RELEASE BLOCKED**. Real video stream availability and physical iPhone Safari remain unverified.
+
 ### 2026-11-01 — AC-DETAIL-05 incremental evidence (#147)
 
 - Fixture: one MAL detail, five synthetic episode pages representing 100 rows; second-page HTTP held, one duplicated boundary entry; verify only one request per page, visible busy state, unique sorted rows 1–100, and final no-more-pages. Separate fixture: page-two 503 followed by wrong page cursor, then successful retry without losing first-page rows.
