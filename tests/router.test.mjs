@@ -111,3 +111,22 @@ test('watch-guide deep links reject non-decimal or malformed MAL IDs without sel
   assert.equal(routeToPath(route),'/jelajahi/panduan-urutan')
  }
 })
+
+
+test('anime detail supports shareable canonical MAL deep links without conflating ID namespaces',()=>{
+ for(const id of [1,100,999999999]){
+  const parsed=parseRoute('/anime/'+id,'')
+  assert.equal(parsed.page,'detail')
+  assert.equal(parsed.detailMalId,id)
+  assert.equal(routeToPath(parsed),'/anime/'+id)
+  assert.deepEqual(getBreadcrumbs(parsed),['Yoru','Anime','Detail'])
+ }
+ for(const invalid of ['0','01','-1','1e3','1.2','0x10','1000000000','1%2F2','abc']){
+  const route=parseRoute('/anime/'+invalid,'')
+  assert.notEqual(route.page,'detail',invalid)
+ }
+ for(const id of [undefined,0,-1,1.2,Infinity,1000000000]){
+  const state={...parseRoute('/jelajahi',''),page:'detail',detailMalId:id}
+  assert.equal(routeToPath(state),'/jelajahi')
+ }
+})
