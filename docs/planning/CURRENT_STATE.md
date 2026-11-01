@@ -1,8 +1,16 @@
 # Yoru — Current State & New-Chat Recovery
 
-> **Historical snapshot (superseded by latest continuation checkpoint below):** 2026-11-01 Asia/Jakarta. **Verified main at this historical snapshot:** [`b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd`](https://github.com/rzqllh/Yoru/commit/b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd). This is **repository state, not proof of live production deployment**. The latest main exact `b4f35bd` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41225040383) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41225040380) completed SUCCESS (four checks).
+> **Updated:** 2026-11-01 Asia/Jakarta. **Verified main at this snapshot:** [`b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd`](https://github.com/rzqllh/Yoru/commit/b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd). This is **repository state, not proof of live production deployment**. The latest main exact `b4f35bd` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41225040383) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41225040380) completed SUCCESS (four checks).
 
-## Read this first (simple)
+## Current vNext checkpoint — 2026-11-01
+
+**2026-11-01 vNext owner supersession.** Inspected GitHub main [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572); this is **DOCS ONLY**, not hosted/provider verification. D03=**3A AniList-primary** replaces archival D03=3B Tenrai/MAL-primary. D01=1A, D02=2B, D04=4A, D05=5A, D06–D09 retained. Existing Tenrai/MAL code remains until an approved reversible migration.
+
+**Done in code, not live certified:** PR #100/#101/#103/#106/#107/#108 and Tenrai/MAL dynamic genre #116/#117. **Not done:** D03=3A AniList-primary, full-page mobile Detail, full Stremio/Torrentio provider verification, actual subtitle/live playback or physical iPhone. **Open:** PR #123 Upcoming, draft PR #77 cloud, #20 public release gate. **Next:** follow phases 01/02 for independent addon-stream and addon-subtitle/direct API validation, phase 04 for compliance-gated AniList migration, phase 05 detail, then integrated QA.
+
+Torrent-only `infoHash/fileIdx` remains unavailable; no approved resolver, installer, torrent download, proxy or deployment. Stremio `stream` and `subtitles` are separate and OpenSubtitles/SubSource/SubDL stay independent.
+
+## Historical implementation snapshot (preserved; see newer checkpoint above)
 
 | Status | What it means for Yoru |
 | --- | --- |
@@ -99,10 +107,12 @@ At `b4f35bd`, PRs #107, #106 and #108 have merged. Exact main `b4f35bd` [Linux/W
 - [PR #123](https://github.com/rzqllh/Yoru/pull/123) implements D08's separated Akan Datang discover destination and two-category switch, including mobile navigation and refresh test. **Draft pending exact-head checks and merge**, not production. After merge, verify its resulting `main` SHA.
 - Phase 04 MAL/Tenrai genres from #116/#117 are integrated, but AniList tag taxonomy and live filters are partial. Phase 05 D04 full-page detail still planned. [#77](https://github.com/rzqllh/Yoru/pull/77) cross-device sync is still draft, and [#20](https://github.com/rzqllh/Yoru/issues/20) public streaming release is NO-GO. Vercel live HTTP was inaccessible from public probe, so do not infer API response health.
 
-## Latest continuation checkpoint — 2026-11-01, main `ce12d98`
+## 2026-11-01 — PR #123/#124 merged evidence (historical checkpoint; D03=3A remains authoritative)
+
+**Contract note:** D03=3A AniList-primary (merged PR #125) supersedes any Tenrai/MAL-primary historical plan in this checkpoint. Exact `ce12d98` CI and browser both completed SUCCESS. Production remains separate.
 
 - **MERGED:** [#123](https://github.com/rzqllh/Yoru/pull/123) → `84807c8a79873a0ebeefb48ad2e94acda75f847d`; Akan Datang is a standalone destination, not a third Browse category tab. Its exact PR head `2bda841` [CI](https://github.com/rzqllh/Yoru/actions/runs/41266399249) and [Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41266399337) both SUCCESS, and merged main `84807c8` [CI](https://github.com/rzqllh/Yoru/actions/runs/41266563101) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41266563069) SUCCESS.
-- **MERGED:** [#124](https://github.com/rzqllh/Yoru/pull/124) → `ce12d98678f6e89cefd81516fb641c62df972572`; empty episode lists no longer manufacture Episode 1. Exact PR head `5643b43` [CI](https://github.com/rzqllh/Yoru/actions/runs/41266656368) and [Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41266656388) both SUCCESS. Merged main `ce12d98` [CI](https://github.com/rzqllh/Yoru/actions/runs/41266791512) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41266791496) started; **do not treat as PASS without checking their final outcomes**.
+- **MERGED:** [#124](https://github.com/rzqllh/Yoru/pull/124) → `ce12d98678f6e89cefd81516fb641c62df972572`; empty episode lists no longer manufacture Episode 1. Exact PR head `5643b43` [CI](https://github.com/rzqllh/Yoru/actions/runs/41266656368) and [Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41266656388) both SUCCESS. Merged main `ce12d98` [CI](https://github.com/rzqllh/Yoru/actions/runs/41266791512) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41266791496) started; **both later completed SUCCESS**.
 - **PARTIAL:** D08 broader design-system/Watch Guide hierarchy, MAL–AniList idMal/tag enrichment, Phase 05 full-page `/anime/:malId`, physical iPhone and live provider acceptance remain outstanding.
 - **BLOCKED / NO-GO:** [#77](https://github.com/rzqllh/Yoru/pull/77) draft cloud cross-device and [#20](https://github.com/rzqllh/Yoru/issues/20) G1–G6 release. Production Vercel READY is still old deployed SHA `5496aae` at last verified inspection, not current `main`; live HTTP health/catalog could not be accessed from this environment. No deployment, cloud activation, branch deletion or release was performed.
 - **NEXT:** Phase 05 D04 full-page detail with URL/Back/scroll state and tests, independently Phase 04 live taxonomy+429/combined filtering; prepare actual provider/iPhone/security evidence before any release approval.
