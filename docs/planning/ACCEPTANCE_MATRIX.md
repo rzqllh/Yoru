@@ -255,3 +255,16 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
 
 - [Draft PR #142](https://github.com/rzqllh/Yoru/pull/142) code `b2d0f88`: deterministic combined genre/type/minScore/year/order + page-two Browse → detail → native player → Back regression authored. Expected: all filter values, 25 loaded results, original canonical URL, scroll, focus, unchanged API request count. **Result: NOT RUN/PENDING until exact-head Chromium/WebKit CI returns**, then record SHA/run/result; not a substitute for live provider/iPhone acceptance. Phase 05 remains PARTIAL.
 
+## 2026-11-01 — AC-DETAIL-02 / player-return deterministic evidence
+
+### 2026-11-01 — Recovered player-return QA and browser navigation integrated
+
+- **Verified repository snapshot:** `main c3f5af0996d5ebfff16c6280230c2de9142f53dd`, after merged [#141](https://github.com/rzqllh/Yoru/pull/141), [#142](https://github.com/rzqllh/Yoru/pull/142), [#143](https://github.com/rzqllh/Yoru/pull/143) and [#144](https://github.com/rzqllh/Yoru/pull/144). This is GitHub code, **not** the live Vercel production SHA.
+- #141 canonical minimum-score URL handling, merged `da70a298`. PR head `d7f8df7` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275437997) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275438058) **SUCCESS**.
+- #142 filtered Browse page-two → detail → native player → Back regression, merged `f16e8aee`. PR head `8bff196` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275620079) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275620076) **SUCCESS**; checks URL, genre/type/score/year/order, 25 loaded cards, scroll/focus and no redundant request.
+- #143 Escape mirrors player Back route restoration, merged `f9872fa4`. PR head `1d77519` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275780152) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275780150) **SUCCESS**.
+- #144 browser history Back dismisses active playback, merged `c3f5af09`. PR head `1ebf97d` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275880037) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275880052) **SUCCESS**.
+- **Still PARTIAL:** these are deterministic browser fixtures. Full semantic document-page detail, physical iPhone Safari/PWA, live authorized HLS/MP4/provider/subtitle tests, AniList ToU clearance, cloud #77/#78 and production/release #20 require independent evidence. Exact combined `main c3f5af0` [CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41276006069) **PENDING at this checkpoint**. No deployment/paid action.
+
+- **Coverage interpretation:** the #142 fixture adds combined-filter/pagination source-route restoration; #143 and #144 distinguish Escape and browser-history Back. Only these deterministic navigation cases have PR-head PASS evidence, not full AC-DETAIL-01–05 or real-device sign-off.
+
