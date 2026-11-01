@@ -1,5 +1,12 @@
 # Yoru — Current State & New-Chat Recovery
 
+### 2026-11-01 — Combined-filter playback-return regression (#142; verification pending)
+
+- [Draft PR #142](https://github.com/rzqllh/Yoru/pull/142), code commit `b2d0f88`: adds browser regression for canonical combined genre/type/minScore/year/order, page-two 25-card state, open detail → native player → Back, original URL, scroll, focus and no redundant filtered-catalog request. Baseline main `005aee1` CI and Browser E2E previously SUCCESS; **new PR-head checks NOT YET VERIFIED**. No runtime code or production changes.
+- Phase 05 remains PARTIAL. Live media, physical iPhone, semantic detail document page, AniList ToU and release gate #20 stay unresolved.
+
+
+
 ### 2026-11-01 — Player return navigation integrated
 
 - [PR #139](https://github.com/rzqllh/Yoru/pull/139) MERGED as main 8e931bb7a6a7dbd0754829fe13425d9955c5480e. Player now hides (rather than unmounts) the background app shell, preserving Browse loaded pages and Watch Guide graph/filter state. It prevents forcing top scroll before returning from a detail-origin player, and keeps detail modal absent while video is active.
