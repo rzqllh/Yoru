@@ -268,3 +268,4 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
 
 - **Coverage interpretation:** the #142 fixture adds combined-filter/pagination source-route restoration; #143 and #144 distinguish Escape and browser-history Back. Only these deterministic navigation cases have PR-head PASS evidence, not full AC-DETAIL-01–05 or real-device sign-off.
 
+- **Final merged-main verification:** `c3f5af0996d5ebfff16c6280230c2de9142f53dd` [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) and [Chromium/WebKit Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41276006069) both **SUCCESS** (4/4 jobs). Earlier PENDING statements describe the original snapshot only; no physical device or live media acceptance is implied.
