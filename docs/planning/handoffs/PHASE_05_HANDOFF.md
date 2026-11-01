@@ -1,5 +1,12 @@
 # PHASE 05 — Full-page Anime Detail and Deep Links
 
+### 2026-11-01 — Phase 05 long episode pagination correctness (#147)
+
+- [PR #147](https://github.com/rzqllh/Yoru/pull/147), code/test head `91fb3d4b41324c37f00d56c7bab74ba36ded0ee7`: serializes next-page episode requests (synchronous in-flight guard, disabled/aria-busy loading UI), aborts outstanding requests on detail exit/change, resets page cursor, validates response page number, deduplicates overlapping episode identities, and keeps loaded rows available for retry after HTTP/invalid-page failure.
+- Deterministic browser fixtures cover 100 episodes across five pages with a held request, overlapping boundary, no duplicate fetch, and two error/retry modes. [Linux/Windows CI #41282282090](https://github.com/rzqllh/Yoru/actions/runs/41282282090) **SUCCESS** and [Chromium/WebKit #41282282063](https://github.com/rzqllh/Yoru/actions/runs/41282282063) **SUCCESS** (four jobs) on that exact code/test head. **Documentation-added final PR-head checks and merged-main checks are separate, not yet claimed.**
+- Phase 05 AC-DETAIL-05 is **PARTIAL**: long-list pagination correctness fixture now verified; responsive physical iPhone/landscape/safe-area, semantic document detail, live provider/source/subtitle and production acceptance are still NOT VERIFIED. #20 remains NO-GO. No auth, provider config, security policy, database, dependency, production or release changes.
+
+
 > **Handoff type:** owner-requested persistent project planning, not temporary `docs/handsoff/`.  
 > **Snapshot:** 2026-10-31 (Asia/Jakarta) · inspected main `2b6c1d4bb518c4345d50e7849af5f8f7ef53aa1b`.  
 > **Status:** CURRENT DETAIL IS DIALOG; D04 PLANNED. **No implementation or tests were executed for this planning-only artifact.**
