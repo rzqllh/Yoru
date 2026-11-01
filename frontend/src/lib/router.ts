@@ -17,15 +17,17 @@ export function sanitizeBrowseFilters(candidate:Partial<BrowseFilters>):BrowseFi
  return {
   genre:typeof candidate.genre==='string'&&(GENRES.has(candidate.genre)||/^mal:[1-9]\d{0,2}$/.test(candidate.genre))?candidate.genre:'',
   format:typeof candidate.format==='string'&&FORMATS.has(candidate.format)?candidate.format:'',
-  minimumScore:[7,8,9].includes(Number(candidate.minimumScore))?Number(candidate.minimumScore):0,
+  minimumScore:typeof candidate.minimumScore==='number'&&[7,8,9].includes(candidate.minimumScore)?candidate.minimumScore:0,
   year:yearValid?String(year):'',
   order:candidate.order==='rating'||candidate.order==='newest'?candidate.order:'default'
  }
 }
 export function parseBrowseFilters(params:URLSearchParams):BrowseFilters{
+ const scoreValues=params.getAll('minScore')
+ const rawScore=scoreValues.length===1?scoreValues[0]:''
  return sanitizeBrowseFilters({
   genre:params.get('genre')??'',format:params.get('type')??'',
-  minimumScore:Number(params.get('minScore')??0),year:params.get('year')??'',
+  minimumScore:/^[789]$/.test(rawScore)?Number(rawScore):0,year:params.get('year')??'',
   order:(params.get('order')??'default') as BrowseFilters['order']
  })
 }
