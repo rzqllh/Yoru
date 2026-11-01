@@ -122,3 +122,15 @@ frontend/src/App.tsx, frontend/src/lib/router.ts, frontend/src/styles.css, front
 - [Draft PR #142](https://github.com/rzqllh/Yoru/pull/142) code `b2d0f88` adds an automated Chromium/WebKit browser fixture starting at `/jelajahi?genre=Action&type=TV&minScore=8&year=2025&order=rating`, loading page two, playing a native test fixture and returning. It checks preserved URL, all five filters, 25 results, scroll, focus and zero redundant requests.
 - **NOT YET PASS:** exact final-head browser and Linux/Windows CI pending; no physical Safari or live authorized provider. Existing #139 merged behavior was verified on its own head/main previously. No runtime, Vercel, auth, API, schema or release changes. AC-DETAIL-02/AC-GUIDE-04 coverage only, not phase signoff.
 
+## 2026-11-01 — Player-return navigation QA integrated (#141–#144)
+
+### 2026-11-01 — Recovered player-return QA and browser navigation integrated
+
+- **Verified repository snapshot:** `main c3f5af0996d5ebfff16c6280230c2de9142f53dd`, after merged [#141](https://github.com/rzqllh/Yoru/pull/141), [#142](https://github.com/rzqllh/Yoru/pull/142), [#143](https://github.com/rzqllh/Yoru/pull/143) and [#144](https://github.com/rzqllh/Yoru/pull/144). This is GitHub code, **not** the live Vercel production SHA.
+- #141 canonical minimum-score URL handling, merged `da70a298`. PR head `d7f8df7` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275437997) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275438058) **SUCCESS**.
+- #142 filtered Browse page-two → detail → native player → Back regression, merged `f16e8aee`. PR head `8bff196` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275620079) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275620076) **SUCCESS**; checks URL, genre/type/score/year/order, 25 loaded cards, scroll/focus and no redundant request.
+- #143 Escape mirrors player Back route restoration, merged `f9872fa4`. PR head `1d77519` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275780152) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275780150) **SUCCESS**.
+- #144 browser history Back dismisses active playback, merged `c3f5af09`. PR head `1ebf97d` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275880037) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275880052) **SUCCESS**.
+- **Still PARTIAL:** these are deterministic browser fixtures. Full semantic document-page detail, physical iPhone Safari/PWA, live authorized HLS/MP4/provider/subtitle tests, AniList ToU clearance, cloud #77/#78 and production/release #20 require independent evidence. Exact combined `main c3f5af0` [CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41276006069) **PENDING at this checkpoint**. No deployment/paid action.
+
+
