@@ -2,6 +2,24 @@
 
 # Yoru — Requirement, Evidence and Blocker Tracker
 
+### 2026-11-01 — Phase 05 D04 Closure: Genuine Mobile Document Page vs Desktop Modal Dialog (#154)
+
+- **Merged main HEAD:** `1e7e65ae2414964e3f3e4c93acc3a103efd92119` via [PR #154](https://github.com/rzqllh/Yoru/pull/154).
+- **Scope implemented (D04 Architectural Acceptance):**
+  - Mobile routed detail rendered directly into document flow (`#main-content`) via `DetailMobilePage`. Eliminates `role="dialog"`, `aria-modal="true"`, and `useDialogFocus` body scroll-locking. Provides natural document window scrolling (`window.scrollY`), sticky topbar back navigation (`ArrowLeft`, `aria-label="Kembali ke halaman sebelumnya"`), and safe-area insets.
+  - Desktop retains accessible modal behavior (`DetailDialog`) with backdrop overlay, `role="dialog"`, `aria-modal="true"`, `useDialogFocus` focus trapping, and close button (`X`, `Tutup detail anime`).
+  - Extracted shared `DetailBody` component without duplicating episode fetching, candidate stream ranking, source-picker, resume CTA, pagination, or playback launch logic.
+  - Verification: 192/192 unit tests PASS; 45 Playwright browser tests PASS across Chromium and WebKit; Windows production smoke PASS; 8/8 PR #154 CI jobs SUCCESS.
+- **Phase status:** D04 is **MERGED & VERIFIED in main**. All code-level requirements for Phase 05 / Issue #44 are **COMPLETE**. Release gate #20 remains **NO-GO** due to external live provider/device sign-offs.
+
+### 2026-11-01 — Phase 05 Resume Correctness & D04 Mobile Detail Semantics (#153)
+
+- **Merged main HEAD:** `4007e2b5bf3cbf80e20bcb56c2ac5e62f7ca6e63` via [PR #153](https://github.com/rzqllh/Yoru/pull/153).
+- **Scope implemented (P0 & P1):**
+  - AC-DETAIL-04: Fixed false "Selesai ditonton" and false 100% progress track on unstarted (`seconds=0`) or invalid progress via explicit `classifyProgressState`. Eliminated phantom episode invention when progress references an episode absent from metadata. Validated candidate availability.
+  - D04: Semantic HTML5 hierarchy (`<header>`, `<section>`, `<nav>`, `<h1>`, `<h2>`), landscape notch safe-area insets.
+  - Verification: 192/192 unit tests PASS; Windows production smoke PASS; 8/8 PR #153 CI jobs SUCCESS.
+
 ### 2026-11-01 — Phase 05 Detail Resume CTA, Episode Progress & Title Sync (#151)
 
 - **Merged main HEAD:** `bb005b0c95f1fa69e59fe2d48037194f15d7815f` after [PR #151](https://github.com/rzqllh/Yoru/pull/151) (`bb005b0`).
@@ -67,7 +85,7 @@ Owners below are **responsibility roles**, not claims that any specific person/a
 | BROWSE-01 / D03 | 04 | Tenrai/MAL identity + AniList enrichment | PLANNED (existing isolated daily/guide data) | Data/API engineering | `backend/pipeline` | AC-DATA-01..04 |
 | BROWSE-02 | 04 | Dynamic AniList genres/tags and honest filters | PLANNED (currently 12) | Data/API engineering | `backend/api/app.ts` + `router.ts` | AC-DATA-05..08 |
 | BROWSE-03 / D08 | 04 | Separate Akan Datang and Watch Guide destinations | PLANNED | UX/navigation | `App.tsx` / `router.ts` | AC-DATA-09 |
-| DETAIL-01 / D04 | 05 | Mobile detail, resume CTA, episode progress, /anime/:malId | PARTIAL: #131/#147/#151 MERGED; AC-DETAIL-04 TESTED | UX/router | `App.tsx`, `resume.ts` | AC-DETAIL-01..05 |
+| DETAIL-01 / D04 | 05 | Mobile detail, resume CTA, episode progress, /anime/:malId | MERGED #131/#147/#151/#153/#154 + TESTED | UX/router | `App.tsx`, `resume.ts`, `useIsMobile.ts` | AC-DETAIL-01..05 |
 | GUIDE-01 / D05 | 06 | Release/curated paths, uncertainty and editions | PARTIAL | Guide/UX | [#72](https://github.com/rzqllh/Yoru/pull/72), `WatchGuide.tsx` | AC-GUIDE-01..05 |
 | GUIDE-02 / YX-10 | 06 | Manual path progress/backup compatibility | PARTIAL | Local data | [#64](https://github.com/rzqllh/Yoru/pull/64), [#81](https://github.com/rzqllh/Yoru/pull/81) | AC-GUIDE-06 |
 | DATA-LOCAL | 07 | IndexedDB, validated import/export, PWA | PARTIAL | Local data/security | `frontend/src/lib/db.ts`, `backup.ts` | AC-LOCAL-01..04; real device |

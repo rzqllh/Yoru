@@ -299,7 +299,7 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
   - Browser tests: `tests/browser/yoru.spec.mjs` covers AC-DETAIL-04 resume CTA, Episode 1 fallback, and navigation title.
 - **Result:** **TESTED deterministic fixture on merged main / PHASE PARTIAL**. Physical iPhone, live media playback, and release gate #20 remain separate unresolved gates.
 
-## 2026-11-01 — Phase 05 Resume Correctness & D04 Mobile Detail Semantics
+## 2026-11-01 — Phase 05 Resume Correctness & D04 Mobile Detail Semantics (#153)
 
 - **Scope implemented (P0 & P1):**
   - AC-DETAIL-04 / Resume Correctness:
@@ -316,6 +316,28 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
   - Production build: PASS.
   - Windows production smoke: `WINDOWS_PRODUCTION_SMOKE_PASS`.
   - Browser tests: added 3 Playwright tests in `tests/browser/yoru.spec.mjs` verifying zero progress, absent episode, and mobile semantic landmarks.
-- **Status:** **PASS deterministic unit & browser tests / PHASE PARTIAL**. Physical iPhone, live provider streaming, and release gate #20 remain separate unresolved gates.
+- **Status:** **PASS deterministic unit & browser tests / MERGED `4007e2b` via PR #153**.
+
+## 2026-11-01 — Phase 05 D04 Closure: Genuine Mobile Document Page vs Desktop Modal Dialog (#154)
+
+- **Merged main HEAD:** `1e7e65ae2414964e3f3e4c93acc3a103efd92119` via [PR #154](https://github.com/rzqllh/Yoru/pull/154).
+- **Scope implemented (D04 Architectural Acceptance):**
+  - Repaired D04 discrepancy: mobile routed detail is a genuine full-page view inside document flow (`#main-content`), eliminating `role="dialog"`, `aria-modal="true"`, and `useDialogFocus` body scroll-locking.
+  - Desktop retains accessible modal behavior (`DetailDialog`) with backdrop overlay, `role="dialog"`, `aria-modal="true"`, `useDialogFocus` focus trapping, and close button (`X`, `Tutup detail anime`).
+  - Extracted shared `DetailBody` component without duplicating episode fetching, candidate stream ranking, source-picker, resume CTA, pagination, or playback launch logic.
+  - Mobile features natural document window scrolling (`window.scrollY`), sticky topbar back navigation (`ArrowLeft`, `aria-label="Kembali ke halaman sebelumnya"`), and safe-area insets.
+- **Evidence:**
+  - Unit tests: 192/192 PASS.
+  - Lint: 113 files checked, 0 errors, 0 warnings.
+  - TypeScript: PASS (0 errors across backend & frontend).
+  - Production build: PASS.
+  - Windows production smoke: `WINDOWS_PRODUCTION_SMOKE_PASS`.
+  - Browser tests: `tests/browser/yoru.spec.mjs` verifies genuine mobile full page (no dialog, document scrolls, back button) and desktop modal behavior (dialog, aria-modal, body lock).
+  - PR #154 CI: 8/8 jobs **PASS** (Linux validate x2, Windows smoke x2, WebKit smoke x2, Chromium full suite x2).
+- **Final Acceptance Register Summary:**
+  - **Category A (Code Defects & Approved Features):** **DONE** (D01–D09, Phase 01–06, AC-DETAIL-01–05, resume state classification, episode pagination, safe-area insets).
+  - **Category B (Deterministic Verification):** **DONE** (192 unit tests, 45 Playwright browser tests across Chromium and WebKit, Windows production smoke, strict TypeScript and Biome linting).
+  - **Category C (External Live Evidence Requiring Owner Action):** **BLOCKED** (Release Gate #20: real Stremio/Torrentio config, live subtitle API keys, physical iPhone Safari/PWA testing).
+  - **Category D (Restricted Architectural/Security Decisions):** **PRESERVED** (No secrets leaked, no bypass of SSRF/URL validation, no fabricated playback, no destructive changes).
 
 
