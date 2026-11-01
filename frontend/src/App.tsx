@@ -1030,6 +1030,7 @@ function DetailDialog({
   setLoading(true)
   setError('')
   setPage(1)
+  setHasNext(false)
   setListed([])
   setAvailable([])
   sourceRequest.current++
@@ -1087,6 +1088,8 @@ function DetailDialog({
   try{
    const result=await episodes(anime.malId,nextPage,controller.signal)
    if(controller.signal.aborted)return
+   if(!result||!Array.isArray(result.items)||typeof result.hasNext!=='boolean'||result.page!==nextPage)
+    throw new Error('Invalid episode page')
    setListed(current=>{
     const seen=new Set(current.map(ep=>ep.number))
     const additions=result.items.filter(ep=>{
@@ -1258,7 +1261,7 @@ function DetailDialog({
      })}
     </div>:<Empty icon={Film} title="Episode belum tersedia" body="Daftar episode belum ditemukan dalam metadata."/>}
 
-    {hasNext&&<button type="button" className="load-episodes" disabled={loadingMore} aria-busy={loadingMore} onClick={()=>void loadNext()}>{loadingMore?'Memuat episode…':'Muat episode berikutnya'} <ChevronDown size={15}/></button>}
+    {hasNext&&<button type="button" className="load-episodes" disabled={loading||loadingMore} aria-busy={loadingMore} onClick={()=>void loadNext()}>{loadingMore?'Memuat episode…':'Muat episode berikutnya'} <ChevronDown size={15}/></button>}
    </div>
   </div>
  </div>
