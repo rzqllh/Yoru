@@ -1,10 +1,10 @@
 # Yoru engineering checkpoint — 2026-11-01
 
-- Baseline main: `18f3694eb9440d3eeb9a9a873f548354de084ed1`.
-- Baseline exact-main CI: Linux/Windows [SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41253384007); Chromium/WebKit [SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41253383991). These do not prove live video, real iPhone, or production.
-- Issue #44 open; #78 open; PR #77 draft. Release gate #20 open and BLOCKED.
-- Scope: local JSON provider config only. Reject coerced MAL IDs, episode numbers, and subtitle modes before they can create incorrect identity matches or runtime type confusion. Preserve valid numeric IDs and enum values.
-- Changed: `backend/pipeline/validate.ts`; new `tests/local-provider-validation.test.mjs`.
-- Tests: NOT RUN on this branch yet. Await exact-head Linux/Windows and Chromium/WebKit workflows. Do not merge until green.
-- External: two-account OTP/RLS, physical iPhone, live authorized media/subtitle, resolver permission, hosting, release and historical branch cleanup deferred.
-- Handoff protocol: move evidence to PR and issue #44; delete `docs/handsoff/` from branch before merge. Never merge temporary handoff files.
+- Baseline main: `18f3694eb9440d3eeb9a9a873f548354de084ed1`; baseline [Linux/Windows CI SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41253384007) and [Chromium/WebKit SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41253383991).
+- Audit: PR #121 open and isolated, PR #77 draft; Issue #44/#78 open, release gate #20 BLOCKED.
+- Scope: strict primitive numeric MAL IDs/episode numbers and enum subtitle mode validation in local JSON provider only. No provider-live or cloud changes.
+- Code: `backend/pipeline/validate.ts`; four regression cases in `tests/local-provider-validation.test.mjs`.
+- PR #121 original head `596f326250ebe859b0d0a25d10411eff25036266`: [Linux/Windows CI SUCCESS, 2/2 jobs](https://github.com/rzqllh/Yoru/actions/runs/41256811876), including unit tests.
+- [Chromium/WebKit workflow](https://github.com/rzqllh/Yoru/actions/runs/41256811874) attempt 1 CANCELLED, both browser jobs cancelled during `playwright install --with-deps`; logs show stalled Ubuntu apt repository fetch and no browser tests executed. Attempt 2 requested; NOT VERIFIED. Do not merge until exact final head browser and CI SUCCESS.
+- Next: preserve factual evidence in PR #121 and Issue #44, remove this temporary handoff folder, recheck exact final head workflows, merge only if all pass, verify main.
+- Deferred: OTP/RLS two users, physical iPhone, authorized live media/subtitles and resolver, production hosting, release gate #20, historical branches. No Supabase/secret/production/release operations.
