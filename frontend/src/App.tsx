@@ -255,6 +255,8 @@ function App(){
 
  useEffect(()=>{
   function onPopState(){
+   // Browser history must dismiss an active player before revealing its source page.
+   setPlayback(null)
    const next=parseRoute(window.location.pathname,window.location.search)
    setRoute(next)
    setSelected(next.page==='detail'&&detailCache.current?.malId===next.detailMalId?detailCache.current:null)
