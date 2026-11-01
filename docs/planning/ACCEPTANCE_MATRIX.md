@@ -283,3 +283,19 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
 - **Coverage interpretation:** the #142 fixture adds combined-filter/pagination source-route restoration; #143 and #144 distinguish Escape and browser-history Back. Only these deterministic navigation cases have PR-head PASS evidence, not full AC-DETAIL-01–05 or real-device sign-off.
 
 - **Final merged-main verification:** `c3f5af0996d5ebfff16c6280230c2de9142f53dd` [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) and [Chromium/WebKit Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41276006069) both **SUCCESS** (4/4 jobs). Earlier PENDING statements describe the original snapshot only; no physical device or live media acceptance is implied.
+
+## 2026-11-01 — AC-DETAIL-04 Detail Resume CTA, Episode Progress & Title Sync (#151)
+
+- **Merged main HEAD:** `bb005b0c95f1fa69e59fe2d48037194f15d7815f` via [PR #151](https://github.com/rzqllh/Yoru/pull/151).
+- **Scope implemented:**
+  - AC-DETAIL-04: Detail CTA dynamically reflects active IndexedDB progress (`Lanjutkan Episode X`) targeting the saved episode rather than unconditionally defaulting to Episode 1. Falls back to Episode 1 (`Periksa sumber episode`) when no resumable progress exists.
+  - Episode rows in `.episode-list` display active elapsed/duration progress indicator or completed label, with an embedded `.progress-track` progress bar.
+  - Semantic `<h1 id="detail-title">` landmark in detail modal while preserving `role="dialog"` and `aria-label` accessibility.
+  - Dynamic `document.title` synchronization across client navigation routes and player states.
+- **Evidence:**
+  - PR checks: CI [41302863885](https://github.com/rzqllh/Yoru/actions/runs/41302863885) and Browser E2E [41302863898](https://github.com/rzqllh/Yoru/actions/runs/41302863898) **SUCCESS**.
+  - Merged-main push: CI [41303082340](https://github.com/rzqllh/Yoru/actions/runs/41303082340) and Browser E2E [41303082347](https://github.com/rzqllh/Yoru/actions/runs/41303082347) **SUCCESS** (4/4 jobs).
+  - Unit tests: 190/190 PASS (added 4 tests in `tests/resume.test.mjs`).
+  - Browser tests: `tests/browser/yoru.spec.mjs` covers AC-DETAIL-04 resume CTA, Episode 1 fallback, and navigation title.
+- **Result:** **TESTED deterministic fixture on merged main / PHASE PARTIAL**. Physical iPhone, live media playback, and release gate #20 remain separate unresolved gates.
+

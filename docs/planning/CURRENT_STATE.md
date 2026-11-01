@@ -1,5 +1,26 @@
 # Yoru — Current State & New-Chat Recovery
 
+### 2026-11-01 — Phase 05 Detail Resume CTA, Episode Progress & Title Sync (#151)
+
+- **Verified main HEAD:** `bb005b0c95f1fa69e59fe2d48037194f15d7815f`, following merged [PR #151](https://github.com/rzqllh/Yoru/pull/151) (`bb005b0`).
+- **PR #151 implementation (AC-DETAIL-04, YX-01, YX-14, D04):**
+  - Connects IndexedDB playback progress to `DetailDialog`.
+  - Added pure helpers `findAnimeProgress` and `resolveDetailResumeTarget` in `frontend/src/lib/resume.ts`.
+  - Detail primary CTA dynamically targets resumable episode (`Lanjutkan Episode X`) instead of unconditionally defaulting to Episode 1, falling back to Episode 1 (`Periksa sumber episode`) when no resumable progress exists.
+  - Episode rows in `.episode-list` render elapsed/duration progress indicator (`Lanjut (MM:SS / MM:SS)`) or completed indicator (`Selesai ditonton`) along with `.progress-track` progress bar.
+  - Upgraded modal title to semantic `<h1 id="detail-title">`, preserving existing `role="dialog"` and `aria-label` for screen reader accessibility and Playwright test compatibility.
+  - Added centralized dynamic `document.title` synchronization in `App.tsx` matching route and playback state.
+- **Verification evidence:**
+  - `npm test`: 190/190 PASS (added 4 unit tests in `tests/resume.test.mjs`).
+  - `npm run lint`: 112 files checked, 0 errors, 0 warnings.
+  - `npm run typecheck`: PASS.
+  - `npm run build`: Production frontend + PWA precache + backend build PASS.
+  - `node scripts/verify-windows-smoke.mjs`: `WINDOWS_PRODUCTION_SMOKE_PASS`.
+  - `tests/browser/yoru.spec.mjs`: added browser fixtures for AC-DETAIL-04 resume CTA, Episode 1 fallback, and navigation document title.
+  - Merged-main CI checks: [CI #41303082340](https://github.com/rzqllh/Yoru/actions/runs/41303082340) **SUCCESS** and [Browser E2E #41303082347](https://github.com/rzqllh/Yoru/actions/runs/41303082347) **SUCCESS** (4/4 jobs).
+- **Phase status:** AC-DETAIL-04 is **TESTED / VERIFIED in main**. Phase 05 remains **PARTIAL** (live media/subtitle playback, physical iPhone Safari/PWA, cloud sync #77/#78, and public release #20 remain separate unresolved gates).
+
+
 ### 2026-11-01 — Phase 01 Stremio/Torrentio config audit & opt-in manifest probe (#148, #149)
 
 - **Verified main HEAD:** `a5c2468cb22e61c58dbfda6e92c52bf1dc400fa1`, following merged [PR #148](https://github.com/rzqllh/Yoru/pull/148) (`b267396`) and [PR #149](https://github.com/rzqllh/Yoru/pull/149) (`a5c2468`).

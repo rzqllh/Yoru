@@ -1,5 +1,25 @@
 # PHASE 05 — Full-page Anime Detail and Deep Links
 
+### 2026-11-01 — Phase 05 Detail Resume CTA, Episode Progress & Title Sync (#151)
+
+- **Merged main HEAD:** `bb005b0c95f1fa69e59fe2d48037194f15d7815f` via [PR #151](https://github.com/rzqllh/Yoru/pull/151).
+- **Scope implemented:**
+  - AC-DETAIL-04: Connects IndexedDB playback progress to `DetailDialog`.
+  - Detail primary CTA dynamically reflects resumable progress (`Lanjutkan Episode X`) targeting the saved episode rather than unconditionally defaulting to Episode 1. Falls back to Episode 1 (`Periksa sumber episode`) when no resumable progress exists.
+  - Episode rows in `.episode-list` render elapsed/duration progress indicator (`Lanjut (MM:SS / MM:SS)`) or completed indicator (`Selesai ditonton`), with an embedded `.progress-track` progress bar.
+  - Semantic `<h1 id="detail-title">` landmark in detail modal while preserving `role="dialog"` and `aria-label` accessibility.
+  - Added centralized dynamic `document.title` synchronization in `App.tsx` matching route and playback state.
+- **Verification evidence:**
+  - `npm test`: 190/190 PASS (added 4 unit tests in `tests/resume.test.mjs`).
+  - `npm run lint`: 112 files checked, 0 errors, 0 warnings.
+  - `npm run typecheck`: PASS.
+  - `npm run build`: Production frontend + PWA precache + backend build PASS.
+  - `node scripts/verify-windows-smoke.mjs`: `WINDOWS_PRODUCTION_SMOKE_PASS`.
+  - `tests/browser/yoru.spec.mjs`: added browser fixtures for AC-DETAIL-04 resume CTA, Episode 1 fallback, and navigation document title.
+  - Merged-main CI checks: [CI #41303082340](https://github.com/rzqllh/Yoru/actions/runs/41303082340) **SUCCESS** and [Browser E2E #41303082347](https://github.com/rzqllh/Yoru/actions/runs/41303082347) **SUCCESS** (4/4 jobs).
+- **Phase status:** AC-DETAIL-04 is **TESTED / VERIFIED in main**. Phase 05 remains **PARTIAL** (live media/subtitle playback, physical iPhone Safari/PWA, cloud sync #77/#78, and public release #20 remain separate unresolved gates).
+
+
 ### 2026-11-01 — Phase 05 long episode pagination correctness (#147)
 
 - [PR #147](https://github.com/rzqllh/Yoru/pull/147), code/test head `91fb3d4b41324c37f00d56c7bab74ba36ded0ee7`: serializes next-page episode requests (synchronous in-flight guard, disabled/aria-busy loading UI), aborts outstanding requests on detail exit/change, resets page cursor, validates response page number, deduplicates overlapping episode identities, and keeps loaded rows available for retry after HTTP/invalid-page failure.
