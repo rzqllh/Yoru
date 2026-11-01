@@ -1,5 +1,12 @@
 # Yoru — Current State & New-Chat Recovery
 
+### 2026-11-01 — Player return navigation integrated
+
+- [PR #139](https://github.com/rzqllh/Yoru/pull/139) MERGED as main 8e931bb7a6a7dbd0754829fe13425d9955c5480e. Player now hides (rather than unmounts) the background app shell, preserving Browse loaded pages and Watch Guide graph/filter state. It prevents forcing top scroll before returning from a detail-origin player, and keeps detail modal absent while video is active.
+- Final PR head 48c07be207ac075339fb2e7a4214986a2433b9e3: [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41274184023) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41274184006) SUCCESS. Browser fixtures: 25 Browse results survive native playback/Back; two-hop Guide graph and category survive playback/Back; opener focus and no refetch. Original [browser failure](https://github.com/rzqllh/Yoru/actions/runs/41273993615) was from outdated DOM removal assertion, replaced with hidden/noninteractive assertion and fully rerun. Final merged-main checks are separate.
+- Still PARTIAL: semantic full-page detail, multi-filter/long-guide/device tests, live authorized media/subtitles, AniList ToU-gated primary migration, #77/#78 cloud, latest production deployment/health and #20 public release. No production, provider config, schema, or security changes.
+
+
 
 ### 2026-11-01 — Guide return code merged after D03 policy checkpoint
 

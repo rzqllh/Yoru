@@ -241,3 +241,11 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
 | Case | Evidence | Result | Remaining |
 | --- | --- | --- | --- |
 | AC-GUIDE-02 / AC-DETAIL-02 / D05 guide return | [#136](https://github.com/rzqllh/Yoru/pull/136) head `e9ab54c6`, merged `3334d74` | **PASS deterministic PR-head browser fixture / PHASE PARTIAL** | [CI](https://github.com/rzqllh/Yoru/actions/runs/41272983355) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41272983482) SUCCESS. Expanded graph and branch filter persist across mapped related-title detail and Back, opener focus returns, no duplicate fetch. Actual AniList provider, long/ambiguous graphs, player-return and physical iPhone NOT RUN. |
+
+### 2026-11-01 — Player return retention acceptance
+
+| Case | Evidence | Status | Limits |
+| --- | --- | --- | --- |
+| AC-DETAIL-02 / AC-VN-13 player-to-Browse Back | [#139](https://github.com/rzqllh/Yoru/pull/139), head 48c07be, main 8e931bb, [CI](https://github.com/rzqllh/Yoru/actions/runs/41274184023) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41274184006) SUCCESS | PASS deterministic native fixture / PHASE PARTIAL | 25 results retained, focus restored, no catalog refetch; real provider/physical iPhone not run. |
+| AC-GUIDE-02 / AC-VN-13 player-to-Guide Back | Same #139 CI/browser | PASS deterministic relation fixture / PHASE PARTIAL | Two-hop guide branch filter and graph retained; opener focus, no graph refetch. Live provider, story order and iPhone not run. |
+| Player exclusivity regression | [first browser FAIL](https://github.com/rzqllh/Yoru/actions/runs/41273993615), [corrected browser SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41274184006) | PASS after test update | Background DOM remains mounted but is HTML-hidden, non-visible and noninteractive; legacy absent-DOM requirement superseded. |
