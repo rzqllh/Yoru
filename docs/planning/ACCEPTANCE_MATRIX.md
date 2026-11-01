@@ -205,3 +205,10 @@ All rows are **NOT RUN** for this docs-only update. Historical CI/fixture PASS d
 | AC-VN-16 | 08/09 | Authorized real video and subtitle providers, iPhone and production release gate | Actual exact-SHA device and provider evidence plus #20 G1–G6 and explicit owner GO | NOT RUN |
 
 Torrent-only playback/resolver requires separate architecture, rights, safety, hosting and owner approval. Never treat manifest availability, a bitrate label, metadata, fixtures or Vercel READY as live decoded playback.
+
+### 2026-11-01 — Post-merge contract evidence for phases 04 and 05
+
+| Case | Evidence SHA and environment | Status | Verified behaviour and limitations |
+| --- | --- | --- | --- |
+| AC-DATA-09 / D08 navigation | PR #123 `2bda841`, main `84807c8` | **PASS deterministic browser navigation slice / PHASE PARTIAL** | [PR CI](https://github.com/rzqllh/Yoru/actions/runs/41266399249), [PR Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41266399337), [main CI](https://github.com/rzqllh/Yoru/actions/runs/41266563101), [main browser](https://github.com/rzqllh/Yoru/actions/runs/41266563069) SUCCESS. Two tabs, separate Akan Datang CTA, mobile reload/return and overflow regression. Full design-system/physical iPhone not checked. |
+| AC-DETAIL-03 / no fabricated Episode 1 | PR #124 `5643b43`, main `ce12d98` | **PASS PR fixture negative case / PHASE PARTIAL** | [PR CI](https://github.com/rzqllh/Yoru/actions/runs/41266656368) and [PR browser](https://github.com/rzqllh/Yoru/actions/runs/41266656388) SUCCESS. When metadata and provider lists are empty, primary CTA disabled, no episode/source request. Full-page D04/direct link, live provider and physical Safari NOT RUN. Main `ce12d98` checks must be separately confirmed. |
