@@ -22,7 +22,8 @@
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "start": "node scripts/start.mjs",
     "verify:subtitles:live": "npm run build && node scripts/verify-live-subtitles.mjs",
-    "verify:stremio:config": "node --import tsx scripts/verify-stremio-config.mjs"
+    "verify:stremio:config": "node --import tsx scripts/verify-stremio-config.mjs",
+    "verify:stremio:manifests": "node --import tsx scripts/verify-stremio-manifests.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.3",
