@@ -1055,6 +1055,7 @@ test('Akan Datang is a shareable separate destination, not a filter tab (D08)',a
  await expect(page).toHaveURL(/\/jelajahi\/akan-datang$/)
  await expect(page.getByRole('heading',{name:'Akan Datang'})).toBeVisible()
  await expect(page.locator('.category-switch')).toHaveCount(0)
+ expect(await page.locator('body').evaluate(el=>el.scrollWidth<=window.innerWidth+1)).toBe(true)
  await page.reload()
  await expect(page.getByRole('heading',{name:'Akan Datang'})).toBeVisible()
  await page.locator('.browse-destinations').getByRole('button',{name:'Jelajahi anime'}).click()
