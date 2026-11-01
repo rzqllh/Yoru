@@ -69,3 +69,19 @@ test('torrent-only responses remain honest disabled candidates, not invented bro
   {kind:'unsupported',label:'Bad magnet',reason:'Format atau URL belum didukung pemutar browser.'}
  ])
 })
+
+test('Stremio native tracks normalize Indonesian and English aliases for player selection',()=>{
+ const results=parseStremioStreams({streams:[{
+  url:'https://cdn.example.com/anime/episode.m3u8',
+  subtitles:[
+   {lang:'ind',url:'https://cdn.example.com/ind.vtt'},
+   {lang:'id-ID',url:'https://cdn.example.com/id-id.vtt'},
+   {lang:'eng',url:'https://cdn.example.com/eng.vtt'},
+   {lang:'en_US',url:'https://cdn.example.com/en-us.vtt'},
+   {lang:'ja',url:'https://cdn.example.com/ja.vtt'}
+  ]
+ }]},'stremio-example')
+ assert.deepEqual(results[0].tracks.map(x=>x.lang),['id','id','en','en','ja'])
+ assert.deepEqual(results[0].tracks.slice(0,4).map(x=>x.label),['Bahasa Indonesia','Bahasa Indonesia','English','English'])
+ assert.equal(results[0].subtitleMode,'soft')
+})

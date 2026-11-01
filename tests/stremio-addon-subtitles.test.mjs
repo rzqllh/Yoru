@@ -26,3 +26,16 @@ test('limits malformed subtitle resources and forbids embedded markup URLs',()=>
  assert.throws(()=>normalizeStremioSubtitles({subtitles:new Array(60).fill({})},'x'),/Invalid subtitle response/)
  assert.deepEqual(normalizeStremioSubtitles({subtitles:[{id:'x',lang:'id',url:'https://user:password@sub.example.org/sub.srt'}]},'x'),[])
 })
+
+test('Stremio subtitle resources recognize regional ISO language aliases without accepting unrelated languages',()=>{
+ const results=normalizeStremioSubtitles({subtitles:[
+  {id:'i1',lang:'id-ID',url:'https://cdn.example.com/id.srt'},
+  {id:'i2',lang:'ind_ID',url:'https://cdn.example.com/ind.srt'},
+  {id:'e1',lang:'eng',url:'https://cdn.example.com/eng.vtt'},
+  {id:'e2',lang:'en-US',url:'https://cdn.example.com/en.vtt'},
+  {id:'j1',lang:'ja-JP',url:'https://cdn.example.com/jp.vtt'},
+  {id:'not-id',lang:'india',url:'https://cdn.example.com/bad.vtt'}
+ ]},'stremio-subtest')
+ assert.deepEqual(results.map(x=>x.lang),['id','id','en','en'])
+ assert.deepEqual(results.map(x=>x.id),['i1','i2','e1','e2'])
+})

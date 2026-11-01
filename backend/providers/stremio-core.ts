@@ -64,6 +64,16 @@ export function stremioStreamPath(addon:StremioAddon,stremioId:string,season:num
  return new URL(`stream/series/${encodeURIComponent(`${stremioId}:${season}:${episode}`)}.json`,addon.manifestUrl)
 }
 const mediaHostAllowed=(host:string)=>/^(?=.{4,253}$)[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)&&!/(?:\.local|\.localhost|\.internal|\.invalid)$/.test(host)
+/** Map ISO 639-1/2 and common regional aliases to the player's exact id/en codes.
+ * Keep unsupported languages separate: do not pretend a translation exists.
+ */
+function subtitleLanguage(raw:string):'id'|'en'|null{
+ const value=raw.trim().toLowerCase().replaceAll('_','-')
+ if(/^(?:id|ind)(?:-[a-z]{2})?$/.test(value)||value==='indonesian'||value==='bahasa indonesia')return 'id'
+ if(/^(?:en|eng)(?:-[a-z]{2})?$/.test(value)||value==='english')return 'en'
+ return null
+}
+
 export function parseStremioStreams(payload:unknown,providerId:string):AddonStream[]{
  const root=object(payload)
  if(!Array.isArray(root.streams)||root.streams.length>50)throw new Error('Invalid stream response')
@@ -77,9 +87,9 @@ export function parseStremioStreams(payload:unknown,providerId:string):AddonStre
    const tracks:AddonTrack[]=[]
    if(Array.isArray(obj.subtitles))for(const rawTrack of obj.subtitles.slice(0,20)){
     try{
-     const sub=object(rawTrack),lang=nonempty(sub.lang,15).toLowerCase(),subUrl=new URL(nonempty(sub.url,2048))
+     const sub=object(rawTrack),rawLang=nonempty(sub.lang,24).toLowerCase().replaceAll('_','-'),lang=subtitleLanguage(rawLang)??rawLang,subUrl=new URL(nonempty(sub.url,2048))
      if(!/^[a-z]{2,3}(?:-[a-z0-9]+)*$/.test(lang)||subUrl.protocol!=='https:'||subUrl.username||subUrl.password||!mediaHostAllowed(subUrl.hostname))continue
-     tracks.push({lang,label:lang==='id'?'Bahasa Indonesia':lang,url:subUrl.toString()})
+     tracks.push({lang,label:lang==='id'?'Bahasa Indonesia':lang==='en'?'English':lang,url:subUrl.toString()})
     }catch{/* malformed optional subtitle is ignored */}
    }
    result.push({format,url:url.toString(),tracks,subtitleMode:tracks.length?'soft':'unknown',quality:typeof obj.name==='string'?obj.name.slice(0,80):undefined,providerId})
@@ -104,7 +114,7 @@ export function normalizeStremioSubtitles(payload:unknown,providerId:string):Add
   try{
    const sub=object(row)
    const id=nonempty(sub.id,120),rawLang=nonempty(sub.lang,24).toLowerCase()
-   const lang:AddonSubtitle['lang']|null=['id','ind','indonesian'].includes(rawLang)?'id':['en','eng','english'].includes(rawLang)?'en':null
+   const lang=subtitleLanguage(rawLang)
    if(!lang)continue
    const url=new URL(nonempty(sub.url,2048))
    if(url.protocol!=='https:'||url.port||url.username||url.password||url.hash||!mediaHostAllowed(url.hostname)||
