@@ -1199,6 +1199,22 @@ test('D05 guide to detail to Back retains expanded graph, branch filter and focu
  expect(guideCalls).toBe(requestsBefore)
 })
 
+test('Phase 05 Escape from native playback returns to originating Browse',async({page})=>{
+ await page.goto('/jelajahi')
+ const opener=page.getByRole('button',{name:'Buka Yoru Test Anime'}).first()
+ await expect(opener).toBeVisible()
+ await opener.click()
+ await expect(page).toHaveURL(/\/anime\/1$/)
+ await page.getByRole('dialog',{name:'Detail Yoru Test Anime'}).locator('.episode-list .episode-row').first().click()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
+ await page.keyboard.press('Escape')
+ await expect(page).toHaveURL(/\/jelajahi$/)
+ await expect(page.locator('.app-shell[hidden]')).toHaveCount(0)
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toHaveCount(0)
+ await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toHaveCount(0)
+ await expect(opener).toBeFocused()
+})
+
 test('Phase 05 player Back restores two loaded Browse pages without refetch',async({page})=>{
  const browsePages=[]
  const second={...anime,id:'mal:25',malId:25,title:'Page two playback anime'}
