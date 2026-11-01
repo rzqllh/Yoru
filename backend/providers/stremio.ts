@@ -50,9 +50,14 @@ async function fetchJsonPinned(url:URL):Promise<unknown>{
   req.end()
  })
 }
+/** Only canonical decimal MAL IDs may resolve configured Stremio mappings. */
+const validMappedId=(raw:string)=>/^[1-9]\d{0,7}$/.exec(raw)?.[0]===raw
+
 export async function getStremioEpisodes(animeId:string){
+ const rawId=animeId.startsWith('mal:')?animeId.slice(4):animeId
+ if(!validMappedId(rawId))return []
  const config=await getStremioConfig()
- const malId=Number(animeId.replace(/^mal:/,''))
+ const malId=Number(rawId)
  return (config?.addons??[]).flatMap(addon=>{
   const match=addon.anime.find(a=>a.malId===malId)
   if(!match)return []
@@ -62,7 +67,8 @@ export async function getStremioEpisodes(animeId:string){
 export async function getStremioSourceCandidates(ref:string){
  const empty={items:[] as ReturnType<typeof parseStremioStreams>,unavailable:[] as ReturnType<typeof classifyStremioUnplayable>}
  const pieces=ref.split(':')
- if(pieces.length!==3||!/^stremio-[a-z0-9-]+$/.test(pieces[0]))return empty
+ if(pieces.length!==3||!/^stremio-[a-z0-9][a-z0-9-]*$/.test(pieces[0])||
+  !validMappedId(pieces[1])||!validMappedId(pieces[2]))return empty
  const addonId=pieces[0].slice('stremio-'.length),malId=Number(pieces[1]),episode=Number(pieces[2])
  const cfg=await getStremioConfig()
  const addon:StremioAddon|undefined=cfg?.addons.find(a=>a.id===addonId)
