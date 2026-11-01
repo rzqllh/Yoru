@@ -1,4 +1,4 @@
-export type Page = 'home' | 'browse' | 'guide' | 'library' | 'settings'
+export type Page = 'home' | 'browse' | 'guide' | 'detail' | 'library' | 'settings'
 export type BrowseKind = 'season' | 'top' | 'upcoming'
 export type LibraryView = 'all' | 'continue'
 
@@ -47,6 +47,7 @@ export type RouteState = {
   searchQuery: string
   browseFilters?: BrowseFilters
   guideMalId?: number
+  detailMalId?: number
   shortcut?: 'season' | 'continue'
 }
 
@@ -63,6 +64,12 @@ export function parseRoute(pathname: string, search: string): RouteState {
       libraryView: 'all',
       searchQuery: '',
     }
+  }
+
+  // Canonical decimal MAL routes only; AniList IDs use a separate namespace after migration.
+  const animePath=/^\/anime\/([1-9]\d{0,8})$/.exec(cleanPath)
+  if(animePath){
+    return {page:'detail',browseKind:'season',libraryView:'all',searchQuery:'',detailMalId:Number(animePath[1])}
   }
 
   if (cleanPath === '/jelajahi/panduan-urutan') {
@@ -152,6 +159,7 @@ export function parseRoute(pathname: string, search: string): RouteState {
 
 export function routeToPath(state: RouteState): string {
   if (state.page === 'home') return '/'
+  if (state.page === 'detail') return Number.isSafeInteger(state.detailMalId)&&Number(state.detailMalId)>0&&Number(state.detailMalId)<=999999999?`/anime/${state.detailMalId}`:'/jelajahi'
   if (state.page === 'guide') {
     const id=state.guideMalId
     const valid=Number.isSafeInteger(id)&&Number(id)>0&&Number(id)<=999999999
@@ -181,6 +189,7 @@ export function routeToPath(state: RouteState): string {
 
 export function getBreadcrumbs(state: RouteState): string[] {
   if (state.page === 'home') return ['Yoru', 'Beranda']
+  if (state.page === 'detail') return ['Yoru', 'Anime', 'Detail']
   if (state.page === 'guide') return ['Yoru', 'Jelajahi', 'Panduan urutan']
 
   if (state.page === 'browse') {
