@@ -2502,7 +2502,8 @@ body {
 .browse-filter-group .category-switch button{border-radius:9px;padding:10px 16px;min-height:40px;color:var(--soft)}
 .browse-filter-group .category-switch button.active{background:rgba(199,246,140,.13);color:var(--accent)}
 .browse-destinations{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
-@media(max-width:800px){.browse-destinations{justify-content:flex-start}}
+@media(max-width:800px){.browse-page .page-intro{flex-direction:column;align-items:stretch;gap:12px}.browse-destinations{justify-content:flex-start}}
+@media(max-width:600px){.browse-destinations>button{flex:1 1 140px}}
 .upcoming-preview-link{
  display:inline-flex;gap:8px;align-items:center;justify-content:center;
  border:1px solid var(--line-strong);background:rgba(34,44,59,.76);color:var(--soft);
