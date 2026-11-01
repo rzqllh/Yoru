@@ -1,5 +1,12 @@
 # Yoru — Current State & New-Chat Recovery
 
+### 2026-11-01 — AniList API contract gate (external source checked)
+
+- D03=3A AniList-primary remains owner-approved **product direction, not implementable runtime authorization**. Official [AniList Terms of Use](https://docs.anilist.co/guide/terms-of-use) restrict competing anime/manga list/tracker services, including media data. Yoru's local library and progress may be implicated; **request clarification/authorization or choose another compliant metadata-primary path** before any migration.
+- Official [rate-limit guidance](https://docs.anilist.co/guide/rate-limiting) still reports temporary 30 requests/minute, burst limits and 429 retry handling. No production throughput measurement or permission was inferred.
+- Continue safe independent Phase 05/06 UX and existing transitional MAL code. Do not alter saved IDs/cloud schema, activate AniList as metadata primary, deploy or claim release GO until the separate gates are resolved.
+
+
 ## Latest implementation checkpoint — 2026-11-01 (main bcb72fc)
 
 - **MERGED [#133](https://github.com/rzqllh/Yoru/pull/133)** into main 83c973ad: Phase 05 preserves loaded browse results across opening and closing the detail route. Exact PR head 1b2391b7 [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41272206603) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41272206606) SUCCESS. Two-page browser fixture loads 25 unique titles, opens detail from page two, returns with focus/scroll and no extra catalog refetch. Other paths and physical Safari not verified.

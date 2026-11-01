@@ -213,3 +213,9 @@ No code, deployment, resolver or new dependencies are part of this planning comm
 - [#133](https://github.com/rzqllh/Yoru/pull/133) merged at main 83c973ad: loaded browse pages retained behind detail. Exact PR head 1b2391b7 [CI](https://github.com/rzqllh/Yoru/actions/runs/41272206603) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41272206606) SUCCESS. Two-page fixture PASS; full Phase 05 PARTIAL.
 - [#134](https://github.com/rzqllh/Yoru/pull/134) merged at main bcb72fc: public documentation D02 no iframe Play, independent Stremio subtitle/stream vs direct APIs, D03=3A gated. Exact PR head 61533ca [CI](https://github.com/rzqllh/Yoru/actions/runs/41272281179) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41272281114) SUCCESS; documentation only.
 - Open gates: semantic detail, broader return/filter/playback and physical iPhone tests; AniList ToU+identity reversible migration approval; #77/#78 two-user OTP/RLS privacy; authorized real media/subtitle samples; production current-SHA/health; #20 G1–G6 NO-GO. Production untouched by these PRs.
+
+### 2026-11-01 — D03=3A external API terms risk gate
+
+- **BLOCKED pending owner decision:** Official [AniList ToU](https://docs.anilist.co/guide/terms-of-use) restricts competing non-complementary anime/manga list/tracker applications, including media data. Yoru's collection/progress/backup makes the terms materially relevant; request written clarification/authorization or review a different compliant metadata-primary approach before migration.
+- **Verified docs-only:** [AniList rate limits](https://docs.anilist.co/guide/rate-limiting) presently warn of degraded 30 requests/minute and burst limits; dynamically honor 429/Retry-After rather than assuming 90/min. This is not a live capacity/latency test.
+- No upstream request, runtime source switch, bulk ingestion, database/backup rewrite, provider secrets or hosting change was made for this checkpoint.
