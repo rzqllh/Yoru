@@ -22,9 +22,9 @@ Open `http://127.0.0.1:5173`. For an installable production-style local PWA shel
 
 | Capability | Implemented scope | Not established |
 | --- | --- | --- |
-| Anime catalogue and search | Tenrai/MyAnimeList metadata; browse and deep-linked filters | 100% catalogue or upstream availability |
+| Anime catalogue and search | Transitional Tenrai/MyAnimeList metadata; browse and deep-linked filters; AniList-primary D03=3A is planned/gated | Full AniList-primary migration, 100% catalogue or upstream availability |
 | Browser player | Native HTTPS HLS/MP4 and local sample; truthful source checks | Universal media, DRM, CORS or codec compatibility |
-| External sources | Opt-in local JSON, Stremio-compatible stream metadata, Miruro-compatible adapter and external embed | Licensed or reliable third-party streaming coverage |
+| External sources | Opt-in local JSON, Stremio-compatible stream metadata and Miruro-compatible adapter; uncontrolled external iframe is non-playable under D02 | Licensed or reliable third-party streaming coverage |
 | Subtitles | Local VTT/SRT; conditional ASS dialogue conversion; opt-in SubDL, SubSource and OpenSubtitles adapters | Live provider-wide Indonesian coverage, correct sync |
 | Library and resume | Browser-local IndexedDB, backup/import and verified-source retry | Multi-device account sync |
 | Watch Guide | AniList relationship explorer; reviewed curated recommendations and editions | Universal canonical story chronology; unreviewed orders |
