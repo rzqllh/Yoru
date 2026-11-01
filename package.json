@@ -21,7 +21,8 @@
     "build": "npm run build -w frontend && node scripts/inject-precache.mjs && npm run build -w backend",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "start": "node scripts/start.mjs",
-    "verify:subtitles:live": "npm run build && node scripts/verify-live-subtitles.mjs"
+    "verify:subtitles:live": "npm run build && node scripts/verify-live-subtitles.mjs",
+    "verify:stremio:config": "node --import tsx scripts/verify-stremio-config.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.3",
