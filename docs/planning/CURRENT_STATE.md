@@ -1,5 +1,13 @@
 # Yoru — Current State & New-Chat Recovery
 
+
+### 2026-11-01 — Guide return code merged after D03 policy checkpoint
+
+- [PR #136](https://github.com/rzqllh/Yoru/pull/136) **MERGED**, `main` `3334d74`: Guide relations and category selection survive related-anime detail and history Back via a mounted, hidden Guide subtree; browser fixture also verifies opener focus and no duplicate graph request. PR-head [CI](https://github.com/rzqllh/Yoru/actions/runs/41272983355) and [Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41272983482) SUCCESS. Phase 05/06 only partial, not full guide/player and physical-device acceptance.
+- [PR #137](https://github.com/rzqllh/Yoru/pull/137) **MERGED**, `main` `4cedec2`: verified AniList ToU and degraded 30/min documented as unresolved D03=3A approval/operational gate. PR-head [CI](https://github.com/rzqllh/Yoru/actions/runs/41273056811) and [Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41273056833) SUCCESS. No AniList-primary activation, data migration or production deploy.
+- Remaining **NO-GO**: real media/subtitle providers, physical iPhone, cloud two-account OTP/RLS/privacy, production exact-SHA hosting+security, release #20, and broader detail/Guide UX acceptance. CI fixtures are not live evidence.
+
+
 ### 2026-11-01 — AniList API contract gate (external source checked)
 
 - D03=3A AniList-primary remains owner-approved **product direction, not implementable runtime authorization**. Official [AniList Terms of Use](https://docs.anilist.co/guide/terms-of-use) restrict competing anime/manga list/tracker services, including media data. Yoru's local library and progress may be implicated; **request clarification/authorization or choose another compliant metadata-primary path** before any migration.
