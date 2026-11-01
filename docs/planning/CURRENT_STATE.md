@@ -1,5 +1,12 @@
 # Yoru — Current State & New-Chat Recovery
 
+## Latest implementation checkpoint — 2026-11-01 (main bcb72fc)
+
+- **MERGED [#133](https://github.com/rzqllh/Yoru/pull/133)** into main 83c973ad: Phase 05 preserves loaded browse results across opening and closing the detail route. Exact PR head 1b2391b7 [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41272206603) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41272206606) SUCCESS. Two-page browser fixture loads 25 unique titles, opens detail from page two, returns with focus/scroll and no extra catalog refetch. Other paths and physical Safari not verified.
+- **MERGED [#134](https://github.com/rzqllh/Yoru/pull/134)** into main bcb72fc: six public docs now reflect D02, no unverified iframe Play, Stremio stream/subtitles as distinct addon resources, direct OpenSubtitles/SubSource/SubDL separate, and D03=3A AniList-primary migration still planned and gated. Exact PR head 61533ca [CI](https://github.com/rzqllh/Yoru/actions/runs/41272281179) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41272281114) SUCCESS. No runtime changes in #134.
+- **PARTIAL/BLOCKED:** semantic detail page, later browse routes/filter combinations and playback returns, future AniList-only identity, approved provider/video/subtitle and real iPhone evidence, cloud #77/#78, latest production deployment/hosted health and public release #20 G1–G6. No production deployment, provider configuration, resolver, paid action or data migration performed.
+
+
 > **Updated:** 2026-11-01 Asia/Jakarta. **Verified main at this snapshot:** [`b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd`](https://github.com/rzqllh/Yoru/commit/b4f35bd46b1d8a6ce3ae66193488ddd7783d7edd). This is **repository state, not proof of live production deployment**. The latest main exact `b4f35bd` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41225040383) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41225040380) completed SUCCESS (four checks).
 
 ## Current vNext checkpoint — 2026-11-01
