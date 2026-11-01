@@ -177,7 +177,7 @@ function App(){
  const [selected,setSelected]=useState<Anime|null>(null)
  const [detailError,setDetailError]=useState('')
  const detailCache=useRef<Anime|null>(null)
- const detailReturn=useRef<{path:string;scroll:number;title:string;browseRoute?:RouteState}|null>(null)
+ const detailReturn=useRef<{path:string;scroll:number;title:string;browseRoute?:RouteState;guideRoute?:RouteState;guideOpener?:HTMLElement|null}|null>(null)
  const [playback,setPlayback]=useState<Playback|null>(null)
  const [toast,setToast]=useState('')
  const [mobileNav,setMobileNav]=useState(false)
@@ -225,7 +225,7 @@ function App(){
  },[])
 
  const openDetail=useCallback((anime:Anime)=>{
-  if(route.page!=='detail')detailReturn.current={path:window.location.pathname+window.location.search,scroll:window.scrollY,title:anime.title,browseRoute:route.page==='browse'?route:undefined}
+  if(route.page!=='detail')detailReturn.current={path:window.location.pathname+window.location.search,scroll:window.scrollY,title:anime.title,browseRoute:route.page==='browse'?route:undefined,guideRoute:route.page==='guide'?route:undefined,guideOpener:route.page==='guide'&&document.activeElement instanceof HTMLElement?document.activeElement:null}
   detailCache.current=anime
   setSelected(anime)
   setDetailError('')
@@ -265,7 +265,8 @@ function App(){
      // The original card unmounts on route transitions; restore focus to its new DOM instance.
      const matching=Array.from(document.querySelectorAll<HTMLButtonElement>('button[aria-label]'))
       .find(button=>button.getAttribute('aria-label')===`Buka ${snapshot.title}`)
-     matching?.focus({preventScroll:true})
+     if(snapshot.guideRoute&&snapshot.guideOpener?.isConnected) snapshot.guideOpener.focus({preventScroll:true})
+     else matching?.focus({preventScroll:true})
     })
     detailReturn.current=null
    }else window.scrollTo({top:0,behavior:'instant'})
@@ -369,6 +370,7 @@ function App(){
  // Keep the loaded Browse instance mounted behind a routed detail. Otherwise returning
  // from a later catalog page silently resets pagination to page one.
  const browseContext=route.page==='browse'?route:route.page==='detail'?detailReturn.current?.browseRoute:null
+ const guideContext=route.page==='guide'?route:route.page==='detail'?detailReturn.current?.guideRoute:null
  const breadcrumbs=useMemo(()=>getBreadcrumbs(route),[route])
  const closeWatch=()=>{
   const shouldRestoreDemo=Boolean(playback?.demo)
@@ -576,12 +578,12 @@ function App(){
      onOpen={openDetail}
     /></div>}
 
-    {route.page==='guide'&&<WatchGuide
-     malId={route.guideMalId??null}
+    {guideContext&&<div hidden={route.page!=='guide'}><WatchGuide
+     malId={guideContext.guideMalId??null}
      onPick={malId=>navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId:malId})}
      onBack={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''})}
      onOpenAnime={malId=>{void detail(malId).then(openDetail).catch(()=>setToast('Detail anime belum bisa dimuat'))}}
-    />}
+    /></div>}
 
     {route.page==='detail'&&!selected&&<div className="page-body"><Empty icon={detailError?WifiOff:LoaderCircle} title={detailError?'Detail belum tersedia':'Memuat detail anime…'} body={detailError||'Mengambil metadata untuk tautan anime ini.'} action={<button type="button" className="btn btn-outline" onClick={closeDetail}>Kembali ke Jelajahi</button>}/></div>}
 

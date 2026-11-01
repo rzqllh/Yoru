@@ -1145,3 +1145,49 @@ test('Phase 05 returning from detail preserves loaded browse pages, filters and 
  expect(browseRequests.length).toBe(requestsBeforeDetail)
  expect(await page.evaluate(()=>window.scrollY)).toBeGreaterThan(0)
 })
+
+test('D05 guide to detail to Back retains expanded graph, branch filter and focus',async({page})=>{
+ const base={
+  source:'AniList',sourceUrl:'https://anilist.co/anime/10',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:10,malId:1,title:'Guide Root',format:'TV',year:2024,month:1,relation:'CURRENT',image:null},
+   {aniListId:11,malId:2,title:'Guide Sequel',format:'TV',year:2025,month:1,relation:'SEQUEL',image:null}
+  ]
+ }
+ let guideCalls=0
+ await page.route('**/api/anime/1/watch-guide?depth=2',route=>{
+  guideCalls++
+  return route.fulfill({json:{...base,graph:{
+   status:'expanded',scannedDirect:1,directTotal:1,truncated:false,
+   note:'Peta dua tingkat terbatas',edges:[{from:10,to:11,relation:'SEQUEL'},{from:11,to:12,relation:'ALTERNATIVE'}],
+   nodes:[
+    {...base.items[0],distance:0,viaAniListId:null},
+    {...base.items[1],distance:1,viaAniListId:10},
+    {aniListId:12,malId:3,title:'Guide Alternative',format:'MOVIE',year:2022,month:1,
+     relation:'ALTERNATIVE',image:null,distance:2,viaAniListId:11}
+   ]
+  }}})
+ })
+ await page.route('**/api/anime/1/watch-guide',route=>{guideCalls++;return route.fulfill({json:base})})
+ await page.route('**/api/anime/3',route=>route.fulfill({json:{...anime,id:'mal:3',malId:3,title:'Guide Alternative'}}))
+ await page.route('**/api/anime/3/episodes?**',route=>route.fulfill({json:{items:[],page:1,hasNext:false}}))
+ await page.route('**/api/anime/3/provider-episodes',route=>route.fulfill({json:{items:[]}}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ await expect(page.getByRole('heading',{name:'Jaringan judul yang berhubungan'})).toBeVisible()
+ await page.getByRole('button',{name:/Perluas hubungan/}).click()
+ await expect(page.getByText('Guide Alternative',{exact:true})).toBeVisible()
+ await page.getByRole('button',{name:/Cabang cerita/}).click()
+ await expect(page.getByText('Guide Sequel',{exact:true})).toHaveCount(0)
+ const opener=page.locator('.guide-entries .guide-entry').filter({hasText:'Guide Alternative'}).getByRole('button',{name:'Buka'})
+ const requestsBefore=guideCalls
+ await opener.click()
+ await expect(page).toHaveURL(/\/anime\/3$/)
+ await expect(page.getByRole('dialog',{name:'Detail Guide Alternative'})).toBeVisible()
+ await page.getByRole('button',{name:'Tutup detail anime'}).click()
+ await expect(page).toHaveURL(/\/jelajahi\/panduan-urutan\?anime=1$/)
+ await expect(page.getByText('Guide Alternative',{exact:true})).toBeVisible()
+ await expect(page.getByRole('button',{name:/Cabang cerita/})).toHaveAttribute('aria-pressed','true')
+ await expect(page.getByText('Guide Sequel',{exact:true})).toHaveCount(0)
+ await expect(opener).toBeFocused()
+ expect(guideCalls).toBe(requestsBefore)
+})
