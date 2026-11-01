@@ -29,15 +29,15 @@ export function validateProviderConfig(input:unknown):ProviderConfig {
  const seenAnimeIds=new Set<number>()
  const anime=obj.anime.map(item=>{
   const a=record(item)
-  const malId=Number(a.malId)
-  if(!Number.isSafeInteger(malId)||malId<=0) throw new Error('Invalid MAL id')
+  const malId=a.malId
+  if(typeof malId!=='number'||!Number.isSafeInteger(malId)||malId<=0) throw new Error('Invalid MAL id')
   if(seenAnimeIds.has(malId))throw new Error('Duplicate MAL id')
   seenAnimeIds.add(malId)
   if(!Array.isArray(a.episodes)||a.episodes.length>2000) throw new Error('Invalid episodes')
   const seenEpisodeNumbers=new Set<number>()
   const episodes=a.episodes.map(item=>{
-   const ep=record(item);const number=Number(ep.number)
-   if(!Number.isSafeInteger(number)||number<1) throw new Error('Invalid episode number')
+   const ep=record(item);const number=ep.number
+   if(typeof number!=='number'||!Number.isSafeInteger(number)||number<1) throw new Error('Invalid episode number')
    if(seenEpisodeNumbers.has(number))throw new Error('Duplicate episode number')
    seenEpisodeNumbers.add(number)
    if(!Array.isArray(ep.streams)||ep.streams.length>20) throw new Error('Invalid streams')
@@ -46,7 +46,7 @@ export function validateProviderConfig(input:unknown):ProviderConfig {
     const format=stream.format
     const subtitleMode=stream.subtitleMode
     if(format!=='hls'&&format!=='mp4') throw new Error('Unsupported format')
-    if(!['hard','soft','unknown'].includes(String(subtitleMode))) throw new Error('Invalid subtitle mode')
+    if(subtitleMode!=='hard'&&subtitleMode!=='soft'&&subtitleMode!=='unknown') throw new Error('Invalid subtitle mode')
     if(!Array.isArray(stream.tracks)||stream.tracks.length>20) throw new Error('Invalid tracks')
     return {format,url:assertSafeMediaUrl(stream.url),subtitleMode:subtitleMode as Stream['subtitleMode'],
       quality:typeof stream.quality==='string'?stream.quality.slice(0,30):undefined,
