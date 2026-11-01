@@ -2,7 +2,7 @@
 
 | Requirement | Status | Evidence | Remaining |
 | --- | --- | --- | --- |
-| YX-02 candidate truthfulness / local demo fixture | CODE CHANGED; TEST NOT VERIFIED | `source-readiness.ts`, `source-readiness.test.mjs` | Exact PR-head Linux/Windows and Chromium/WebKit success |
+| YX-02 candidate truthfulness / local demo fixture | PR-HEAD TESTED; FINAL CLEANUP PENDING | `source-readiness.ts`, `source-readiness.test.mjs` | [CI #41265717025](https://github.com/rzqllh/Yoru/actions/runs/41265717025) SUCCESS 2/2; [browser #41265717032](https://github.com/rzqllh/Yoru/actions/runs/41265717032) SUCCESS 2/2 on `f9ac9b27`. Remove docs, rerun final-head workflows |
 | Previous PR #121 local provider identity | MERGED; MAIN TESTED | [PR #121](https://github.com/rzqllh/Yoru/pull/121), [main CI](https://github.com/rzqllh/Yoru/actions/runs/41265463762), [browser](https://github.com/rzqllh/Yoru/actions/runs/41265463730) | Real provider acceptance remains external |
 | External acceptance #77/#78/#20 | DEFERRED | Issue #44 and #78 | Owner-assisted OTP/RLS, live provider, iPhone, hosting and release gates |
 
