@@ -480,15 +480,16 @@ test('mobile has one visible navigation dock and resets scroll on page changes',
  await expect(page.getByRole('button',{name:/Musim berikutnya/})).toHaveCount(0)
 })
 
-test('watch page replaces catalog rather than opening a modal over its scroll',async({page})=>{
+test('watch page exclusively owns visible controls while preserving hidden catalog context',async({page})=>{
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
  const watch=page.getByRole('main',{name:'Layar tonton'})
  await expect(watch).toBeVisible()
  await expect(page.getByRole('dialog',{name:'Video player'})).toHaveCount(0)
- await expect(page.locator('.app-shell')).toHaveCount(0)
- await expect(page.locator('.mobile-bottom')).toHaveCount(0)
+ await expect(page.locator('.app-shell')).toHaveAttribute('hidden','')
+ await expect(page.locator('.app-shell')).toBeHidden()
+ await expect(page.locator('.mobile-bottom')).toBeHidden()
  await watch.getByRole('button',{name:'Kembali'}).click()
  await expect(page.locator('.app-shell')).toBeVisible()
 })
@@ -1190,4 +1191,78 @@ test('D05 guide to detail to Back retains expanded graph, branch filter and focu
  await expect(page.getByText('Guide Sequel',{exact:true})).toHaveCount(0)
  await expect(opener).toBeFocused()
  expect(guideCalls).toBe(requestsBefore)
+})
+
+test('Phase 05 player Back restores two loaded Browse pages without refetch',async({page})=>{
+ const browsePages=[]
+ const second={...anime,id:'mal:25',malId:25,title:'Page two playback anime'}
+ await page.route('**/api/anime/discover?**',route=>{
+  const pageNo=Number(new URL(route.request().url()).searchParams.get('page')||1)
+  browsePages.push(pageNo)
+  const items=pageNo===1
+   ?Array.from({length:24},(_,i)=>({...anime,id:'mal:'+(i+1),malId:i+1,title:'Browse page one '+(i+1)}))
+   :[second]
+  return route.fulfill({json:{items,page:pageNo,hasNext:pageNo===1}})
+ })
+ await page.route('**/api/anime/25',route=>route.fulfill({json:second}))
+ await page.route('**/api/anime/25/episodes?**',route=>route.fulfill({json:{items:[{...episode,id:'mal:25:1',animeId:'mal:25'}],page:1,hasNext:false}}))
+ await page.route('**/api/anime/25/provider-episodes',route=>route.fulfill({json:{items:[{...configured,id:'fixture:25:1',animeId:'mal:25'}]}}))
+ await page.goto('/jelajahi')
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(24)
+ await page.getByRole('button',{name:/Muat lebih banyak/}).click()
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(25)
+ const target=page.getByRole('button',{name:'Buka Page two playback anime'})
+ await target.scrollIntoViewIfNeeded()
+ await target.click()
+ await expect(page).toHaveURL(/\/anime\/25$/)
+ await page.getByRole('dialog',{name:'Detail Page two playback anime'}).locator('.episode-list .episode-row').first().click()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
+ await expect(page.locator('.app-shell[hidden]')).toHaveCount(1)
+ await expect(page.getByRole('dialog',{name:'Detail Page two playback anime'})).toHaveCount(0)
+ const requestsBeforeReturn=browsePages.length
+ await page.getByRole('main',{name:'Layar tonton'}).getByRole('button',{name:'Kembali'}).click()
+ await expect(page).toHaveURL(/\/jelajahi$/)
+ await expect(page.locator('.app-shell[hidden]')).toHaveCount(0)
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(25)
+ await expect(page.locator('.browse-results-header .results-label')).toHaveText('25 ditampilkan')
+ await expect(target).toBeFocused()
+ expect(browsePages.length).toBe(requestsBeforeReturn)
+})
+
+test('Phase 06 player Back preserves Watch Guide branch filter and expanded graph',async({page})=>{
+ const base={source:'AniList',sourceUrl:'https://anilist.co/anime/10',scope:'direct-relations',animeMalId:1,
+  items:[
+   {aniListId:10,malId:1,title:'Root',format:'TV',year:2024,month:1,relation:'CURRENT',image:null},
+   {aniListId:11,malId:2,title:'Sequel',format:'TV',year:2025,month:1,relation:'SEQUEL',image:null}
+  ]}
+ let guideCalls=0
+ await page.route('**/api/anime/1/watch-guide?depth=2',route=>{
+  guideCalls++
+  return route.fulfill({json:{...base,graph:{status:'expanded',scannedDirect:1,directTotal:1,truncated:false,
+   note:'Dua tingkat terbatas',edges:[{from:10,to:11,relation:'SEQUEL'},{from:11,to:12,relation:'ALTERNATIVE'}],
+   nodes:[{...base.items[0],distance:0,viaAniListId:null},{...base.items[1],distance:1,viaAniListId:10},
+    {aniListId:12,malId:3,title:'Guide playable alternative',format:'MOVIE',year:2022,month:1,relation:'ALTERNATIVE',image:null,distance:2,viaAniListId:11}]}}})
+ })
+ await page.route('**/api/anime/1/watch-guide',route=>{guideCalls++;return route.fulfill({json:base})})
+ const alternative={...anime,id:'mal:3',malId:3,title:'Guide playable alternative'}
+ await page.route('**/api/anime/3',route=>route.fulfill({json:alternative}))
+ await page.route('**/api/anime/3/episodes?**',route=>route.fulfill({json:{items:[{...episode,id:'mal:3:1',animeId:'mal:3'}],page:1,hasNext:false}}))
+ await page.route('**/api/anime/3/provider-episodes',route=>route.fulfill({json:{items:[{...configured,id:'fixture:3:1',animeId:'mal:3'}]}}))
+ await page.goto('/jelajahi/panduan-urutan?anime=1')
+ await expect(page.getByRole('heading',{name:'Jaringan judul yang berhubungan'})).toBeVisible()
+ await page.getByRole('button',{name:/Perluas hubungan/}).click()
+ await expect(page.getByText('Guide playable alternative',{exact:true})).toBeVisible()
+ await page.getByRole('button',{name:/Cabang cerita/}).click()
+ const opener=page.locator('.guide-entries .guide-entry').filter({hasText:'Guide playable alternative'}).getByRole('button',{name:'Buka'})
+ await opener.click()
+ await expect(page).toHaveURL(/\/anime\/3$/)
+ await page.getByRole('dialog',{name:'Detail Guide playable alternative'}).locator('.episode-list .episode-row').first().click()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
+ const requestsBeforeReturn=guideCalls
+ await page.getByRole('main',{name:'Layar tonton'}).getByRole('button',{name:'Kembali'}).click()
+ await expect(page).toHaveURL(/\/jelajahi\/panduan-urutan\?anime=1$/)
+ await expect(page.getByText('Guide playable alternative',{exact:true})).toBeVisible()
+ await expect(page.getByRole('button',{name:/Cabang cerita/})).toHaveAttribute('aria-pressed','true')
+ await expect(opener).toBeFocused()
+ expect(guideCalls).toBe(requestsBeforeReturn)
 })

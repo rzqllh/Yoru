@@ -376,12 +376,13 @@ function App(){
   const shouldRestoreDemo=Boolean(playback?.demo)
   setPlayback(null)
   if(route.page==='detail')closeDetail()
-  window.scrollTo({top:0,behavior:'instant'})
+  else window.scrollTo({top:0,behavior:'instant'})
   if(shouldRestoreDemo)window.requestAnimationFrame(()=>{
    document.querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')?.focus()
   })
  }
- if(playback)return <Player
+ return <>
+ {playback&&<Player
   key={`${playback.anime?.id||'demo'}:${playback.episode}:${playback.stream.url}`}
   anime={playback.anime}
   episode={playback.episode}
@@ -392,9 +393,9 @@ function App(){
   onContinueNext={continueNext}
   onRecoverSource={recoverSource}
   onClose={closeWatch}
- />
+ />}
 
- return <div className="app-shell">
+ <div className="app-shell" hidden={Boolean(playback)}>
   <aside className={`sidebar ${mobileNav?'is-open':''}`}>
    <div className="sidebar-brand">
     <AppLogo/>
@@ -632,7 +633,7 @@ function App(){
    </button>)}
   </nav>
 
-  {route.page==='detail'&&selected&&<DetailDialog
+  {!playback&&route.page==='detail'&&selected&&<DetailDialog
    anime={selected}
    isSaved={library.some(e=>e.anime.id===selected.id)}
    onClose={closeDetail}
@@ -643,6 +644,7 @@ function App(){
 
   {toast&&<div role="status" className="toast"><Check size={16}/>{toast}</div>}
  </div>
+ </>
 }
 
 function Browse({
