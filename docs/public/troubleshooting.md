@@ -19,7 +19,7 @@ Check browser network diagnostics for `/api/anime/*` failures. External metadata
 - Confirm the exact season/episode mapping and whether the candidate is directly HTTPS HLS/MP4.
 - Check browser console/network for CORS, codec, MIME, certificate, expired signatures, missing HLS segments or blocked redirects.
 - If an addon returns only `infoHash`, it is torrent metadata and cannot be passed as an MP4/HLS URL.
-- External iframe success cannot be inferred from the existence of an embed URL. Fallback must stay opt-in.
+- External iframe success cannot be inferred from the existence of an embed URL. Yoru excludes unverified iframe fallback from playable source choices under D02.
 
 ## Subtitles missing, styled incorrectly or out of sync
 
