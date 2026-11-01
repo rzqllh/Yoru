@@ -114,6 +114,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   display: flex;
 }
 
+/* Preserve mounted route state during native playback without exposing background controls. */
+.app-shell[hidden] {
+  display: none;
+}
+
+
 /* Sidebar */
 .sidebar {
   position: fixed;
