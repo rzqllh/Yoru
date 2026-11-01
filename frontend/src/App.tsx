@@ -692,7 +692,7 @@ function Browse({
  const filteredItems=uniqueItems
  const years=Array.from({length:new Date().getFullYear()+2-1950+1},(_,index)=>new Date().getFullYear()+2-index)
 
- return <div className="page-body">
+ return <div className="page-body browse-page">
   <div className="page-intro">
    <div>
     <h1>{kind==='upcoming'?'Akan Datang':'Jelajahi'}</h1>
