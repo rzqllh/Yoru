@@ -77,7 +77,7 @@ test('browse URL discards unsupported filters and malformed scores/years rather 
  assert.equal(routeToPath(route),'/jelajahi/akan-datang?q=test')
 })
 test('browse minimum score accepts only one canonical decimal choice',()=>{
- for(const score of ['8e0','0x8','08','+8','8.0',' 8 ','8\\n','Infinity']){
+ for(const score of ['8e0','0x8','08','+8','8.0',' 8 ','8\n','Infinity']){
   const route=parseRoute('/jelajahi/populer','minScore='+encodeURIComponent(score))
   assert.equal(route.browseFilters.minimumScore,0,score)
   assert.equal(routeToPath(route),'/jelajahi/populer')
