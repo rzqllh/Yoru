@@ -177,7 +177,7 @@ function App(){
  const [selected,setSelected]=useState<Anime|null>(null)
  const [detailError,setDetailError]=useState('')
  const detailCache=useRef<Anime|null>(null)
- const detailReturn=useRef<{path:string;scroll:number;title:string}|null>(null)
+ const detailReturn=useRef<{path:string;scroll:number;title:string;browseRoute?:RouteState}|null>(null)
  const [playback,setPlayback]=useState<Playback|null>(null)
  const [toast,setToast]=useState('')
  const [mobileNav,setMobileNav]=useState(false)
@@ -225,7 +225,7 @@ function App(){
  },[])
 
  const openDetail=useCallback((anime:Anime)=>{
-  if(route.page!=='detail')detailReturn.current={path:window.location.pathname+window.location.search,scroll:window.scrollY,title:anime.title}
+  if(route.page!=='detail')detailReturn.current={path:window.location.pathname+window.location.search,scroll:window.scrollY,title:anime.title,browseRoute:route.page==='browse'?route:undefined}
   detailCache.current=anime
   setSelected(anime)
   setDetailError('')
@@ -366,6 +366,9 @@ function App(){
   }
  }
 
+ // Keep the loaded Browse instance mounted behind a routed detail. Otherwise returning
+ // from a later catalog page silently resets pagination to page one.
+ const browseContext=route.page==='browse'?route:route.page==='detail'?detailReturn.current?.browseRoute:null
  const breadcrumbs=useMemo(()=>getBreadcrumbs(route),[route])
  const closeWatch=()=>{
   const shouldRestoreDemo=Boolean(playback?.demo)
@@ -561,17 +564,17 @@ function App(){
      </Section>
     </>}
 
-    {route.page==='browse'&&<Browse
+    {browseContext&&<div hidden={route.page!=='browse'}><Browse
      onGuide={()=>navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:''})}
      searchInputRef={searchInputRef}
-     kind={route.browseKind}
-     query={route.searchQuery}
-     filters={route.browseFilters??EMPTY_BROWSE_FILTERS}
-     onTabChange={kind=>navigateState({...route,page:'browse',browseKind:kind,searchQuery:'',shortcut:undefined})}
-     onQueryChange={q=>navigateState({...route,page:'browse',searchQuery:q},true)}
-     onFiltersChange={filters=>navigateState({...route,page:'browse',browseFilters:filters},false,true)}
+     kind={browseContext.browseKind}
+     query={browseContext.searchQuery}
+     filters={browseContext.browseFilters??EMPTY_BROWSE_FILTERS}
+     onTabChange={kind=>navigateState({...browseContext,page:'browse',browseKind:kind,searchQuery:'',shortcut:undefined})}
+     onQueryChange={q=>navigateState({...browseContext,page:'browse',searchQuery:q},true)}
+     onFiltersChange={filters=>navigateState({...browseContext,page:'browse',browseFilters:filters},false,true)}
      onOpen={openDetail}
-    />}
+    /></div>}
 
     {route.page==='guide'&&<WatchGuide
      malId={route.guideMalId??null}
