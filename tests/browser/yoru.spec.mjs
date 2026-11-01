@@ -59,7 +59,7 @@ test('collection sort choice is accessible and persists through reload',async({p
 })
 test('desktop: catalog, search, detail, library and playback with Indonesian VTT',async({page})=>{
  await page.goto('/')
- await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)/})).toBeVisible()
+ await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)$/})).toBeVisible()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toBeVisible()
@@ -74,7 +74,7 @@ test('desktop: catalog, search, detail, library and playback with Indonesian VTT
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await page.reload()
- await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)/})).toBeVisible()
+ await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)$/})).toBeVisible()
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
 })
@@ -1424,4 +1424,72 @@ test('Phase 05 browser history Back dismisses player and restores Browse context
  await expect(page.locator('.app-shell[hidden]')).toHaveCount(0)
  await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toHaveCount(0)
  await expect(opener).toBeFocused()
+})
+
+test('AC-DETAIL-04: detail primary CTA resumes saved episode when active progress exists',async({page})=>{
+ const secondEp={...episode,id:'mal:1:2',number:2,title:'Episode 2'}
+ const secondConfig={...configured,id:'fixture:1:2',number:2,title:'Episode 2'}
+ await page.route('**/api/anime/1/episodes?**',async route=>route.fulfill({json:{items:[episode,secondEp],page:1,hasNext:false}}))
+ await page.route('**/api/anime/1/provider-episodes',async route=>route.fulfill({json:{items:[configured,secondConfig]}}))
+ await page.goto('/')
+ await page.evaluate(async()=>{
+  const request=indexedDB.open('yoru-local-v1',2)
+  await new Promise((resolve,reject)=>{
+   request.onupgradeneeded=()=>{
+    const db=request.result
+    if(!db.objectStoreNames.contains('library'))db.createObjectStore('library',{keyPath:'anime.id'})
+    if(!db.objectStoreNames.contains('progress'))db.createObjectStore('progress',{keyPath:'anime.id'})
+    if(!db.objectStoreNames.contains('preferences'))db.createObjectStore('preferences',{keyPath:'key'})
+   }
+   request.onsuccess=()=>{
+    const db=request.result
+    const tx=db.transaction('progress','readwrite')
+    tx.objectStore('progress').put({
+     anime:{
+      id:'mal:1',malId:1,title:'Yoru Test Anime',englishTitle:null,japaneseTitle:null,
+      poster:null,cover:null,synopsis:'Test synopsis',score:8.5,episodes:12,
+      year:2024,status:'Currently Airing',type:'TV',rating:'PG-13',
+      genres:['Action'],studios:['Test Studio'],trailerYoutubeId:null
+     },
+     episode:2,
+     seconds:350,
+     duration:1400,
+     updatedAt:Date.now()
+    })
+    tx.oncomplete=()=>{db.close();resolve()}
+    tx.onerror=()=>{db.close();reject(tx.error)}
+   }
+   request.onerror=()=>reject(request.error)
+  })
+ })
+ await page.reload()
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog).toBeVisible()
+ await expect(dialog.getByRole('button',{name:/Lanjutkan Episode 2/})).toBeVisible()
+ const ep2Row=dialog.locator('.episode-list .episode-row').filter({hasText:/Episode 2/})
+ await expect(ep2Row).toBeVisible()
+ await expect(ep2Row.locator('.progress-track')).toBeVisible()
+ await dialog.getByRole('button',{name:/Lanjutkan Episode 2/}).click()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
+ await expect(page.getByText(/Episode 2/)).toBeVisible()
+ await expect(page).toHaveTitle(/Episode 2 · Yoru Test Anime · yoru\./)
+})
+
+test('AC-DETAIL-04: detail primary CTA defaults to Episode 1 without prior progress',async({page})=>{
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog).toBeVisible()
+ await expect(dialog.getByRole('button',{name:'Periksa sumber episode'})).toBeVisible()
+ await expect(page).toHaveTitle(/Yoru Test Anime · yoru\./)
+})
+
+test('dynamic document.title updates across client navigation',async({page})=>{
+ await page.goto('/')
+ await expect(page).toHaveTitle('yoru. — Anime, your way.')
+ await page.locator('.main-nav').getByRole('button',{name:'Jelajahi'}).click()
+ await expect(page).toHaveTitle('Jelajahi · yoru.')
+ await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
+ await expect(page).toHaveTitle('Koleksi · yoru.')
 })
