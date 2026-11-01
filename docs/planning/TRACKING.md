@@ -146,3 +146,9 @@ Keep #44/#20/#78 synced to verifiable outcome, not aspirational completion.
 ### 2026-11-01 — Y04 merged API + UI status
 
 - **MERGED:** #116 `ae43a69` genre-option API + safe fallback; #117 `4157fec` dynamic source-backed MAL genre UI/router/server filters. #117 PR head `f9982aa` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41244901215) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41244896643) SUCCESS. Exact merged-main [CI](https://github.com/rzqllh/Yoru/actions/runs/41245111173) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41245111417) initiated, pending final conclusion at time of checkpoint. **AC-DATA-05/06 PARTIAL**: live provider and AniList taxonomy/tags not accepted. Production unchanged and #20 NO-GO.
+
+
+### 2026-11-01 — New execution checkpoint, Phase 04 D08
+
+- **CODED, AWAITING CI:** [PR #123](https://github.com/rzqllh/Yoru/pull/123) separates `/jelajahi/akan-datang` as destination instead of third browse category tab, with a return CTA and mobile URL/reload browser regression. This implements only D08 discovery hierarchy slice; main, production, providers, Supabase remain unchanged until reviewed merge. Exact SHA and CI/browser URLs must be recorded after verification. AC-DATA-09 PARTIAL, NOT DONE pending evidence.
+- **Current verified baseline:** `main` `50d80ed4f0ee4550f7175c72346d5a121f9d389e`, prior merged PR #122. [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41266056770) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41266056746) SUCCESS. Production remains older READY deployment `5496aae` according to last Vercel project inspection; live `/api/health` and `/api/anime/discover` remain UNKNOWN (no HTTP response from available web probe).
