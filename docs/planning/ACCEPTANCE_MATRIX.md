@@ -212,3 +212,10 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
 | --- | --- | --- | --- |
 | AC-DATA-09 / D08 navigation | PR #123 `2bda841`, main `84807c8` | **PASS deterministic browser navigation slice / PHASE PARTIAL** | [PR CI](https://github.com/rzqllh/Yoru/actions/runs/41266399249), [PR Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41266399337), [main CI](https://github.com/rzqllh/Yoru/actions/runs/41266563101), [main browser](https://github.com/rzqllh/Yoru/actions/runs/41266563069) SUCCESS. Two tabs, separate Akan Datang CTA, mobile reload/return and overflow regression. Full design-system/physical iPhone not checked. |
 | AC-DETAIL-03 / no fabricated Episode 1 | PR #124 `5643b43`, main `ce12d98` | **PASS PR fixture negative case / PHASE PARTIAL** | [PR CI](https://github.com/rzqllh/Yoru/actions/runs/41266656368) and [PR browser](https://github.com/rzqllh/Yoru/actions/runs/41266656388) SUCCESS. When metadata and provider lists are empty, primary CTA disabled, no episode/source request. Full-page D04/direct link, live provider and physical Safari NOT RUN. Main `ce12d98` checks must be separately confirmed. |
+
+### 2026-11-01 — Alias-normalization fixture checkpoint
+
+| Contract | Exact evidence | Status | Scope and exclusions |
+| --- | --- | --- | --- |
+| AC-SUB-01/02, AC-VN-05/06 (Stremio language identity) | [PR #128](https://github.com/rzqllh/Yoru/pull/128) head `454f90f`: [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41267363857), [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41267363890) SUCCESS; merged main `659265f` | **PASS deterministic alias fixtures only / LIVE NOT RUN** | Embedded and addon subtitle language `id/ind/id-ID` and `en/eng/en-US` recognized. No English without consent, no live subtitle file evidence, physical iPhone NOT RUN. |
+| AC-VN-05/06 (direct provider aliases) | [PR #129](https://github.com/rzqllh/Yoru/pull/129), branch fixture tests pending exact CI | **CODED / NOT ACCEPTED** | OpenSubtitles/SubDL/SubSource responses; do not count as actual API integration or season match. |
