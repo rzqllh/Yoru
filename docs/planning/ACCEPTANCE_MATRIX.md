@@ -173,3 +173,10 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 | AC-DATA-05/06 numeric MAL filter integration | PR #117 code head `9fa0143` | **PASS (deterministic fixtures only), PHASE PARTIAL** | [CI](https://github.com/rzqllh/Yoru/actions/runs/41244704532) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41244698662) SUCCESS. Verified combined pagination/query server mapping, invalid/adult fail-closed, URL reload, legacy names and fallback. Actual Tenrai/AniList live, full tags, WebKit physical device and release NOT RUN. |
 
 | AC-DATA-05/06 merged MAL genre filter feature | PR #116 main `ae43a69`, PR #117 main `4157fec` | **PASS deterministic / PARTIAL overall** | #117 PR head [CI](https://github.com/rzqllh/Yoru/actions/runs/41244901215) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41244896643) SUCCESS. Exact main [CI](https://github.com/rzqllh/Yoru/actions/runs/41245111173) + [Browser](https://github.com/rzqllh/Yoru/actions/runs/41245111417) pending conclusion. Live upstream genre list, real pagination+429, AniList tags, physical iPhone and release NOT RUN. |
+
+
+### 2026-11-01 — Phase 04 D08 pending verification
+
+| Case | Scope / procedure | Status | Evidence / limitation |
+| --- | --- | --- | --- |
+| AC-DATA-09 / D08 | Browse `/jelajahi`: two category tabs; dedicated `Akan Datang` CTA opens `/jelajahi/akan-datang`, reload preserves destination and return action leads to Browse; separate Watch Guide CTA persists | **CODED IN PR #123 / NOT YET VERIFIED** | [PR #123](https://github.com/rzqllh/Yoru/pull/123) browser regression added; inspect exact-head Chromium/WebKit result. This checks hierarchy/navigation only, not broader design-system/a11y or physical iPhone evidence. |
