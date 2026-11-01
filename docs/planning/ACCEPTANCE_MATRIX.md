@@ -249,3 +249,9 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
 | AC-DETAIL-02 / AC-VN-13 player-to-Browse Back | [#139](https://github.com/rzqllh/Yoru/pull/139), head 48c07be, main 8e931bb, [CI](https://github.com/rzqllh/Yoru/actions/runs/41274184023) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41274184006) SUCCESS | PASS deterministic native fixture / PHASE PARTIAL | 25 results retained, focus restored, no catalog refetch; real provider/physical iPhone not run. |
 | AC-GUIDE-02 / AC-VN-13 player-to-Guide Back | Same #139 CI/browser | PASS deterministic relation fixture / PHASE PARTIAL | Two-hop guide branch filter and graph retained; opener focus, no graph refetch. Live provider, story order and iPhone not run. |
 | Player exclusivity regression | [first browser FAIL](https://github.com/rzqllh/Yoru/actions/runs/41273993615), [corrected browser SUCCESS](https://github.com/rzqllh/Yoru/actions/runs/41274184006) | PASS after test update | Background DOM remains mounted but is HTML-hidden, non-visible and noninteractive; legacy absent-DOM requirement superseded. |
+
+
+## 2026-11-01 — Pending AC-DETAIL-02 expanded browser evidence
+
+- [Draft PR #142](https://github.com/rzqllh/Yoru/pull/142) code `b2d0f88`: deterministic combined genre/type/minScore/year/order + page-two Browse → detail → native player → Back regression authored. Expected: all filter values, 25 loaded results, original canonical URL, scroll, focus, unchanged API request count. **Result: NOT RUN/PENDING until exact-head Chromium/WebKit CI returns**, then record SHA/run/result; not a substitute for live provider/iPhone acceptance. Phase 05 remains PARTIAL.
+

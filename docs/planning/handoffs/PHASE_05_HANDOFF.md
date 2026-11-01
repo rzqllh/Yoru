@@ -115,3 +115,10 @@ frontend/src/App.tsx, frontend/src/lib/router.ts, frontend/src/styles.css, front
 - [PR #139](https://github.com/rzqllh/Yoru/pull/139) merged main 8e931bb7a6a7dbd0754829fe13425d9955c5480e. Keep Browse and app shell mounted but HTML-hidden while player owns visible controls. Close from detail restores browser history and previously loaded catalog instead of forcing scroll-to-top.
 - Exact PR head 48c07be: [CI](https://github.com/rzqllh/Yoru/actions/runs/41274184023) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41274184006) SUCCESS. One initial [browser FAIL](https://github.com/rzqllh/Yoru/actions/runs/41273993615) expected .app-shell removed; updated assertion now requires a hidden background. Fixture loads 25 titles across pages, opens native sample playback, returns with unchanged list, opener focus and no extra catalog fetch.
 - AC-DETAIL-02 / AC-VN-13 PASS deterministic fixture only; Phase 05 PARTIAL. True semantic detail page, live providers and physical iPhone NOT RUN.
+
+
+## 2026-11-01 — Phase 05 filtered Browse → Player → Back QA slice (#142)
+
+- [Draft PR #142](https://github.com/rzqllh/Yoru/pull/142) code `b2d0f88` adds an automated Chromium/WebKit browser fixture starting at `/jelajahi?genre=Action&type=TV&minScore=8&year=2025&order=rating`, loading page two, playing a native test fixture and returning. It checks preserved URL, all five filters, 25 results, scroll, focus and zero redundant requests.
+- **NOT YET PASS:** exact final-head browser and Linux/Windows CI pending; no physical Safari or live authorized provider. Existing #139 merged behavior was verified on its own head/main previously. No runtime, Vercel, auth, API, schema or release changes. AC-DETAIL-02/AC-GUIDE-04 coverage only, not phase signoff.
+
