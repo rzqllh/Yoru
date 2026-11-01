@@ -1,5 +1,12 @@
 # Yoru — Acceptance Matrix and Evidence Templates
 
+### 2026-11-01 — AC-DETAIL-05 incremental evidence (#147)
+
+- Fixture: one MAL detail, five synthetic episode pages representing 100 rows; second-page HTTP held, one duplicated boundary entry; verify only one request per page, visible busy state, unique sorted rows 1–100, and final no-more-pages. Separate fixture: page-two 503 followed by wrong page cursor, then successful retry without losing first-page rows.
+- Code/test head `91fb3d4`: [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41282282090) and [Chromium/WebKit E2E](https://github.com/rzqllh/Yoru/actions/runs/41282282063) **SUCCESS** (four jobs). Result: **PASS on deterministic pagination/browser fixture only**. Docs-final head and merged-main checks must be verified independently.
+- Still **NOT RUN**: physical Safari iPhone, device orientation/safe area with long metadata, actual upstream 100-episode catalog and authorized video availability. This does not sign off full AC-DETAIL-05 or release G1–G6.
+
+
 > vNext owner contract update 2026-11-01; source baseline main `ce12d98`. Older 3B acceptance records are historical. D03=3A; new cases below NOT RUN until exact-SHA/device/provider evidence.
 
 ## Evidence contract
