@@ -9,3 +9,8 @@
 | Exact PR-head Chromium/WebKit | NOT RUN / PENDING | GitHub Actions after PR |
 | Evidence moved to PR/#44 and temporary docs removed | NOT YET | Mandatory before merge |
 | Live addon/provider, iPhone, OTP/RLS, production, release | DEFERRED | #78 and #20; no live claims |
+
+## QA checkpoint (initial PR head)
+- Initial PR head `39e76877c7998753e52b7d051ae243f0ca516ced`: [CI](https://github.com/rzqllh/Yoru/actions/runs/41269576006) SUCCESS 2/2; [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41269576041) SUCCESS 2/2.
+- Code and fixture regression **TESTED on initial head**. Cleanup final SHA and merged-main tests remain **NOT RUN**.
+- Transfer PR/issue evidence, remove handoff directory, and recheck exact final SHA before merge.
