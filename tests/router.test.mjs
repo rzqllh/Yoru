@@ -76,6 +76,20 @@ test('browse URL discards unsupported filters and malformed scores/years rather 
  assert.deepEqual(route.browseFilters,{genre:'',format:'',minimumScore:0,year:'',order:'default'})
  assert.equal(routeToPath(route),'/jelajahi/akan-datang?q=test')
 })
+test('browse minimum score accepts only one canonical decimal choice',()=>{
+ for(const score of ['8e0','0x8','08','+8','8.0',' 8 ','8\\n','Infinity']){
+  const route=parseRoute('/jelajahi/populer','minScore='+encodeURIComponent(score))
+  assert.equal(route.browseFilters.minimumScore,0,score)
+  assert.equal(routeToPath(route),'/jelajahi/populer')
+ }
+ const duplicate=parseRoute('/jelajahi','minScore=7&minScore=8')
+ assert.equal(duplicate.browseFilters.minimumScore,0)
+ for(const score of [7,8,9]){
+  const route=parseRoute('/jelajahi/populer','minScore='+score)
+  assert.equal(route.browseFilters.minimumScore,score)
+  assert.equal(routeToPath(route),'/jelajahi/populer?minScore='+score)
+ }
+})
 test('historical year filter and canonical season shortcut survive reload',()=>{
  const route=parseRoute('/jelajahi/musim-ini','genre=Drama&year=1965')
  assert.equal(route.browseFilters.year,'1965')
