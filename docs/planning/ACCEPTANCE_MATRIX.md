@@ -1,6 +1,6 @@
 # Yoru — Acceptance Matrix and Evidence Templates
 
-> Baseline 2026-10-31, `main 2b6c1d4`. **All newly proposed UX requirements are NOT RUN**. Historical code/CI is not automatic PASS for new requirements.
+> vNext owner contract update 2026-11-01; source baseline main `ce12d98`. Older 3B acceptance records are historical. D03=3A; new cases below NOT RUN until exact-SHA/device/provider evidence.
 
 ## Evidence contract
 
@@ -180,6 +180,31 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 | Case | Scope / procedure | Status | Evidence / limitation |
 | --- | --- | --- | --- |
 | AC-DATA-09 / D08 | Browse `/jelajahi`: two category tabs; dedicated `Akan Datang` CTA opens `/jelajahi/akan-datang`, reload preserves destination and return action leads to Browse; separate Watch Guide CTA persists | **CODED IN PR #123 / NOT YET VERIFIED** | [PR #123](https://github.com/rzqllh/Yoru/pull/123) browser regression added; inspect exact-head Chromium/WebKit result. This checks hierarchy/navigation only, not broader design-system/a11y or physical iPhone evidence. |
+
+## New 2026-11-01 D03=3A + Stremio/Torrentio acceptance delta
+
+All rows are **NOT RUN** for this docs-only update. Historical CI/fixture PASS does not certify these new contracts. Each run must record exact SHA, environment, actor, real/fixture media identity, expected vs observed, timestamp and sanitized evidence.
+
+| ID | Phase | Scenario | Required PASS | Status |
+| --- | --- | --- | --- | --- |
+| AC-VN-01 | 01 | Addon manifest advertises stream-only, subtitles-only or both | Query only declared `stream`/`subtitles` resources; direct subtitle APIs stay independent | NOT RUN |
+| AC-VN-02 | 01 | Torrentio-compatible URL, infoHash/fileIdx, externalUrl, malformed/unsafe endpoints | Only safe verified HLS/MP4 can be Play-ready; torrent/external remain unavailable; no torrent resolver invoked | NOT RUN |
+| AC-VN-03 | 01 | Mismatched anime/season/cour/episode and stale candidates | Reject/label unavailable; never silently substitute source or claim Play-ready | NOT RUN |
+| AC-VN-04 | 01 | Only uncontrolled embed or fixed hard-sub source | D02 ineligible for Play; truthful unavailable/retry | NOT RUN |
+| AC-VN-05 | 02 | Real OpenSubtitles/SubSource/SubDL APIs and separate Stremio subtitle addon | Backend-only secrets, independently validated media ID, signed bounded downloads and error reporting | NOT RUN |
+| AC-VN-06 | 02 | Indonesian, English-only, Off, reload/source change | Indonesian first; English only with explicit consent; Off persisted | NOT RUN |
+| AC-VN-07 | 02 | Physically test Safari font 90%, outline, background, fullscreen/landscape | Native subtitle legible, no UI collision, unsupported controls hidden | NOT RUN |
+| AC-VN-08 | 04 | AniList Media.id to nullable idMal mapping, duplicate titles | No title-only merge; old MAL routes, provider refs and backups preserved | NOT RUN |
+| AC-VN-09 | 04 | AniList GenreCollection/tags and combined filters across pages | Real supported taxonomy, server filters and truthful loaded count | NOT RUN |
+| AC-VN-10 | 04 | AniList 429, Terms, cache/provenance and outage | Usage eligibility and throttling verified; no falsely relabeled data | NOT RUN |
+| AC-VN-11 | 03 | Hero 8s rotation, hover/focus/swipe/reduced motion and keyboard | No numeric nav, accessible pause/navigation, no touch-scroll hijack | NOT RUN |
+| AC-VN-12 | 03/04 | Anime Popular, filter components, upcoming/guide destinations | Mobile 2-column 2:3 posters, no badge overlap; consistent spacing and correct routes | NOT RUN |
+| AC-VN-13 | 05 | Open detail mobile link direct/reload/Back and AniList-only identity | Full-page route, preserved query/scroll, old URL compatibility | NOT RUN |
+| AC-VN-14 | 05/06 | Resume / source / watch-guide return flows | Verified episode CTA, source status truthful, guide sources and branches clear | NOT RUN |
+| AC-VN-15 | 07 | Legacy IndexedDB, backup v1, optional cloud snapshot and ID migration | Versioned reversible data transform; no loss, cross-account leakage or secrets | NOT RUN |
+| AC-VN-16 | 08/09 | Authorized real video and subtitle providers, iPhone and production release gate | Actual exact-SHA device and provider evidence plus #20 G1–G6 and explicit owner GO | NOT RUN |
+
+Torrent-only playback/resolver requires separate architecture, rights, safety, hosting and owner approval. Never treat manifest availability, a bitrate label, metadata, fixtures or Vercel READY as live decoded playback.
 
 ### 2026-11-01 — Post-merge contract evidence for phases 04 and 05
 
