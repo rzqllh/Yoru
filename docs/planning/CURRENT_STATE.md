@@ -1,5 +1,16 @@
 # Yoru — Current State & New-Chat Recovery
 
+### 2026-11-01 — Recovered player-return QA and browser navigation integrated
+
+- **Verified repository snapshot:** `main c3f5af0996d5ebfff16c6280230c2de9142f53dd`, after merged [#141](https://github.com/rzqllh/Yoru/pull/141), [#142](https://github.com/rzqllh/Yoru/pull/142), [#143](https://github.com/rzqllh/Yoru/pull/143) and [#144](https://github.com/rzqllh/Yoru/pull/144). This is GitHub code, **not** the live Vercel production SHA.
+- #141 canonical minimum-score URL handling, merged `da70a298`. PR head `d7f8df7` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275437997) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275438058) **SUCCESS**.
+- #142 filtered Browse page-two → detail → native player → Back regression, merged `f16e8aee`. PR head `8bff196` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275620079) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275620076) **SUCCESS**; checks URL, genre/type/score/year/order, 25 loaded cards, scroll/focus and no redundant request.
+- #143 Escape mirrors player Back route restoration, merged `f9872fa4`. PR head `1d77519` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275780152) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275780150) **SUCCESS**.
+- #144 browser history Back dismisses active playback, merged `c3f5af09`. PR head `1ebf97d` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275880037) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275880052) **SUCCESS**.
+- **Still PARTIAL:** these are deterministic browser fixtures. Full semantic document-page detail, physical iPhone Safari/PWA, live authorized HLS/MP4/provider/subtitle tests, AniList ToU clearance, cloud #77/#78 and production/release #20 require independent evidence. Exact combined `main c3f5af0` [CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41276006069) **PENDING at this checkpoint**. No deployment/paid action.
+
+
+
 ### 2026-11-01 — Combined-filter playback-return regression (#142; verification pending)
 
 - [Draft PR #142](https://github.com/rzqllh/Yoru/pull/142), code commit `b2d0f88`: adds browser regression for canonical combined genre/type/minScore/year/order, page-two 25-card state, open detail → native player → Back, original URL, scroll, focus and no redundant filtered-catalog request. Baseline main `005aee1` CI and Browser E2E previously SUCCESS; **new PR-head checks NOT YET VERIFIED**. No runtime code or production changes.
@@ -173,3 +184,5 @@ At `b4f35bd`, PRs #107, #106 and #108 have merged. Exact main `b4f35bd` [Linux/W
 
 - [#131](https://github.com/rzqllh/Yoru/pull/131) **MERGED** to `main` at [`fb66e65962586eab34bc9b9591278b1e7add5c8d`](https://github.com/rzqllh/Yoru/commit/fb66e65962586eab34bc9b9591278b1e7add5c8d): canonical MAL detail route, card/guide/library navigation, Back/Forward and return-focus repair, and mobile viewport visual slice. Final PR head `507c7f4` [CI](https://github.com/rzqllh/Yoru/actions/runs/41271498685) + [browser Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41271498630) SUCCESS; older browser regression failure preserved in Phase 05 handoff. Exact main SHA [CI](https://github.com/rzqllh/Yoru/actions/runs/41271664626) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41271664619) were **in progress at this checkpoint**, not yet credited as PASS.
 - **Phase 05 still PARTIAL**: true semantic mobile detail page, retaining multi-page catalog state across navigation, AniList-only distinct route and physical device remain incomplete. D03=3A migration and #20 public release still separately gated. No Vercel production deployment.
+
+- **Final merged-main verification:** `c3f5af0996d5ebfff16c6280230c2de9142f53dd` [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) and [Chromium/WebKit Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41276006069) both **SUCCESS** (4/4 jobs). Earlier PENDING statements describe the original snapshot only; no physical device or live media acceptance is implied.
