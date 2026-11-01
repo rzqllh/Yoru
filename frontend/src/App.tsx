@@ -695,10 +695,15 @@ function Browse({
  return <div className="page-body">
   <div className="page-intro">
    <div>
-    <h1>Jelajahi</h1>
-    <p>Cari judul favoritmu, pilih genre, atau urutkan sesuai selera.</p>
+    <h1>{kind==='upcoming'?'Akan Datang':'Jelajahi'}</h1>
+    <p>{kind==='upcoming'?'Lihat pratinjau anime yang dijadwalkan tayang.':'Cari judul favoritmu, pilih genre, atau urutkan sesuai selera.'}</p>
    </div>
-   <button type="button" className="btn btn-outline" onClick={onGuide}><Layers3 size={16}/> Panduan urutan anime</button>
+   <div className="browse-destinations">
+    {kind==='upcoming'
+     ?<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('season')}>Jelajahi anime <ArrowRight size={16}/></button>
+     :<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('upcoming')}>Akan Datang <ArrowRight size={16}/></button>}
+    <button type="button" className="btn btn-outline" onClick={onGuide}><Layers3 size={16}/> Panduan urutan anime</button>
+   </div>
   </div>
 
   <div className="browse-controls">
@@ -717,12 +722,12 @@ function Browse({
 
   </div>
   <fieldset className="browse-filters"><legend className="sr-only">Saring anime</legend>
-   <div className="browse-filter-group">
+   {kind!=='upcoming'&&<div className="browse-filter-group">
     <span className="browse-filter-title">Lihat anime</span>
     <fieldset className="category-switch"><legend className="sr-only">Kategori anime</legend>
-     {([['season','Musim ini'],['top','Populer'],['upcoming','Akan datang']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
+     {([['season','Musim ini'],['top','Populer']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
     </fieldset>
-   </div>
+   </div>}
    <label>Genre<select aria-label="Genre" value={genre} onChange={e=>onFiltersChange({...filters,genre:e.target.value})}>
     <option value="">Semua genre</option>
     {choiceList.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
