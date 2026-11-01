@@ -118,3 +118,9 @@ At `b4f35bd`, PRs #107, #106 and #108 have merged. Exact main `b4f35bd` [Linux/W
 - **NEXT:** Phase 05 D04 full-page detail with URL/Back/scroll state and tests, independently Phase 04 live taxonomy+429/combined filtering; prepare actual provider/iPhone/security evidence before any release approval.
 
 **Simple:** Done — #123/#124 merged. Partial — Browse/detail and QA. Blocker — real provider/iPhone/cloud/hosting release. Next — full-page detail and live filter tests.
+
+## Newest verified integration checkpoint — 2026-11-01, Phase 01/02
+
+- GitHub main integrated [#128](https://github.com/rzqllh/Yoru/pull/128) (`659265f`) and [#129](https://github.com/rzqllh/Yoru/pull/129) (`ceff755`). Stremio native and addon subtitles and direct SubDL/OpenSubtitles/SubSource now normalize strict ISO `ind/eng` and supported regional tags to player language `id/en`. Unknown languages are never relabeled. English still requires explicit user consent; Off persists.
+- #128 PR head [CI](https://github.com/rzqllh/Yoru/actions/runs/41267363857), [browser](https://github.com/rzqllh/Yoru/actions/runs/41267363890) SUCCESS, and exact merged-main `659265f` [CI](https://github.com/rzqllh/Yoru/actions/runs/41267500198), [browser](https://github.com/rzqllh/Yoru/actions/runs/41267500111) SUCCESS. #129 PR head [CI](https://github.com/rzqllh/Yoru/actions/runs/41267545684), [browser](https://github.com/rzqllh/Yoru/actions/runs/41267545714) SUCCESS; exact merged-main `ceff755` checks pending at this checkpoint.
+- **Still PARTIAL/BLOCKED:** real subtitle download/provider reachability and season/cour, actual iPhone Safari, D03=3A AniList-primary compatibility/compliance migration (separate approval), Phase 05 full-page Detail, draft cloud #77 and release #20. Production Vercel remains deployed on older SHA `5496aae`; live health/catalog was not verified. No deployment/keys/resolver/paid action.
