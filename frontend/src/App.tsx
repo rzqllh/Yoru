@@ -175,6 +175,9 @@ async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:strin
 function App(){
  const [route,setRoute]=useState<RouteState>(()=>parseRoute(window.location.pathname,window.location.search))
  const [selected,setSelected]=useState<Anime|null>(null)
+ const [detailError,setDetailError]=useState('')
+ const detailCache=useRef<Anime|null>(null)
+ const detailReturn=useRef<{path:string;scroll:number}|null>(null)
  const [playback,setPlayback]=useState<Playback|null>(null)
  const [toast,setToast]=useState('')
  const [mobileNav,setMobileNav]=useState(false)
@@ -221,10 +224,45 @@ function App(){
   if(!replace&&!preserveScroll)window.scrollTo({top:0,behavior:'instant'})
  },[])
 
+ const openDetail=useCallback((anime:Anime)=>{
+  if(route.page!=='detail')detailReturn.current={path:window.location.pathname+window.location.search,scroll:window.scrollY}
+  detailCache.current=anime
+  setSelected(anime)
+  setDetailError('')
+  navigateState({...route,page:'detail',detailMalId:anime.malId},false,true)
+ },[route,navigateState])
+
+ const closeDetail=useCallback(()=>{
+  setSelected(null)
+  if(route.page==='detail'&&detailReturn.current){window.history.back();return}
+  navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''},true)
+ },[route.page,navigateState])
+
+ useEffect(()=>{
+  if(route.page!=='detail'||!route.detailMalId)return
+  const cached=detailCache.current
+  if(cached?.malId===route.detailMalId){setSelected(cached);setDetailError('');return}
+  const controller=new AbortController()
+  setSelected(null)
+  setDetailError('')
+  void detail(route.detailMalId,controller.signal).then(anime=>{
+   if(controller.signal.aborted)return
+   detailCache.current=anime
+   setSelected(anime)
+  }).catch(()=>{if(!controller.signal.aborted)setDetailError('Detail anime belum dapat dimuat. Coba kembali dari Jelajahi.')})
+  return()=>controller.abort()
+ },[route.page,route.detailMalId])
+
  useEffect(()=>{
   function onPopState(){
-   setRoute(parseRoute(window.location.pathname,window.location.search))
-   window.scrollTo({top:0,behavior:'instant'})
+   const next=parseRoute(window.location.pathname,window.location.search)
+   setRoute(next)
+   setSelected(next.page==='detail'&&detailCache.current?.malId===next.detailMalId?detailCache.current:null)
+   const snapshot=detailReturn.current
+   if(snapshot&&next.page!=='detail'&&snapshot.path===window.location.pathname+window.location.search){
+    window.requestAnimationFrame(()=>window.scrollTo({top:snapshot.scroll,behavior:'instant'}))
+    detailReturn.current=null
+   }else window.scrollTo({top:0,behavior:'instant'})
   }
   window.addEventListener('popstate',onPopState)
   return()=>window.removeEventListener('popstate',onPopState)
