@@ -180,3 +180,10 @@ At the original planning baseline, new-contract rows were **NOT RUN**. Rows belo
 | Case | Scope / procedure | Status | Evidence / limitation |
 | --- | --- | --- | --- |
 | AC-DATA-09 / D08 | Browse `/jelajahi`: two category tabs; dedicated `Akan Datang` CTA opens `/jelajahi/akan-datang`, reload preserves destination and return action leads to Browse; separate Watch Guide CTA persists | **CODED IN PR #123 / NOT YET VERIFIED** | [PR #123](https://github.com/rzqllh/Yoru/pull/123) browser regression added; inspect exact-head Chromium/WebKit result. This checks hierarchy/navigation only, not broader design-system/a11y or physical iPhone evidence. |
+
+### 2026-11-01 — Post-merge contract evidence for phases 04 and 05
+
+| Case | Evidence SHA and environment | Status | Verified behaviour and limitations |
+| --- | --- | --- | --- |
+| AC-DATA-09 / D08 navigation | PR #123 `2bda841`, main `84807c8` | **PASS deterministic browser navigation slice / PHASE PARTIAL** | [PR CI](https://github.com/rzqllh/Yoru/actions/runs/41266399249), [PR Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41266399337), [main CI](https://github.com/rzqllh/Yoru/actions/runs/41266563101), [main browser](https://github.com/rzqllh/Yoru/actions/runs/41266563069) SUCCESS. Two tabs, separate Akan Datang CTA, mobile reload/return and overflow regression. Full design-system/physical iPhone not checked. |
+| AC-DETAIL-03 / no fabricated Episode 1 | PR #124 `5643b43`, main `ce12d98` | **PASS PR fixture negative case / PHASE PARTIAL** | [PR CI](https://github.com/rzqllh/Yoru/actions/runs/41266656368) and [PR browser](https://github.com/rzqllh/Yoru/actions/runs/41266656388) SUCCESS. When metadata and provider lists are empty, primary CTA disabled, no episode/source request. Full-page D04/direct link, live provider and physical Safari NOT RUN. Main `ce12d98` checks must be separately confirmed. |
