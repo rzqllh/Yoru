@@ -1063,3 +1063,21 @@ test('Akan Datang is a shareable separate destination, not a filter tab (D08)',a
  await expect(page.locator('.category-switch button')).toHaveCount(2)
  await expect(page.getByRole('heading',{name:'Jelajahi'})).toBeVisible()
 })
+
+test('detail does not invent episode one when metadata and providers list no episodes',async({page})=>{
+ await page.route('**/api/anime/1/episodes?**',route=>route.fulfill({json:{items:[],page:1,hasNext:false}}))
+ await page.route('**/api/anime/1/provider-episodes',route=>route.fulfill({json:{items:[]}}))
+ let streamRequests=0
+ await page.route('**/api/streams?**',route=>{
+  streamRequests++
+  return route.fulfill({json:{items:[]}})
+ })
+ await page.goto('/')
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ const action=dialog.getByRole('button',{name:'Episode belum tersedia'})
+ await expect(action).toBeVisible()
+ await expect(action).toBeDisabled()
+ await expect(dialog.locator('.episode-list .episode-row')).toHaveCount(0)
+ expect(streamRequests).toBe(0)
+})

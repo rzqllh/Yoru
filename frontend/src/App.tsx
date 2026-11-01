@@ -1107,8 +1107,8 @@ function DetailDialog({
      <p className={`detail-synopsis ${more?'expanded':''}`}>{info.synopsis||'Sinopsis belum tersedia dari metadata.'}</p>
      {info.synopsis.length>280&&<button type="button" className="read-more" onClick={()=>setMore(v=>!v)}>{more?'Sembunyikan':'Baca selengkapnya'} <ChevronDown size={14}/></button>}
      <div className="detail-actions">
-      <button type="button" className="btn btn-primary" onClick={()=>void play(displayed[0]||{id:`mal:${info.malId}:1`,animeId:info.id,number:1,title:'Episode 1'})}>
-       <Play size={16} fill="currentColor"/> Periksa sumber episode
+      <button type="button" className="btn btn-primary" disabled={loading||displayed.length===0} onClick={()=>{if(displayed[0])void play(displayed[0])}}>
+       <Play size={16} fill="currentColor"/> {loading?'Memuat episode…':displayed.length?'Periksa sumber episode':'Episode belum tersedia'}
       </button>
       <button type="button" className="btn btn-outline" onClick={onToggleSave}>
        {isSaved?<Check size={16}/>:<Plus size={16}/>} {isSaved?'Tersimpan':'Koleksiku'}
