@@ -40,6 +40,8 @@ For an authorized HTTPS HLS/MP4 source, copy the checked-in example into the cor
 Copy-Item configs/providers.local.json.example configs/providers.local.json
 ```
 
+Existing Stremio/Torrentio addon settings can be checked without publishing their URLs: run `npm run verify:stremio:config` in the environment containing `STREMIO_ADDONS_JSON` or the ignored `configs/stremio.local.json`. This reports configuration validity and mapping counts only, **not live stream readiness**.
+
 Follow [Providers](providers.md). Do **not** place API keys or media entitlement tokens in Git, query strings, screenshots or public issues. Static metadata or addon availability does not guarantee actual playback.
 
 ## Install PWA
