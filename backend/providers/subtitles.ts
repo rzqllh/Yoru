@@ -35,9 +35,14 @@ type Obj=Record<string,unknown>
 const object=(value:unknown):Obj|null=>value&&typeof value==='object'&&!Array.isArray(value)?value as Obj:null
 const string=(value:unknown,max=200)=>typeof value==='string'?value.slice(0,max).trim():''
 const list=(value:unknown):unknown[]=>Array.isArray(value)?value:[]
+/** Provider language codes may use ISO 639-1/2 with an optional region suffix.
+ * Do not infer a language from an arbitrary prefix or an unrelated locale.
+ */
 const language=(value:unknown):'id'|'en'|null=>{
- const code=string(value,25).toLowerCase()
- return ['id','ind','indonesian','bahasa indonesia'].includes(code)?'id': ['en','eng','english'].includes(code)?'en':null
+ const code=string(value,25).toLowerCase().replaceAll('_','-')
+ if(/^(?:id|ind)(?:-[a-z]{2})?$/.test(code)||code==='indonesian'||code==='bahasa indonesia')return 'id'
+ if(/^(?:en|eng)(?:-[a-z]{2})?$/.test(code)||code==='english')return 'en'
+ return null
 }
 function confidence(episode:number,raw:unknown){
  if(raw===null||raw===undefined||raw==='')return 30
