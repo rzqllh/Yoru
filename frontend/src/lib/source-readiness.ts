@@ -24,7 +24,7 @@ export function isNativeCandidate(stream:Stream):boolean{
  // Provider payloads are untrusted at runtime, even when typed as Stream.
  if(!stream||typeof stream!=='object'||(stream.format!=='hls'&&stream.format!=='mp4')||
   typeof stream.url!=='string')return false
- if(stream.url.startsWith('/demo/'))return true
+ if(stream.url.startsWith('/demo/'))return stream.format==='hls'&&stream.url==='/demo/stream.m3u8'
  try{
   const url=new URL(stream.url)
   return url.protocol==='https:'&&!url.username&&!url.password&&
