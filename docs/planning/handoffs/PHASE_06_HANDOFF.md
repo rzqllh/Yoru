@@ -63,3 +63,10 @@ frontend/src/components/WatchGuide.tsx, frontend/src/lib/curated-watch-paths.ts,
 ## Checkpoint history
 
 - **2026-10-31 — BASELINE / PLANNING:** handoff initialized from repository, epic/gate and user-approved UX/CX decisions. No code, cloud, production configuration or release change in this handoff.
+
+## 2026-11-01 vNext supersession — documentation scope
+
+**2026-11-01 vNext owner supersession.** Inspected GitHub main [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572); this is **DOCS ONLY**, not hosted/provider verification. D03=**3A AniList-primary** replaces archival D03=3B Tenrai/MAL-primary. D01=1A, D02=2B, D04=4A, D05=5A, D06–D09 retained. Existing Tenrai/MAL code remains until an approved reversible migration.
+
+- Use AniList relations after Phase 04 ID mapping; release order vs sourced editorial recommendation, optional/required editions and spoiler safety; preserve Guide → Detail → Episode → Back context.
+- **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.

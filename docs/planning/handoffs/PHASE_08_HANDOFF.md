@@ -64,3 +64,10 @@ Every future check requires **exact SHA**, browser/device/environment, input fix
 ## Checkpoint history
 
 - **2026-10-31 — BASELINE / PLANNING:** handoff initialized from repository, epic/gate and user-approved UX/CX decisions. No code, cloud, production configuration or release change in this handoff.
+
+## 2026-11-01 vNext supersession — documentation scope
+
+**2026-11-01 vNext owner supersession.** Inspected GitHub main [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572); this is **DOCS ONLY**, not hosted/provider verification. D03=**3A AniList-primary** replaces archival D03=3B Tenrai/MAL-primary. D01=1A, D02=2B, D04=4A, D05=5A, D06–D09 retained. Existing Tenrai/MAL code remains until an approved reversible migration.
+
+- Run AC-VN-01–16 exact-SHA unit/browser/live and real iPhone Safari where applicable. Separate addon stream/subtitle, direct subtitle API, 429, wrong-season, unsupported torrent, source security, AniList ToU and backup regression evidence.
+- **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.
