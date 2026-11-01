@@ -76,3 +76,9 @@ frontend/src/App.tsx, frontend/src/lib/router.ts, frontend/src/styles.css, front
 
 - Design mobile full-page detail with old `/anime/:malId` compatibility, distinct AniList-only route, query/history restoration, episode/source states, verified resume CTA and Watch Guide navigation; no modal-as-route shortcut.
 - **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.
+
+## 2026-11-01 — Empty episode guard MERGED and verified on PR
+
+- [PR #124](https://github.com/rzqllh/Yoru/pull/124) → main `ce12d98678f6e89cefd81516fb641c62df972572`; eliminates synthetic Episode 1 fallback from the detail primary button when no episode exists. While loading or when episode lists are empty the button cannot launch source checks. Existing real provider-episode cases remain accessible.
+- Exact integrated PR head `5643b43`: [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41266656368) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41266656388) SUCCESS. Exact merged-main `ce12d98` [CI](https://github.com/rzqllh/Yoru/actions/runs/41266791512) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41266791496) **SUCCESS on exact merged-main**.
+- AC-DETAIL-03 negative fixture PASS on PR head, Phase 05 still **PARTIAL/PLANNED**: D04 full-page `/anime/:malId`, history/Back/scroll preservation, source/episode UI and physical iPhone not tested. No production change or release sign-off.
