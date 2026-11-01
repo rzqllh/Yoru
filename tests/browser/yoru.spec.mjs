@@ -1110,3 +1110,37 @@ test('Phase 05 invalid detail ID does not fetch unrelated anime',async({page})=>
  await expect(page.getByRole('heading',{name:'Beranda'})).toBeVisible()
  expect(calls).toBe(0)
 })
+
+test('Phase 05 returning from detail preserves loaded browse pages, filters and focus',async({page})=>{
+ const browseRequests=[]
+ await page.route('**/api/anime/discover?**',route=>{
+  const params=new URL(route.request().url()).searchParams
+  const currentPage=Number(params.get('page')||1)
+  browseRequests.push(currentPage)
+  const items=currentPage===1
+   ?Array.from({length:24},(_,i)=>({...anime,id:'mal:'+(i+1),malId:i+1,title:'Page one anime '+(i+1)}))
+   :[{...anime,id:'mal:25',malId:25,title:'Page two anime'}]
+  return route.fulfill({json:{items,page:currentPage,hasNext:currentPage===1}})
+ })
+ await page.route('**/api/anime/25/episodes?**',route=>route.fulfill({json:{items:[],page:1,hasNext:false}}))
+ await page.route('**/api/anime/25/provider-episodes',route=>route.fulfill({json:{items:[]}}))
+ await page.goto('/jelajahi')
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(24)
+ await page.getByRole('button',{name:/Muat lebih banyak/}).click()
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(25)
+ await expect(page.locator('.browse-results-header .results-label')).toHaveText('25 ditampilkan')
+ const target=page.getByRole('button',{name:'Buka Page two anime'})
+ await target.scrollIntoViewIfNeeded()
+ const originalScroll=await page.evaluate(()=>window.scrollY)
+ expect(originalScroll).toBeGreaterThan(0)
+ await target.click()
+ await expect(page).toHaveURL(/\/anime\/25$/)
+ await expect(page.getByRole('dialog',{name:'Detail Page two anime'})).toBeVisible()
+ await page.getByRole('button',{name:'Tutup detail anime'}).click()
+ await expect(page).toHaveURL(/\/jelajahi$/)
+ await expect(page.locator('.browse-results-header .results-label')).toHaveText('25 ditampilkan')
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(25)
+ await expect(page.getByRole('button',{name:'Buka Page two anime'})).toBeFocused()
+ expect(browseRequests).toEqual([1,2])
+ expect(await page.evaluate(()=>window.scrollY)).toBeGreaterThan(0)
+})
