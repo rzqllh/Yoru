@@ -25,7 +25,7 @@ Separate **CODED**, **TESTED**, **LIVE_VERIFIED** and **BLOCKED** statuses. Foll
 
 ## Anti-regression invariants
 
-Never equate AnimeList metadata with playable episodes; do not turn torrent hashes into video URLs; keep external fallback opt-in; do not fabricate subtitle language, rendition, automatic watch progress or in-story canon; protect local backups and provider configuration. Test source-outage vs empty-response cases, stale-request cancellation, deep links, alternative watch paths, focus behaviour and user-visible errors.
+Never equate AnimeList metadata with playable episodes; do not turn torrent hashes into video URLs; exclude unverified iframe fallback from Play under D02; do not fabricate subtitle language, rendition, automatic watch progress or in-story canon; protect local backups and provider configuration. Test source-outage vs empty-response cases, stale-request cancellation, deep links, alternative watch paths, focus behaviour and user-visible errors.
 
 ## Sign-off order
 

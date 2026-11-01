@@ -15,10 +15,10 @@ Copy `configs/stremio.local.json.example` to the corresponding ignored local JSO
 | Form | Interpretation | Browser capability |
 | --- | --- | --- |
 | `url` | Direct HTTPS media candidate | May be checked for native HLS/MP4 compatibility |
-| `externalUrl` | Third-party destination | Requires explicit user action; not native proof |
+| `externalUrl` | Third-party destination | Not offered as native Play; no verified playback/subtitle control |
 | `infoHash` / `fileIdx` | Torrent metadata | **Not playable** in native Safari/HLS/MP4 without a separately approved resolver |
 
-Do not assume magnet links can be played directly, enable automatic torrenting or turn the backend into an arbitrary URL proxy. Host, redirect, IP and DNS restrictions must stay enabled.
+A Torrentio-like video addon does not automatically provide the OpenSubtitles/SubSource/SubDL APIs. Stremio `stream` and `subtitles` are separate resources; subtitle-only addons require explicit configuration and verification. Uncontrolled iframe candidates are excluded from Play under D02. Do not assume magnet links can be played directly, enable automatic torrenting or turn the backend into an arbitrary URL proxy. Host, redirect, IP and DNS restrictions must stay enabled.
 
 ## Optional Miruro-compatible endpoint
 

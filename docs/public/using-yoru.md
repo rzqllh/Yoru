@@ -13,9 +13,9 @@ Use Beranda or Jelajahi to browse catalogue metadata, search titles and open ani
 3. **Verified for the current check:** an accessible native stream passed the browser preflight; this is not future uptime or license evidence.
 4. **No candidate:** a healthy provider returned no source; distinguish this from a failed provider.
 5. **Provider failed / unavailable:** network, rate-limit, mapping, codec or media problems require explicit recovery.
-6. **External embed:** manually initiated, unverified and controlled by a third party. Do not assume progress events or Indonesian subtitles exist.
+6. **External embed / hard-sub:** an unverified third-party iframe is **not a playable Yoru option** under D02, even if a provider lists it. Subtitle controls, progress events and Indonesian language are not assumed.
 
-No automatic fallback may turn an unverified source into a claim of successful playback. Torrent hash-only choices remain non-playable without a separate approved resolver.
+No automatic or manual in-player fallback may turn an unverified iframe into a playable source. Torrent hash-only choices remain non-playable without a separate approved resolver.
 
 ## Player and subtitles
 

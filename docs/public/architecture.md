@@ -7,7 +7,7 @@
 ```text
 Browser / PWA
   React + Vite UI
-  Browser-native video / explicit external iframe
+  Browser-native HLS/MP4 playback (unverified iframe excluded)
   IndexedDB (library, preferences, resume, manual route progress)
   Service worker (application shell)
         |
@@ -15,7 +15,7 @@ Browser / PWA
 Hono API (Node; optional Vercel-compatible function adapter)
   Metadata pipeline       -> Tenrai/MAL and AniList relationships
   Source adapter boundary -> configured local/Stremio/Miruro-compatible sources
-  Subtitle boundary       -> configured OpenSubtitles/SubDL/SubSource endpoints
+  Subtitle boundary       -> configured OpenSubtitles/SubDL/SubSource and declared Stremio subtitle resources
   HTTP guards             -> response headers, input validation, local budgets
         |
         v
@@ -28,7 +28,7 @@ A separate HTTPS ingress, identity-aware throttling, authorization, logs and ope
 
 1. Catalogue title/episode metadata is never treated as a verified stream.
 2. Source candidates are classified and preflighted for the current browser before native playback. Failed providers cannot silently cancel healthy providers; stale requests must not replace a newer episode choice.
-3. `infoHash` represents torrent metadata, not a direct video URL. Unverified embeds need explicit user consent and cannot promise subtitles/progress.
+3. `infoHash` represents torrent metadata, not a direct video URL. Under D02, an uncontrolled external iframe is not a playable Yoru source, even with consent: its subtitle/progress controls are unverified. External links and torrent descriptors remain non-playable diagnostics.
 4. AniList relation edges enable discovery only. Story chronology needs separately reviewed episode/edition evidence.
 5. Library, resume, manual watch-path completion and preferences persist locally and are included in versioned backup; no account backend or cross-device sync exists.
 
