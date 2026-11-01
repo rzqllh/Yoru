@@ -1106,7 +1106,7 @@ test('Phase 05 episode pagination loads 100 titles without overlapping requests'
  await page.goto('/anime/1')
  const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
  const rows=dialog.locator('.episode-list .episode-row')
- const load=dialog.getByRole('button',{name:/Muat episode berikutnya/})
+ const load=dialog.locator('.load-episodes')
  await expect(rows).toHaveCount(24)
  await load.click()
  await expect(load).toBeDisabled()
