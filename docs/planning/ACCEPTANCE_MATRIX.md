@@ -229,3 +229,10 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
 | AC-DETAIL-01/02 first routed MAL slice | #131 code head `0ecefba8e156fac25cb1bd3366eac26f22111206` | **PASS deterministic route/browser slice; PHASE PARTIAL** | [CI](https://github.com/rzqllh/Yoru/actions/runs/41271287694) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41271287681) SUCCESS after initial [Chromium failure](https://github.com/rzqllh/Yoru/actions/runs/41271063462) fixed (opener focus, mobile scroll). Real device, retained pagination, semantic page and AniList-only IDs not verified. |
 
 | AC-DETAIL-01/02 first-phase integration | Main `fb66e65` from #131, code+docs PR head `507c7f4` | **MERGED; DETERMINISTIC PASS AT PR HEAD; FULL PHASE PARTIAL** | [Final PR CI](https://github.com/rzqllh/Yoru/actions/runs/41271498685) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41271498630) SUCCESS; main exact SHA [CI](https://github.com/rzqllh/Yoru/actions/runs/41271664626)/[browser](https://github.com/rzqllh/Yoru/actions/runs/41271664619) still running when recorded. True semantic mobile document, preserved pagination, live and iPhone acceptance NOT RUN. |
+
+### 2026-11-01 — Browse/detail return and D02 documentation checks
+
+| Case | Exact evidence | Status | Limit |
+| --- | --- | --- | --- |
+| AC-DETAIL-02 / AC-VN-13 browse return | [PR #133](https://github.com/rzqllh/Yoru/pull/133) main 83c973ad, [CI](https://github.com/rzqllh/Yoru/actions/runs/41272206603) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41272206606) SUCCESS | **PASS deterministic two-page fixture; phase PARTIAL** | 25 loaded titles, no refetch, focus and scroll after back. Other filter, playback and device routes NOT RUN. |
+| D02 public doc alignment | [PR #134](https://github.com/rzqllh/Yoru/pull/134) main bcb72fc, [CI](https://github.com/rzqllh/Yoru/actions/runs/41272281179) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41272281114) SUCCESS | **DOCS UPDATED, not live acceptance** | Six public docs clarify no unverified iframe Play, separate addon subtitle resources, and AniList-primary planning. Provider runtime unchanged. |
