@@ -51,13 +51,13 @@ async function fetchJsonPinned(url:URL):Promise<unknown>{
  })
 }
 /** Only canonical decimal MAL IDs may resolve configured Stremio mappings. */
-const validMappedId=(raw:string)=>/^[1-9]\d{0,7}$/.test(raw)
+const validMappedId=(raw:string)=>/^[1-9]\d{0,7}$/.exec(raw)?.[0]===raw
 
 export async function getStremioEpisodes(animeId:string){
- const match=/^(?:mal:)?([1-9]\d{0,7})$/.exec(animeId)
- if(!match)return []
+ const rawId=animeId.startsWith('mal:')?animeId.slice(4):animeId
+ if(!validMappedId(rawId))return []
  const config=await getStremioConfig()
- const malId=Number(match[1])
+ const malId=Number(rawId)
  return (config?.addons??[]).flatMap(addon=>{
   const match=addon.anime.find(a=>a.malId===malId)
   if(!match)return []
