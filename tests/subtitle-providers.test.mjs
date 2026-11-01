@@ -199,3 +199,24 @@ test('search uses an explicit season 3 rather than incorrectly searching season 
   }
  }
 })
+
+test('direct subtitle providers accept regional Indonesian and English codes but reject unrelated languages',()=>{
+ const subdl=normalizeSubDl({subtitles:[{unpack_files:[
+  {episode:5,language:'id-ID',url:'/subtitle/20/indo'},
+  {episode:5,language:'eng_US',url:'/subtitle/20/english'},
+  {episode:5,language:'india',url:'/subtitle/20/invalid'}
+ ]}]},5)
+ assert.deepEqual(subdl.map(x=>x.language),['id','en'])
+ const opensubs=normalizeOpenSubtitles({data:[
+  {attributes:{language:'ind-ID',feature_details:{episode_number:5},files:[{file_id:20}]}},
+  {attributes:{language:'en-US',feature_details:{episode_number:5},files:[{file_id:21}]}},
+  {attributes:{language:'engdub',feature_details:{episode_number:5},files:[{file_id:22}]}}
+ ]},5)
+ assert.deepEqual(opensubs.map(x=>x.language),['id','en'])
+ const subsource=normalizeSubSource({data:[
+  {id:'20',language:'id_ID',episode_number:5},
+  {id:'21',language:'eng-GB',episode_number:5},
+  {id:'22',language:'india',episode_number:5}
+ ]},5)
+ assert.deepEqual(subsource.map(x=>x.language),['id','en'])
+})
