@@ -59,7 +59,7 @@ test('collection sort choice is accessible and persists through reload',async({p
 })
 test('desktop: catalog, search, detail, library and playback with Indonesian VTT',async({page})=>{
  await page.goto('/')
- await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)/})).toBeVisible()
+ await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)$/})).toBeVisible()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await expect(page.getByRole('dialog',{name:'Detail Yoru Test Anime'})).toBeVisible()
@@ -74,7 +74,7 @@ test('desktop: catalog, search, detail, library and playback with Indonesian VTT
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
  await page.reload()
- await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)/})).toBeVisible()
+ await expect(page.getByRole('heading',{name:/^(Beranda|Koleksi)$/})).toBeVisible()
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page.getByText('Yoru Test Anime').first()).toBeVisible()
 })
@@ -1427,6 +1427,10 @@ test('Phase 05 browser history Back dismisses player and restores Browse context
 })
 
 test('AC-DETAIL-04: detail primary CTA resumes saved episode when active progress exists',async({page})=>{
+ const secondEp={...episode,id:'mal:1:2',number:2,title:'Episode 2'}
+ const secondConfig={...configured,id:'fixture:1:2',number:2,title:'Episode 2'}
+ await page.route('**/api/anime/1/episodes?**',async route=>route.fulfill({json:{items:[episode,secondEp],page:1,hasNext:false}}))
+ await page.route('**/api/anime/1/provider-episodes',async route=>route.fulfill({json:{items:[configured,secondConfig]}}))
  await page.goto('/')
  await page.evaluate(async()=>{
   const request=indexedDB.open('yoru-local-v1',2)
