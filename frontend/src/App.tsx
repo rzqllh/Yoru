@@ -1017,12 +1017,20 @@ function DetailDialog({
  const [more,setMore]=useState(false)
  const [page,setPage]=useState(1)
  const [hasNext,setHasNext]=useState(false)
+ const [loadingMore,setLoadingMore]=useState(false)
+ const nextPageInFlight=useRef(false)
+ const nextPageAbort=useRef<AbortController|null>(null)
 
  useEffect(()=>{
   const controller=new AbortController()
+  nextPageAbort.current?.abort()
+  nextPageAbort.current=null
+  nextPageInFlight.current=false
+  setLoadingMore(false)
   setLoading(true)
   setError('')
   setPage(1)
+  setHasNext(false)
   setListed([])
   setAvailable([])
   sourceRequest.current++
@@ -1046,7 +1054,10 @@ function DetailDialog({
    if(!controller.signal.aborted)setLoading(false)
   })
 
-  return()=>controller.abort()
+  return()=>{
+   controller.abort()
+   nextPageAbort.current?.abort()
+  }
  },[anime])
 
  const availableMap=useMemo(()=>{
@@ -1067,13 +1078,37 @@ function DetailDialog({
  },[listed,available])
 
  async function loadNext(){
+  if(loading||!hasNext||nextPageInFlight.current)return
+  const nextPage=page+1
+  const controller=new AbortController()
+  nextPageInFlight.current=true
+  nextPageAbort.current=controller
+  setLoadingMore(true)
+  setError('')
   try{
-   const r=await episodes(anime.malId,page+1)
-   setListed(current=>[...current,...r.items])
-   setHasNext(r.hasNext)
-   setPage(page+1)
+   const result=await episodes(anime.malId,nextPage,controller.signal)
+   if(controller.signal.aborted)return
+   if(!result||!Array.isArray(result.items)||typeof result.hasNext!=='boolean'||result.page!==nextPage)
+    throw new Error('Invalid episode page')
+   setListed(current=>{
+    const seen=new Set(current.map(ep=>ep.number))
+    const additions=result.items.filter(ep=>{
+     if(seen.has(ep.number))return false
+     seen.add(ep.number)
+     return true
+    })
+    return [...current,...additions]
+   })
+   setHasNext(result.hasNext)
+   setPage(nextPage)
   }catch{
-   setError('Tidak dapat mengambil daftar episode berikutnya')
+   if(!controller.signal.aborted)setError('Tidak dapat mengambil daftar episode berikutnya')
+  }finally{
+   if(nextPageAbort.current===controller){
+    nextPageAbort.current=null
+    nextPageInFlight.current=false
+    setLoadingMore(false)
+   }
   }
  }
 
@@ -1226,7 +1261,7 @@ function DetailDialog({
      })}
     </div>:<Empty icon={Film} title="Episode belum tersedia" body="Daftar episode belum ditemukan dalam metadata."/>}
 
-    {hasNext&&<button type="button" className="load-episodes" onClick={()=>void loadNext()}>Muat episode berikutnya <ChevronDown size={15}/></button>}
+    {hasNext&&<button type="button" className="load-episodes" disabled={loading||loadingMore} aria-busy={loadingMore} onClick={()=>void loadNext()}>{loadingMore?'Memuat episode…':'Muat episode berikutnya'} <ChevronDown size={15}/></button>}
    </div>
   </div>
  </div>
