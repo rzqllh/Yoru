@@ -99,3 +99,9 @@ frontend/src/App.tsx, frontend/src/lib/router.ts, frontend/src/styles.css, front
 
 - [PR #131](https://github.com/rzqllh/Yoru/pull/131) → main `fb66e65962586eab34bc9b9591278b1e7add5c8d`. Final head `507c7f48f2df2a29d97d7172954cb317d2117ef2` [CI Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41271498685) and [browser Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41271498630) SUCCESS. Main exact SHA [CI](https://github.com/rzqllh/Yoru/actions/runs/41271664626) / [browser](https://github.com/rzqllh/Yoru/actions/runs/41271664619) were pending when recorded.
 - AC-DETAIL-01/02 partial deterministic slice merged; original modal focus restoration and changed mobile scroll test are repaired. **Not signed off**: full semantic document-page D04, comprehensive preserved filtered/paginated browse state, AniList-only route after D03 migration, physical iPhone, live media or PWA acceptance. No production or identity migration.
+
+## 2026-11-01 — Browse-to-detail pagination retention (#133 merged)
+
+- [PR #133](https://github.com/rzqllh/Yoru/pull/133) merged into main 83c973adfbe69d1446eceeffd5219b29de7bd3c8. On Browse-originated detail routes, keep the loaded Browse subtree mounted but hidden. Back returns to loaded page results without a new catalog fetch and preserves original-card focus/scroll. Direct external detail links remain unaffected.
+- Exact PR head 1b2391b7 [CI Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41272206603) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41272206606) SUCCESS. Browser fixture covers two pages and 25 loaded items, return focus/scroll and request counts.
+- AC-DETAIL-02/AC-VN-13 **partial deterministic coverage** only. Still NOT RUN: filter-combination return, returning after playback (player unmounts App subtree), real device, semantic full-page detail, live providers, AniList-only ID route. Phase 05 not complete; release #20 NO-GO.
