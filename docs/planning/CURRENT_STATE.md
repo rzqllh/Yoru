@@ -1,7 +1,28 @@
 # Yoru — Current State & New-Chat Recovery
 
-### 2026-11-01 — Phase 05 Resume Correctness & D04 Mobile Detail Semantics
+### 2026-11-01 — Phase 05 D04 Closure: Genuine Mobile Document Page vs Desktop Modal Dialog (#154)
 
+- **Verified main HEAD:** `1e7e65ae2414964e3f3e4c93acc3a103efd92119`, following merged [PR #154](https://github.com/rzqllh/Yoru/pull/154).
+- **Scope implemented (D04 Architectural Acceptance):**
+  - **D04 Mobile Full-Page vs Desktop Modal Divergence:**
+    - Mobile (`isMobile`, `<= 600px` via new `useIsMobile()` hook): rendered directly into document flow inside `<main id="main-content">` via `DetailMobilePage`. Eliminates `role="dialog"`, `aria-modal="true"`, and `useDialogFocus` body scroll-locking. Provides natural document window scrolling (`window.scrollY`), safe-area insets, sticky topbar back navigation (`ArrowLeft`, `aria-label="Kembali ke halaman sebelumnya"`), and hides generic shell topbar, footer, and mobile dock.
+    - Desktop (`!isMobile`, `> 600px`): retains accessible modal behavior (`DetailDialog`) with backdrop overlay, `role="dialog"`, `aria-modal="true"`, `useDialogFocus` focus trapping, and close button (`X`, `Tutup detail anime`).
+  - **Shared Business Logic (`DetailBody`):** Extracted shared content and state machine without duplicating episode fetching, candidate stream ranking, source-picker, resume CTA, pagination (`loadNext`), or playback launch logic.
+  - **Preserves PR #151 & #153 Correctness:** Maintains 4-way progress classification (`NEVER_STARTED`, `RESUMABLE`, `COMPLETED`, `INVALID`), prevents phantom episode invention, and validates safe stream candidates.
+- **Verification evidence:**
+  - `npm test`: 192/192 PASS.
+  - `npm run lint`: 113 files checked, 0 errors, 0 warnings.
+  - `npm run typecheck`: PASS (0 errors across backend & frontend).
+  - `npm run build`: Production frontend + PWA precache + backend build PASS.
+  - `node scripts/verify-windows-smoke.mjs`: `WINDOWS_PRODUCTION_SMOKE_PASS`.
+  - Browser tests: `tests/browser/yoru.spec.mjs` updated to verify genuine mobile full page (no dialog, document scrolls, back button) and desktop modal behavior (dialog, aria-modal, body lock).
+  - PR #154 CI: all 8 jobs **PASS** (Linux validate x2, Windows smoke x2, WebKit smoke x2, Chromium full suite x2).
+- **Engineering Closure Status:** All in-scope software engineering requirements and acceptance criteria across Issue #44, MASTER_PLAN, and Phase 01–06 are **FULLY IMPLEMENTED & DETERMINISTICALLY VERIFIED**.
+- **Public release gate #20 status:** **NO-GO** due to external prerequisites (no live Stremio/Torrentio config, no live subtitle API keys, no physical iPhone device sign-off, pending owner GO).
+
+### 2026-11-01 — Phase 05 Resume Correctness & D04 Mobile Detail Semantics (#153)
+
+- **Merged main HEAD:** `4007e2b5bf3cbf80e20bcb56c2ac5e62f7ca6e63`, following merged [PR #153](https://github.com/rzqllh/Yoru/pull/153).
 - **Target PR Scope (P0 & P1):**
   - **P0 Resume Correctness:**
     - Repaired Defect 1: progress with `seconds=0` or corrupt/negative duration no longer triggers false "Selesai ditonton" or 100% width `.progress-track`. Introduced explicit `classifyProgressState` distinguishing `NEVER_STARTED`, `RESUMABLE`, `COMPLETED`, and `INVALID`.
