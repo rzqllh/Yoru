@@ -2783,7 +2783,11 @@ body {
  .modal-backdrop.detail-page-view .detail-modal{
   width:100%;max-width:none;min-height:100dvh;height:auto;max-height:none;
   border:0;border-radius:0;margin:0;overflow:visible;box-shadow:none;
-  padding-bottom:env(safe-area-inset-bottom,0px);scrollbar-gutter:auto
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:env(safe-area-inset-left,0px);
+  padding-right:env(safe-area-inset-right,0px);
+  scrollbar-gutter:auto
  }
- .detail-page-view .modal-close{top:calc(12px + env(safe-area-inset-top,0px));right:16px;min-width:44px;min-height:44px}
+ .detail-page-view .modal-close{top:calc(12px + env(safe-area-inset-top,0px));right:calc(16px + env(safe-area-inset-right,0px));min-width:44px;min-height:44px}
 }
+.detail-page-main{display:block;width:100%}

@@ -1493,3 +1493,93 @@ test('dynamic document.title updates across client navigation',async({page})=>{
  await page.locator('.main-nav').getByRole('button',{name:'Koleksi'}).click()
  await expect(page).toHaveTitle('Koleksi · yoru.')
 })
+
+test('AC-DETAIL-04: zero seconds progress does not show completed label or full progress track',async({page})=>{
+ await page.goto('/')
+ await page.evaluate(async()=>{
+  const request=indexedDB.open('yoru-local-v1',2)
+  await new Promise((resolve,reject)=>{
+   request.onsuccess=()=>{
+    const db=request.result
+    const tx=db.transaction('progress','readwrite')
+    tx.objectStore('progress').put({
+     anime:{
+      id:'mal:1',malId:1,title:'Yoru Test Anime',englishTitle:null,japaneseTitle:null,
+      poster:null,cover:null,synopsis:'Test synopsis',score:8.5,episodes:12,
+      year:2024,status:'Currently Airing',type:'TV',rating:'PG-13',
+      genres:['Action'],studios:['Test Studio'],trailerYoutubeId:null
+     },
+     episode:1,
+     seconds:0,
+     duration:1400,
+     updatedAt:Date.now()
+    })
+    tx.oncomplete=()=>{db.close();resolve()}
+    tx.onerror=()=>{db.close();reject(tx.error)}
+   }
+   request.onerror=()=>reject(request.error)
+  })
+ })
+ await page.reload()
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog).toBeVisible()
+ // Zero progress must not offer "Lanjutkan Episode 1" or claim completed
+ await expect(dialog.getByRole('button',{name:'Periksa sumber episode'})).toBeVisible()
+ const ep1Row=dialog.locator('.episode-list .episode-row').first()
+ await expect(ep1Row).not.toContainText('Selesai ditonton')
+ await expect(ep1Row.locator('.progress-track')).toHaveCount(0)
+})
+
+test('AC-DETAIL-04: progress on episode absent from metadata does not synthesize phantom episode CTA',async({page})=>{
+ await page.goto('/')
+ await page.evaluate(async()=>{
+  const request=indexedDB.open('yoru-local-v1',2)
+  await new Promise((resolve,reject)=>{
+   request.onsuccess=()=>{
+    const db=request.result
+    const tx=db.transaction('progress','readwrite')
+    tx.objectStore('progress').put({
+     anime:{
+      id:'mal:1',malId:1,title:'Yoru Test Anime',englishTitle:null,japaneseTitle:null,
+      poster:null,cover:null,synopsis:'Test synopsis',score:8.5,episodes:12,
+      year:2024,status:'Currently Airing',type:'TV',rating:'PG-13',
+      genres:['Action'],studios:['Test Studio'],trailerYoutubeId:null
+     },
+     episode:99,
+     seconds:600,
+     duration:1400,
+     updatedAt:Date.now()
+    })
+    tx.oncomplete=()=>{db.close();resolve()}
+    tx.onerror=()=>{db.close();reject(tx.error)}
+   }
+   request.onerror=()=>reject(request.error)
+  })
+ })
+ await page.reload()
+ await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog).toBeVisible()
+ // Must NOT offer "Lanjutkan Episode 99" when Episode 99 is absent from metadata
+ await expect(dialog.getByRole('button',{name:/Lanjutkan Episode 99/})).toHaveCount(0)
+ await expect(dialog.getByRole('button',{name:'Periksa sumber episode'})).toBeVisible()
+ await expect(dialog.locator('.episode-list .episode-row').filter({hasText:/Episode 99/})).toHaveCount(0)
+})
+
+test('D04: mobile routed detail renders semantic main landmark, sectioning and safe-area',async({page})=>{
+ await page.setViewportSize({width:390,height:844})
+ await page.goto('/anime/1')
+ const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
+ await expect(dialog).toBeVisible()
+ // Semantic landmarks inside detail page
+ const mainLandmark=dialog.locator('main.detail-page-main#detail-main-content')
+ await expect(mainLandmark).toBeVisible()
+ await expect(mainLandmark.locator('h1#detail-title')).toHaveText('Yoru Test Anime')
+ await expect(mainLandmark.locator('section[aria-label="Sinopsis anime"]')).toBeVisible()
+ await expect(mainLandmark.locator('section[aria-labelledby="episodes-heading"]')).toBeVisible()
+ await expect(mainLandmark.locator('h2#episodes-heading')).toHaveText('Daftar episode')
+ // Close returns to browse
+ await page.getByRole('button',{name:'Tutup detail anime'}).click()
+ await expect(dialog).toHaveCount(0)
+})
