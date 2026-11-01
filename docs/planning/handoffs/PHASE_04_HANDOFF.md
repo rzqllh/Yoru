@@ -119,3 +119,8 @@ backend/pipeline/jikan.ts, backend/pipeline/daily-trends.ts, backend/pipeline/wa
 
 - Replace historical Tenrai-primary 3B with owner D03=3A. AniList Media/GenreCollection/MediaTagCollection primary after ToU and API budget checks, with nullable validated MAL alias and reversible saved-data/route compatibility. Existing #116/#117 Tenrai genre work is transitional. Coordinate independent Upcoming PR #123.
 - **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.
+
+## 2026-11-01 — D08 navigation MERGED and verified
+
+- [PR #123](https://github.com/rzqllh/Yoru/pull/123) → main `84807c8a79873a0ebeefb48ad2e94acda75f847d`: two-tab season/popular Browse, standalone Akan Datang destination and return CTA, mobile responsive layout. Existing canonical `/jelajahi/akan-datang` preserved without backend changes.
+- Exact PR head `2bda841`: [CI](https://github.com/rzqllh/Yoru/actions/runs/41266399249) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41266399337) SUCCESS. Exact merged main `84807c8`: [CI](https://github.com/rzqllh/Yoru/actions/runs/41266563101) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41266563069) SUCCESS. AC-DATA-09 navigation portion PASS deterministic; full D08, live genre/filter and iPhone remain PARTIAL/NOT RUN.

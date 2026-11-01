@@ -81,3 +81,8 @@ backend/providers/stremio-core.ts, backend/providers/stremio.ts, backend/provide
 
 - Audit existing configured Stremio manifest `stream` path and Torrentio-like `url` / torrent `infoHash/fileIdx` / `externalUrl` classification. Only verified native HTTPS video may be Play-ready. Do not install resolver; D02 forbids uncontrolled iframe Play.
 - **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.
+
+## 2026-11-01 — Stremio stream-track language compatibility (#128)
+
+- **MERGED code:** [PR #128](https://github.com/rzqllh/Yoru/pull/128) → main `659265fd42f823292b37bfe2e4e47641d274d772`. Embedded Stremio stream subtitles now normalize strict ISO `ind`/`eng` and regional `id-ID`/`en-US` aliases to Yoru native player language `id`/`en`. Other native-language tracks retain their identity without pretending to be Indonesian/English.
+- Exact PR code head `454f90f4577b2b11a28033fd61f0a83f507f5c93`: [CI](https://github.com/rzqllh/Yoru/actions/runs/41267363857) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41267363890) SUCCESS. The PR tests are deterministic fixtures; actual addon manifest, real media, physical Safari, source/resolver and public streaming release remain unverified. No addon config, network host, resolver or deployment change.
