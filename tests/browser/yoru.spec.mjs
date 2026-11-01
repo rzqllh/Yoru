@@ -904,6 +904,12 @@ test('unsupported URL filters are discarded and long-tail historical year is sel
  await expect(page.getByRole('button',{name:'Musim ini',exact:true})).toHaveAttribute('aria-pressed','true')
 })
 
+test('noncanonical score deep link does not select a different browse filter',async({page})=>{
+ await page.goto('/jelajahi/populer?minScore=8e0')
+ await expect(page.getByRole('combobox',{name:'Skor minimum'})).toHaveValue('0')
+ await page.goto('/jelajahi/populer?minScore=8')
+ await expect(page.getByRole('combobox',{name:'Skor minimum'})).toHaveValue('8')
+})
 test('D01: external English-only subtitle is not downloaded until explicit confirmation',async({page})=>{
  let downloads=0
  await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[{...testStream,tracks:[],subtitleMode:'unknown'}]}}))
