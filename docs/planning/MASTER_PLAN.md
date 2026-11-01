@@ -128,7 +128,7 @@ Future AniList hybrid filters require validated provenance, pagination/cursors, 
 - An HTTPS HLS/MP4 `url` is only a **candidate** until safety and actual browser decoding checks. `infoHash`/`fileIdx` is a **torrent descriptor, not a Safari-playable video URL**. `externalUrl` is navigation, not native Play. A manifest or metadata listing is not playable-video proof.
 - Any torrent resolver/engine, seed/peer access, arbitrary proxy, external service, credentials, hosting, cost, user-data exposure or content authorization requires an **isolated owner-approved architecture/security/licensing decision**. This docs change neither installs nor invokes a resolver.
 - Require end-to-end provider contracts, 401/403/429/timeout/expired-source failures, bounded fetch/SSRF guards, signed subtitle grants, physical Safari tests and release gate #20 before public streaming claims.
-- Reference: [Stremio resources](https://stremio.github.io/stremio-addon-sdk/api/README.html), [protocol](https://stremio.github.io/stremio-addon-sdk/protocol.html), [manifest](https://stremio.github.io/stremio-addon-sdk/api/responses/manifest.html), [stream object](https://stremio.github.io/stremio-addon-sdk/api/responses/stream.html).
+- Reference: [Stremio resources](https://stremio.github.io/stremio-addon-sdk/api/), [protocol](https://stremio.github.io/stremio-addon-sdk/protocol.html), [manifest](https://stremio.github.io/stremio-addon-sdk/api/responses/manifest.html), [stream object](https://stremio.github.io/stremio-addon-sdk/api/responses/stream.html).
 
 ### D01/D02/D04/D05/D06–D09 user journeys
 
