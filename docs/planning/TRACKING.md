@@ -225,3 +225,9 @@ No code, deployment, resolver or new dependencies are part of this planning comm
 - [#139](https://github.com/rzqllh/Yoru/pull/139) MERGED main 8e931bb. Fixes remaining player-unmount gap after #133 and #136. App shell remains HTML-hidden during playback, preserving catalog pagination and Watch Guide graph/filter/focus. No API, dependencies, migration, database, provider or production changes.
 - Exact final PR head 48c07be [CI](https://github.com/rzqllh/Yoru/actions/runs/41274184023) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41274184006) SUCCESS. First [browser run](https://github.com/rzqllh/Yoru/actions/runs/41273993615) FAIL on legacy DOM absence assertion; fixed to verify hidden background, rerun PASS. Fixture cases cover catalog page two, Guide filter/depth, native sample player, Back, focus and no refetch. Merged-main exact-SHA runs separate.
 - REMAINING: semantic mobile full-page detail; live cross-provider media/subtitle; physical iPhone; D03 AniList API terms gate; cloud #77/#78 OTP/RLS; deployment/current-SHA hosted API verification; #20 G1-G6 NO-GO.
+
+
+## 2026-11-01 — New isolated Phase 05 QA checkpoint
+
+- [Draft #142](https://github.com/rzqllh/Yoru/pull/142), code `b2d0f88`: combined-filter, page-two Browse → detail → native player → Back regression added. Exact PR-head checks are **PENDING/NOT RUN**, not PASS. Maintains prior verified #139/#140 main `005aee1` and release NO-GO; no deployment or changes to cloud/live-provider architecture.
+
