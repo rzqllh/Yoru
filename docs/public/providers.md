@@ -18,6 +18,14 @@ Copy `configs/stremio.local.json.example` to the corresponding ignored local JSO
 | `externalUrl` | Third-party destination | Not offered as native Play; no verified playback/subtitle control |
 | `infoHash` / `fileIdx` | Torrent metadata | **Not playable** in native Safari/HLS/MP4 without a separately approved resolver |
 
+### Verify the configuration already on this machine
+
+Before trying live sources, run `npm run verify:stremio:config` from the Yoru repository root. This **read-only, offline** audit uses the existing backend configuration loader. It checks `STREMIO_ADDONS_JSON` first, otherwise the ignored `configs/stremio.local.json`; it does not overwrite either or query third-party addon endpoints.
+
+The output reports whether a configuration is present/valid, its source (`server-env` or `local-file`), addon IDs, mapped anime and episode counts. It deliberately **never prints full manifest URLs, addon path segments, tokens or raw config**. Exit code `0` means valid nonempty local configuration, not working live playback; exit code `2` means missing, empty or invalid configuration. Run this command in the actual environment containing the existing source list. Do not paste the original JSON or credentials into issues or chat.
+
+A configured manifest alone does not map every MAL title: each configured addon currently needs explicit MAL ID / Stremio ID / season / episode entries, with bounded config limits. Subtitle addon capability requires a separate manifest/resource check; torrent `infoHash` candidates still need an independently approved resolver. A passing offline audit is **not** a successful HTTPS manifest, video or subtitle test.
+
 A Torrentio-like video addon does not automatically provide the OpenSubtitles/SubSource/SubDL APIs. Stremio `stream` and `subtitles` are separate resources; subtitle-only addons require explicit configuration and verification. Uncontrolled iframe candidates are excluded from Play under D02. Do not assume magnet links can be played directly, enable automatic torrenting or turn the backend into an arbitrary URL proxy. Host, redirect, IP and DNS restrictions must stay enabled.
 
 ## Optional Miruro-compatible endpoint
