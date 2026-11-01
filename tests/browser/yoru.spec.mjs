@@ -1229,6 +1229,58 @@ test('Phase 05 player Back restores two loaded Browse pages without refetch',asy
  expect(browsePages.length).toBe(requestsBeforeReturn)
 })
 
+test('Phase 05 player Back retains combined Browse filters and page two results',async({page})=>{
+ const browseRequests=[]
+ const selected={...anime,id:'mal:25',malId:25,title:'Filtered page two anime'}
+ await page.route('**/api/anime/browse?**',route=>{
+  const params=new URL(route.request().url()).searchParams
+  browseRequests.push(Object.fromEntries(params))
+  const currentPage=Number(params.get('page')||1)
+  const items=currentPage===1
+   ?Array.from({length:24},(_,i)=>({...anime,id:'mal:'+(i+1),malId:i+1,title:'Filtered page one '+(i+1)}))
+   :[selected]
+  return route.fulfill({json:{items,page:currentPage,hasNext:currentPage===1}})
+ })
+ await page.route('**/api/anime/25',route=>route.fulfill({json:selected}))
+ await page.route('**/api/anime/25/episodes?**',route=>route.fulfill({json:{items:[{...episode,id:'mal:25:1',animeId:'mal:25'}],page:1,hasNext:false}}))
+ await page.route('**/api/anime/25/provider-episodes',route=>route.fulfill({json:{items:[{...configured,id:'fixture:25:1',animeId:'mal:25'}]}}))
+ const original='/jelajahi?genre=Action&type=TV&minScore=8&year=2025&order=rating'
+ await page.goto(original)
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(24)
+ await expect(page.getByRole('combobox',{name:'Genre'})).toHaveValue('Action')
+ await expect(page.getByRole('combobox',{name:'Jenis anime'})).toHaveValue('TV')
+ await expect(page.getByRole('combobox',{name:'Skor minimum'})).toHaveValue('8')
+ await expect(page.getByRole('combobox',{name:'Tahun rilis'})).toHaveValue('2025')
+ await expect(page.getByRole('combobox',{name:'Urutkan anime'})).toHaveValue('rating')
+ await page.getByRole('button',{name:/Muat lebih banyak/}).click()
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(25)
+ const opener=page.getByRole('button',{name:'Buka Filtered page two anime'})
+ await opener.scrollIntoViewIfNeeded()
+ const originalScroll=await page.evaluate(()=>window.scrollY)
+ expect(originalScroll).toBeGreaterThan(0)
+ const requestsBeforePlayback=browseRequests.length
+ for(const request of browseRequests){
+  expect(request).toMatchObject({genre:'Action',type:'TV',minScore:'8',year:'2025',order:'rating'})
+ }
+ await opener.click()
+ await expect(page).toHaveURL(/\/anime\/25$/)
+ await page.getByRole('dialog',{name:'Detail Filtered page two anime'}).locator('.episode-list .episode-row').first().click()
+ await expect(page.getByRole('main',{name:'Layar tonton'})).toBeVisible()
+ await expect(page.locator('.app-shell[hidden]')).toHaveCount(1)
+ await page.getByRole('main',{name:'Layar tonton'}).getByRole('button',{name:'Kembali'}).click()
+ await expect(page).toHaveURL(new RegExp(original.replace(/[?]/g,'\\?')))
+ await expect(page.locator('.browse-grid .anime-card')).toHaveCount(25)
+ await expect(page.locator('.browse-results-header .results-label')).toHaveText('25 ditampilkan')
+ await expect(page.getByRole('combobox',{name:'Genre'})).toHaveValue('Action')
+ await expect(page.getByRole('combobox',{name:'Jenis anime'})).toHaveValue('TV')
+ await expect(page.getByRole('combobox',{name:'Skor minimum'})).toHaveValue('8')
+ await expect(page.getByRole('combobox',{name:'Tahun rilis'})).toHaveValue('2025')
+ await expect(page.getByRole('combobox',{name:'Urutkan anime'})).toHaveValue('rating')
+ await expect(opener).toBeFocused()
+ expect(await page.evaluate(()=>window.scrollY)).toBeGreaterThan(0)
+ expect(browseRequests.length).toBe(requestsBeforePlayback)
+})
+
 test('Phase 06 player Back preserves Watch Guide branch filter and expanded graph',async({page})=>{
  const base={source:'AniList',sourceUrl:'https://anilist.co/anime/10',scope:'direct-relations',animeMalId:1,
   items:[
