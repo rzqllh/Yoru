@@ -299,3 +299,23 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
   - Browser tests: `tests/browser/yoru.spec.mjs` covers AC-DETAIL-04 resume CTA, Episode 1 fallback, and navigation title.
 - **Result:** **TESTED deterministic fixture on merged main / PHASE PARTIAL**. Physical iPhone, live media playback, and release gate #20 remain separate unresolved gates.
 
+## 2026-11-01 — Phase 05 Resume Correctness & D04 Mobile Detail Semantics
+
+- **Scope implemented (P0 & P1):**
+  - AC-DETAIL-04 / Resume Correctness:
+    - Fixed false "Selesai ditonton" and false 100% `.progress-track` on unstarted (`seconds=0`) or invalid/negative progress via explicit `classifyProgressState` (`NEVER_STARTED`, `RESUMABLE`, `COMPLETED`, `INVALID`).
+    - Fixed phantom episode invention: when saved progress targets an episode absent from fetched metadata/catalog, does not synthesize an invented episode; marks `status: 'SOURCE_UNAVAILABLE'`, clears `resumableProgress`, and defaults safely to Episode 1 (`Periksa sumber episode`).
+    - Checks candidate availability when provider episodes are known, disallowing `public-embed` as a resumable direct candidate.
+  - D04 / Mobile Detail Semantics:
+    - Upgraded detail structure to true semantic HTML5 page hierarchy: `<main className="detail-page-main" id="detail-main-content">`, `<header className="detail-main">`, `<section className="detail-info">`, `<section className="detail-synopsis-section" aria-label="Sinopsis anime">`, `<nav className="detail-actions" aria-label="Aksi anime">`, and `<section className="detail-episodes" aria-labelledby="episodes-heading">` with `<h2 id="episodes-heading">`.
+    - Added safe-area insets (`env(safe-area-inset-left)`, `env(safe-area-inset-right)`) for mobile landscape notch.
+- **Evidence:**
+  - Unit tests: 192/192 PASS (`tests/resume.test.mjs` with 9 exhaustive tests).
+  - Lint: 112 files checked, 0 errors, 0 warnings.
+  - TypeScript: PASS (0 errors).
+  - Production build: PASS.
+  - Windows production smoke: `WINDOWS_PRODUCTION_SMOKE_PASS`.
+  - Browser tests: added 3 Playwright tests in `tests/browser/yoru.spec.mjs` verifying zero progress, absent episode, and mobile semantic landmarks.
+- **Status:** **PASS deterministic unit & browser tests / PHASE PARTIAL**. Physical iPhone, live provider streaming, and release gate #20 remain separate unresolved gates.
+
+

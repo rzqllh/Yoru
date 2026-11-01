@@ -1,5 +1,25 @@
 # Yoru — Current State & New-Chat Recovery
 
+### 2026-11-01 — Phase 05 Resume Correctness & D04 Mobile Detail Semantics
+
+- **Target PR Scope (P0 & P1):**
+  - **P0 Resume Correctness:**
+    - Repaired Defect 1: progress with `seconds=0` or corrupt/negative duration no longer triggers false "Selesai ditonton" or 100% width `.progress-track`. Introduced explicit `classifyProgressState` distinguishing `NEVER_STARTED`, `RESUMABLE`, `COMPLETED`, and `INVALID`.
+    - Repaired Defect 2: resume CTA targeting an episode absent from fetched metadata/catalog no longer synthesizes an invented episode. Returns `status: 'SOURCE_UNAVAILABLE'`, `resumableProgress: null`, and safely falls back to Episode 1 (`Periksa sumber episode`).
+    - Verified candidate availability: checks provider candidate presence (`providerId !== 'public-embed'`) when provider episodes are known.
+  - **P1 D04 Mobile Detail Semantics:**
+    - Upgraded detail structure to true semantic HTML5 page hierarchy: `<main className="detail-page-main" id="detail-main-content">`, `<header className="detail-main">`, `<section className="detail-info">`, `<section className="detail-synopsis-section" aria-label="Sinopsis anime">`, `<nav className="detail-actions" aria-label="Aksi anime">`, and `<section className="detail-episodes" aria-labelledby="episodes-heading">` with `<h2 id="episodes-heading">`.
+    - Preserved desktop dialog behavior and focus trapping while providing mobile document landmark semantics.
+    - Added mobile viewport safe-area insets (`env(safe-area-inset-left)`, `env(safe-area-inset-right)`) for notch and landscape orientation.
+- **Verification evidence:**
+  - `npm test`: 192/192 PASS (added comprehensive tests in `tests/resume.test.mjs`).
+  - `npm run lint`: 112 files checked, 0 errors, 0 warnings.
+  - `npm run typecheck`: PASS (0 errors).
+  - `npm run build`: Production frontend + PWA precache + backend build PASS.
+  - `node scripts/verify-windows-smoke.mjs`: `WINDOWS_PRODUCTION_SMOKE_PASS`.
+  - `tests/browser/yoru.spec.mjs`: added browser tests for zero progress negative case, absent episode negative case, and mobile semantic landmarks.
+- **Phase status:** Phase 05 D04 and AC-DETAIL-04 are **VERIFIED locally / ready for PR**. Release gate #20 remains **NO-GO**.
+
 ### 2026-11-01 — Phase 05 Detail Resume CTA, Episode Progress & Title Sync (#151)
 
 - **Verified main HEAD:** `bb005b0c95f1fa69e59fe2d48037194f15d7815f`, following merged [PR #151](https://github.com/rzqllh/Yoru/pull/151) (`bb005b0`).

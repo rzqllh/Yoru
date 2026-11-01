@@ -268,6 +268,26 @@ No code, deployment, resolver or new dependencies are part of this planning comm
 - #142 filtered Browse page-two → detail → native player → Back regression, merged `f16e8aee`. PR head `8bff196` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275620079) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275620076) **SUCCESS**; checks URL, genre/type/score/year/order, 25 loaded cards, scroll/focus and no redundant request.
 - #143 Escape mirrors player Back route restoration, merged `f9872fa4`. PR head `1d77519` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275780152) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275780150) **SUCCESS**.
 - #144 browser history Back dismisses active playback, merged `c3f5af09`. PR head `1ebf97d` [Linux/Windows](https://github.com/rzqllh/Yoru/actions/runs/41275880037) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275880052) **SUCCESS**.
+
+### 2026-11-01 — Phase 05 Resume Correctness & D04 Mobile Detail Semantics
+
+- **Implemented:**
+  - P0 Resume Correctness:
+    - Fixed false "Selesai ditonton" and false 100% progress track on `seconds=0` / negative / corrupt duration via `classifyProgressState` (`NEVER_STARTED`, `RESUMABLE`, `COMPLETED`, `INVALID`).
+    - Fixed phantom episode invention: absent episodes in saved progress mark `SOURCE_UNAVAILABLE`, clear `resumableProgress`, and fall back to Episode 1 (`Periksa sumber episode`).
+    - Verifies direct provider candidate presence (`providerId !== 'public-embed'`).
+  - P1 D04 Mobile Detail Semantics:
+    - Upgraded detail structure to true semantic HTML5 page hierarchy: `<main className="detail-page-main" id="detail-main-content">`, `<header className="detail-main">`, `<section className="detail-info">`, `<section className="detail-synopsis-section">`, `<nav className="detail-actions">`, and `<section className="detail-episodes">` with `<h2 id="episodes-heading">`.
+    - Added mobile viewport safe-area insets (`env(safe-area-inset-left)`, `env(safe-area-inset-right)`) for notch and landscape orientation.
+- **Evidence:**
+  - Unit tests: 192/192 PASS (`tests/resume.test.mjs`).
+  - Lint: 112 files checked, 0 errors, 0 warnings.
+  - TypeScript: PASS (0 errors).
+  - Production build: PASS.
+  - Windows smoke: `WINDOWS_PRODUCTION_SMOKE_PASS`.
+  - Browser tests: added 3 Playwright tests in `tests/browser/yoru.spec.mjs`.
+- **Status:** **Ready for PR / PHASE PARTIAL**. Release gate #20 remains NO-GO.
+
 - **Still PARTIAL:** these are deterministic browser fixtures. Full semantic document-page detail, physical iPhone Safari/PWA, live authorized HLS/MP4/provider/subtitle tests, AniList ToU clearance, cloud #77/#78 and production/release #20 require independent evidence. Exact combined `main c3f5af0` [CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41276006069) **PENDING at this checkpoint**. No deployment/paid action.
 
 - **Final merged-main verification:** `c3f5af0996d5ebfff16c6280230c2de9142f53dd` [Linux/Windows CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) and [Chromium/WebKit Browser E2E](https://github.com/rzqllh/Yoru/actions/runs/41276006069) both **SUCCESS** (4/4 jobs). Earlier PENDING statements describe the original snapshot only; no physical device or live media acceptance is implied.
