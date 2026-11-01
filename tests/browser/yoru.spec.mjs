@@ -494,7 +494,7 @@ test('watch page replaces catalog rather than opening a modal over its scroll',a
 })
 
 
-test('mobile detail source picker scrolls inside dialog rather than behind it',async({page})=>{
+test('mobile routed detail scrolls in the full-page viewport, never behind it',async({page})=>{
  await page.setViewportSize({width:390,height:680})
  await page.route('**/api/streams?**',route=>route.fulfill({json:{items:[]}}))
  await page.goto('/')
@@ -502,9 +502,10 @@ test('mobile detail source picker scrolls inside dialog rather than behind it',a
  const dialog=page.getByRole('dialog',{name:'Detail Yoru Test Anime'})
  await expect(dialog).toBeVisible()
  await expect.poll(()=>page.evaluate(()=>document.body.style.position)).toBe('fixed')
- await expect.poll(()=>dialog.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true)
- await dialog.evaluate(el=>{el.scrollTop=el.scrollHeight})
- await expect.poll(()=>dialog.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
+ const scrollArea=page.locator('.detail-page-view')
+ await expect.poll(()=>scrollArea.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true)
+ await scrollArea.evaluate(el=>{el.scrollTop=el.scrollHeight})
+ await expect.poll(()=>scrollArea.evaluate(el=>el.scrollTop)).toBeGreaterThan(0)
  await dialog.locator('.episode-list .episode-row').first().click()
  const picker=dialog.locator('.source-picker')
  await expect(picker).toBeVisible()
