@@ -2,6 +2,19 @@
 
 # Yoru — Requirement, Evidence and Blocker Tracker
 
+### 2026-11-01 — Phase 05 Detail Resume CTA, Episode Progress & Title Sync (#151)
+
+- **Merged main HEAD:** `bb005b0c95f1fa69e59fe2d48037194f15d7815f` after [PR #151](https://github.com/rzqllh/Yoru/pull/151) (`bb005b0`).
+- **PR #151 (AC-DETAIL-04, YX-01, YX-14, D04):**
+  - Connects IndexedDB progress to `DetailDialog`.
+  - Detail primary CTA dynamically targets resumable episode (`Lanjutkan Episode X`) instead of unconditionally defaulting to Episode 1, falling back to Episode 1 (`Periksa sumber episode`) when no progress exists.
+  - Episode rows in `.episode-list` render elapsed/duration progress indicator or completed label, with an embedded `.progress-track` progress bar.
+  - Modal title upgraded to semantic `<h1 id="detail-title">`, keeping `role="dialog"` and `aria-label` accessibility.
+  - Dynamic `document.title` synchronization across routes and player states.
+  - Verification: 190/190 unit tests PASS; 4/4 merged-main CI jobs ([CI #41303082340](https://github.com/rzqllh/Yoru/actions/runs/41303082340), [Browser E2E #41303082347](https://github.com/rzqllh/Yoru/actions/runs/41303082347)) SUCCESS.
+- **Phase status:** AC-DETAIL-04 is **TESTED / VERIFIED in main**. Phase 05 remains **PARTIAL** (live media/subtitle playback, physical iPhone Safari/PWA, cloud sync #77/#78, and public release #20 remain separate unresolved gates).
+
+
 ### 2026-11-01 — Phase 01 Stremio/Torrentio config audit & opt-in manifest probe (#148, #149)
 
 - **Merged main HEAD:** `a5c2468cb22e61c58dbfda6e92c52bf1dc400fa1` after [PR #148](https://github.com/rzqllh/Yoru/pull/148) (`b267396`) and [PR #149](https://github.com/rzqllh/Yoru/pull/149) (`a5c2468`).
@@ -54,7 +67,7 @@ Owners below are **responsibility roles**, not claims that any specific person/a
 | BROWSE-01 / D03 | 04 | Tenrai/MAL identity + AniList enrichment | PLANNED (existing isolated daily/guide data) | Data/API engineering | `backend/pipeline` | AC-DATA-01..04 |
 | BROWSE-02 | 04 | Dynamic AniList genres/tags and honest filters | PLANNED (currently 12) | Data/API engineering | `backend/api/app.ts` + `router.ts` | AC-DATA-05..08 |
 | BROWSE-03 / D08 | 04 | Separate Akan Datang and Watch Guide destinations | PLANNED | UX/navigation | `App.tsx` / `router.ts` | AC-DATA-09 |
-| DETAIL-01 / D04 | 05 | Mobile full-page /anime/:malId and history | PLANNED (currently dialog) | UX/router | `App.tsx` | AC-DETAIL-01..05 |
+| DETAIL-01 / D04 | 05 | Mobile detail, resume CTA, episode progress, /anime/:malId | PARTIAL: #131/#147/#151 MERGED; AC-DETAIL-04 TESTED | UX/router | `App.tsx`, `resume.ts` | AC-DETAIL-01..05 |
 | GUIDE-01 / D05 | 06 | Release/curated paths, uncertainty and editions | PARTIAL | Guide/UX | [#72](https://github.com/rzqllh/Yoru/pull/72), `WatchGuide.tsx` | AC-GUIDE-01..05 |
 | GUIDE-02 / YX-10 | 06 | Manual path progress/backup compatibility | PARTIAL | Local data | [#64](https://github.com/rzqllh/Yoru/pull/64), [#81](https://github.com/rzqllh/Yoru/pull/81) | AC-GUIDE-06 |
 | DATA-LOCAL | 07 | IndexedDB, validated import/export, PWA | PARTIAL | Local data/security | `frontend/src/lib/db.ts`, `backup.ts` | AC-LOCAL-01..04; real device |
