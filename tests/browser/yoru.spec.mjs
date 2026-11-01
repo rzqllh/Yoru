@@ -480,15 +480,16 @@ test('mobile has one visible navigation dock and resets scroll on page changes',
  await expect(page.getByRole('button',{name:/Musim berikutnya/})).toHaveCount(0)
 })
 
-test('watch page replaces catalog rather than opening a modal over its scroll',async({page})=>{
+test('watch page exclusively owns visible controls while preserving hidden catalog context',async({page})=>{
  await page.goto('/')
  await page.getByRole('button',{name:'Buka Yoru Test Anime'}).first().click()
  await page.locator('.episode-list .episode-row').first().click()
  const watch=page.getByRole('main',{name:'Layar tonton'})
  await expect(watch).toBeVisible()
  await expect(page.getByRole('dialog',{name:'Video player'})).toHaveCount(0)
- await expect(page.locator('.app-shell')).toHaveCount(0)
- await expect(page.locator('.mobile-bottom')).toHaveCount(0)
+ await expect(page.locator('.app-shell')).toHaveAttribute('hidden','')
+ await expect(page.locator('.app-shell')).toBeHidden()
+ await expect(page.locator('.mobile-bottom')).toBeHidden()
  await watch.getByRole('button',{name:'Kembali'}).click()
  await expect(page.locator('.app-shell')).toBeVisible()
 })
