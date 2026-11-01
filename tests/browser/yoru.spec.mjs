@@ -475,7 +475,8 @@ test('mobile has one visible navigation dock and resets scroll on page changes',
  await expect(page.locator('.browse-filter-group')).toBeVisible()
  await expect(page.locator('.category-switch').getByRole('button',{name:'Musim ini'})).toBeVisible()
  await expect(page.locator('.category-switch').getByRole('button',{name:'Populer'})).toBeVisible()
- await expect(page.locator('.category-switch').getByRole('button',{name:'Akan datang'})).toBeVisible()
+ await expect(page.locator('.category-switch').getByRole('button',{name:'Akan datang'})).toHaveCount(0)
+ await expect(page.locator('.browse-destinations').getByRole('button',{name:'Akan Datang'})).toBeVisible()
  await expect(page.getByRole('button',{name:/Musim berikutnya/})).toHaveCount(0)
 })
 
@@ -512,12 +513,12 @@ test('mobile detail source picker scrolls inside dialog rather than behind it',a
  await expect.poll(()=>page.evaluate(()=>document.body.style.position)).not.toBe('fixed')
 })
 
-test('mobile discover groups three categories and filters on one shared surface',async({page})=>{
+test('mobile discover keeps season/popular tabs and makes upcoming a separate destination',async({page})=>{
  await page.setViewportSize({width:390,height:680})
  await page.goto('/')
  await page.locator('.mobile-bottom').getByRole('button',{name:'Jelajahi'}).click()
  await expect(page.locator('.browse-controls')).toHaveCount(1)
- await expect(page.locator('.browse-controls .category-switch button')).toHaveCount(3)
+ await expect(page.locator('.browse-controls .category-switch button')).toHaveCount(2)
  await expect(page.locator('.topbar-discover')).toHaveCount(0)
  await expect(page.locator('.browse-controls input[aria-label="Cari anime"]')).toBeVisible()
  await expect(page.locator('.browse-controls select[aria-label="Genre"]')).toBeVisible()
@@ -1043,6 +1044,24 @@ test('invalid guide deep-link IDs keep the unselected guide landing state',async
   await expect(page.getByText(/Mulai dari judul apa pun/)).toBeVisible()
   await expect(page.getByRole('region',{name:'Panduan menonton dengan sumber'})).toHaveCount(0)
  }
+})
+
+test('Akan Datang is a shareable separate destination, not a filter tab (D08)',async({page})=>{
+ await page.setViewportSize({width:390,height:844})
+ await page.goto('/jelajahi')
+ await expect(page.locator('.category-switch button')).toHaveCount(2)
+ await expect(page.locator('.category-switch').getByRole('button',{name:'Akan Datang'})).toHaveCount(0)
+ await page.locator('.browse-destinations').getByRole('button',{name:'Akan Datang'}).click()
+ await expect(page).toHaveURL(/\/jelajahi\/akan-datang$/)
+ await expect(page.getByRole('heading',{name:'Akan Datang'})).toBeVisible()
+ await expect(page.locator('.category-switch')).toHaveCount(0)
+ expect(await page.locator('body').evaluate(el=>el.scrollWidth<=window.innerWidth+1)).toBe(true)
+ await page.reload()
+ await expect(page.getByRole('heading',{name:'Akan Datang'})).toBeVisible()
+ await page.locator('.browse-destinations').getByRole('button',{name:'Jelajahi anime'}).click()
+ await expect(page).toHaveURL(/\/jelajahi$/)
+ await expect(page.locator('.category-switch button')).toHaveCount(2)
+ await expect(page.getByRole('heading',{name:'Jelajahi'})).toBeVisible()
 })
 
 test('detail does not invent episode one when metadata and providers list no episodes',async({page})=>{
