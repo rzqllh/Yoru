@@ -1,5 +1,13 @@
 # Yoru — Acceptance Matrix and Evidence Templates
 
+## 2026-11-01 — Navigation regression acceptance evidence
+
+- AC-DETAIL-02 / playback return: [#142](https://github.com/rzqllh/Yoru/pull/142) test fixture on `8bff196`, combined Browse filters `genre=Action&type=TV&minScore=8&year=2025&order=rating`, page two (25 results), native player, Back, URL/scroll/focus/refetch. [CI](https://github.com/rzqllh/Yoru/actions/runs/41275620079) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41275620076) SUCCESS.
+- AC-DETAIL-02 additional keyboard/history coverage: [#143](https://github.com/rzqllh/Yoru/pull/143) Escape → origin and [#144](https://github.com/rzqllh/Yoru/pull/144) history Back → origin; exact PR-head [#143 CI](https://github.com/rzqllh/Yoru/actions/runs/41275780152) / [browser](https://github.com/rzqllh/Yoru/actions/runs/41275780150) and [#144 CI](https://github.com/rzqllh/Yoru/actions/runs/41275880037) / [browser](https://github.com/rzqllh/Yoru/actions/runs/41275880052) SUCCESS. Merged main `c3f5af0` [CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) SUCCESS, [Browser](https://github.com/rzqllh/Yoru/actions/runs/41276006069) pending at this note; report result only after completion.
+- Router negative regression: [#141](https://github.com/rzqllh/Yoru/pull/141), noncanonical `minScore` aliases/duplicates rejected; PR-head [CI](https://github.com/rzqllh/Yoru/actions/runs/41275437997) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41275438058) SUCCESS.
+- These tests use deterministic Playwright fixtures, **not live providers or physical iPhone**. AC-DETAIL-05, AC-DEVICE-01–02, live AC-SRC/AC-SUB and release G1–G6 remain open.
+
+
 > vNext owner contract update 2026-11-01; source baseline main `ce12d98`. Older 3B acceptance records are historical. D03=3A; new cases below NOT RUN until exact-SHA/device/provider evidence.
 
 ## Evidence contract
