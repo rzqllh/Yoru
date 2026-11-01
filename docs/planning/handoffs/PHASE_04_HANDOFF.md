@@ -1,4 +1,4 @@
-# PHASE 04 — Discovery, Tenrai/MAL and AniList Hybrid
+# PHASE 04 — Discovery and AniList-primary metadata (D03=3A)
 
 > **Handoff type:** owner-requested persistent project planning, not temporary `docs/handsoff/`.  
 > **Snapshot:** 2026-10-31 (Asia/Jakarta) · inspected main `2b6c1d4bb518c4345d50e7849af5f8f7ef53aa1b`.  
@@ -10,7 +10,7 @@ Discovery, Tenrai/MAL and AniList Hybrid. Dependencies: 00 + 03 component rules;
 
 ## Scope / intended changes (NOT YET DONE)
 
-- Keep MAL IDs and Tenrai metadata canonical; enrich from AniList by verified `idMal` only.
+- **Superseded owner contract D03=3A:** AniList metadata becomes primary after approval, MAL IDs remain validated legacy/provider aliases, Tenrai code remains transitional; no title-only identity merge.
 - Load full supported AniList genre collection; treat tags as separate taxonomy; support metadata filter capabilities only when backend can execute them correctly.
 - Maintain server-side pagination/sort/filter semantics and source attribution; never pretend first 24 loaded items are complete catalog.
 - Use separate Akan Datang destination and separate clear entry to Watch Guide instead of mixing them into main filters.
@@ -112,6 +112,13 @@ backend/pipeline/jikan.ts, backend/pipeline/daily-trends.ts, backend/pipeline/wa
 - **Scope:** [PR #123](https://github.com/rzqllh/Yoru/pull/123) from main `50d80ed4f0ee4550f7175c72346d5a121f9d389e`. Browse's category switch now contains only **Musim ini** and **Populer**; **Akan Datang** is an independent accessible CTA to existing canonical `/jelajahi/akan-datang` and has separate page heading/return CTA. Home's upcoming destination, routing/deep-link compatibility, search/filter API and genre state remain intact.
 - **Files:** `frontend/src/App.tsx`, `frontend/src/styles.css`, `tests/browser/yoru.spec.mjs`, planning tracker/matrix/handoff. The browser test checks mobile CTA, direct destination, reload, and return navigation. No provider, Supabase, release or Vercel change.
 - **Status:** CODED IN PR, NOT YET MERGED. Exact-head CI Linux/Windows and Chromium/WebKit results must be inspected before merge. Physical iPhone, genuine Tenrai filtering, AniList tags and D08 wider design-system review remain **NOT RUN/PARTIAL**. Check the PR for final exact SHA and test artifacts. Do not count PR existence as acceptance PASS.
+
+## 2026-11-01 vNext supersession — documentation scope
+
+**2026-11-01 vNext owner supersession.** Inspected GitHub main [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572); this is **DOCS ONLY**, not hosted/provider verification. D03=**3A AniList-primary** replaces archival D03=3B Tenrai/MAL-primary. D01=1A, D02=2B, D04=4A, D05=5A, D06–D09 retained. Existing Tenrai/MAL code remains until an approved reversible migration.
+
+- Replace historical Tenrai-primary 3B with owner D03=3A. AniList Media/GenreCollection/MediaTagCollection primary after ToU and API budget checks, with nullable validated MAL alias and reversible saved-data/route compatibility. Existing #116/#117 Tenrai genre work is transitional. Coordinate independent Upcoming PR #123.
+- **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.
 
 ## 2026-11-01 — D08 navigation MERGED and verified
 
