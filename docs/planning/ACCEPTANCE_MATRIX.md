@@ -236,3 +236,8 @@ Torrent-only playback/resolver requires separate architecture, rights, safety, h
 | --- | --- | --- | --- |
 | AC-DETAIL-02 / AC-VN-13 browse return | [PR #133](https://github.com/rzqllh/Yoru/pull/133) main 83c973ad, [CI](https://github.com/rzqllh/Yoru/actions/runs/41272206603) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41272206606) SUCCESS | **PASS deterministic two-page fixture; phase PARTIAL** | 25 loaded titles, no refetch, focus and scroll after back. Other filter, playback and device routes NOT RUN. |
 | D02 public doc alignment | [PR #134](https://github.com/rzqllh/Yoru/pull/134) main bcb72fc, [CI](https://github.com/rzqllh/Yoru/actions/runs/41272281179) and [browser](https://github.com/rzqllh/Yoru/actions/runs/41272281114) SUCCESS | **DOCS UPDATED, not live acceptance** | Six public docs clarify no unverified iframe Play, separate addon subtitle resources, and AniList-primary planning. Provider runtime unchanged. |
+### 2026-11-01 — Guide detail return checkpoint
+
+| Case | Evidence | Result | Remaining |
+| --- | --- | --- | --- |
+| AC-GUIDE-02 / AC-DETAIL-02 / D05 guide return | [#136](https://github.com/rzqllh/Yoru/pull/136) head `e9ab54c6`, merged `3334d74` | **PASS deterministic PR-head browser fixture / PHASE PARTIAL** | [CI](https://github.com/rzqllh/Yoru/actions/runs/41272983355) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41272983482) SUCCESS. Expanded graph and branch filter persist across mapped related-title detail and Back, opener focus returns, no duplicate fetch. Actual AniList provider, long/ambiguous graphs, player-return and physical iPhone NOT RUN. |
