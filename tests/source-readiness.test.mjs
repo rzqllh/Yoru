@@ -38,3 +38,14 @@ test('malformed provider URL fields fail closed instead of throwing',async()=>{
  assert.equal(isNativeCandidate(undefined),false)
  assert.equal(isNativeCandidate('https://cdn.example.com/watch/master.m3u8'),false)
 })
+
+test('only the shipped demo HLS fixture qualifies as a relative playable candidate',async()=>{
+ assert.equal(isNativeCandidate({...candidate,url:'/demo/stream.m3u8'}),true)
+ for(const url of ['/demo/missing.m3u8','/demo/clip.mp4','/demo/../api/health',
+  '/demo/stream.m3u8?redirect=1','/demo/stream.m3u8#fragment']){
+  const stream={...candidate,url}
+  assert.equal(isNativeCandidate(stream),false,`unexpected demo candidate: ${url}`)
+  await assert.rejects(verifyNativeSource(stream),/Format atau URL sumber tidak didukung/)
+ }
+ assert.equal(isNativeCandidate({...candidate,format:'mp4',url:'/demo/stream.m3u8'}),false)
+})
