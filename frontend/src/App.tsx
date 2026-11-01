@@ -304,14 +304,16 @@ function App(){
     window.setTimeout(()=>searchInputRef.current?.focus(),50)
    }
    if(event.key==='Escape'){
-    if(selected){closeDetail()}
-    else if(playback){
+    if(playback){
      const wasDemo=Boolean(playback.demo)
      setPlayback(null)
+     // Match the Back button: return to the originating page, not a stranded detail route.
+     if(route.page==='detail')closeDetail()
+     else window.scrollTo({top:0,behavior:'instant'})
      if(wasDemo)window.requestAnimationFrame(()=>{
       document.querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')?.focus()
      })
-    }
+    }else if(selected){closeDetail()}
    }
   }
   window.addEventListener('keydown',key)
