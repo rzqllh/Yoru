@@ -69,3 +69,10 @@ frontend/src/App.tsx, frontend/src/lib/router.ts, frontend/src/styles.css, front
 - **Problem observed in main `50d80ed`:** the detail primary CTA had `displayed[0] || {number:1,...}` and could manufacture an Episode 1 when metadata and provider lists were empty. That is inconsistent with source truthfulness / AC-DETAIL-03.
 - **Code:** [PR #124](https://github.com/rzqllh/Yoru/pull/124) removes the fabricated fallback; the main source-check CTA remains disabled while loading and if no episode is listed, with a clear **Episode belum tersedia** label. This does not create/play an unverified stream or alter source picker logic. A browser fixture returns empty metadata+provider episode lists, asserts button disabled, no episode rows and no stream lookup.
 - **Status:** CODED IN ISOLATED DRAFT PR; exact-head Linux/Windows, Chromium/WebKit and merged-main checks **PENDING** until separately verified. Phase 05 D04 full-page route and browse-scroll/history persistence are still NOT IMPLEMENTED. No Supabase, Vercel, provider, schema, release or router modifications.
+
+## 2026-11-01 vNext supersession — documentation scope
+
+**2026-11-01 vNext owner supersession.** Inspected GitHub main [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572); this is **DOCS ONLY**, not hosted/provider verification. D03=**3A AniList-primary** replaces archival D03=3B Tenrai/MAL-primary. D01=1A, D02=2B, D04=4A, D05=5A, D06–D09 retained. Existing Tenrai/MAL code remains until an approved reversible migration.
+
+- Design mobile full-page detail with old `/anime/:malId` compatibility, distinct AniList-only route, query/history restoration, episode/source states, verified resume CTA and Watch Guide navigation; no modal-as-route shortcut.
+- **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.

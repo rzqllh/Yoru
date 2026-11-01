@@ -1,7 +1,7 @@
 # Yoru — Master Project Plan
 
-> **Version:** 1.0 planning baseline · **as of:** 2026-10-31 (Asia/Jakarta)  
-> **Repository:** [rzqllh/Yoru](https://github.com/rzqllh/Yoru) · **audited main:** [`2b6c1d4`](https://github.com/rzqllh/Yoru/commit/2b6c1d4bb518c4345d50e7849af5f8f7ef53aa1b)  
+> **Version:** 1.1 owner UX/CX vNext / D03 supersession / addon federation planning · **as of:** 2026-11-01 Asia/Jakarta
+> **Repository:** [rzqllh/Yoru](https://github.com/rzqllh/Yoru) · **audited starting main:** [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572) (not live acceptance)
 > **Scope:** entire Yoru product and engineering lifecycle, not merely the current UX sprint.  
 > **State:** PLANNED. Engineering preview exists; public streaming release [#20](https://github.com/rzqllh/Yoru/issues/20) is BLOCKED.
 
@@ -29,7 +29,7 @@ Success prioritizes truthfulness, legibility, user control, keyboard/touch acces
 | --- | --- | --- |
 | Frontend/PWA | React, Vite, TypeScript, `frontend/src/App.tsx`, `Player.tsx`, styles, service worker | Preview functionality; iPhone physical acceptance pending |
 | Backend | Hono `backend/api/app.ts`, Node/local server, `api/index.ts` Vercel adapter | Local deterministic smoke exists; production endpoints require live check |
-| Canonical metadata | Tenrai Jikan-compatible source, MAL IDs, search/discover/browse | Upstream is fallible; filters currently only 12 allowed genres |
+| Existing metadata code | Tenrai/Jikan MAL media and dynamic MAL genre options (#116/#117), AniList enrichment | **CODED transitional**; D03=3A AniList-primary migration remains planned and gated by ToU, rate limits and legacy ID/backup compatibility |
 | AniList enrichment | Daily activity, watch-guide graph, editorial path sources | Not a verified universal source for browse filters |
 | Direct video | Browser HLS/MP4 native preflight, quality/state/resume | Browser/codec/CORS/rights and genuine episode coverage unverified broadly |
 | Stremio/Torrentio-compatible | Explicit addon config + mapped Stremio stream/subtitles resources, hash classification | HTTPS HLS/MP4 candidates supported conditionally; torrent `infoHash` is NOT an HTTP playable URL |
@@ -45,7 +45,7 @@ Verify implementation changes against the live tree and PRs before claiming thes
 
 - **D01 / 1A:** Indonesia subtitle first; English is offered **only after explicit confirmation**. Preference Off persists; a missing language is not fabricated.
 - **D02 / 2B:** Hide **uncontrolled alternative playback** from playable source selection. An external iframe without proven subtitle control is not a supported playable route. If no qualified source remains, show honest unavailable state. Do not confuse this with hiding diagnostic candidate counts.
-- **D03 / 3B:** Keep **Tenrai/MAL canonical**, enrich genre/tag/filter/relation from AniList where supported. Preserve MAL IDs, saved library and source references; no forced migration to AniList-only identities.
+- **D03 / 3A (supersedes previous 3B):** **AniList primary** for anime metadata and browse/filter taxonomy, with nullable validated MAL aliases for legacy routes, local data, provider references and backups. Retain current Tenrai/MAL implementation as transitional compatibility until a separately approved reversible migration. No title-only identity matching, no silent source attribution.
 - **D04 / 4A:** Mobile anime detail becomes a full page with shareable `/anime/:malId`, Back/Forward and preserved browse context.
 - **D05 / 5A:** Watch Guide offers **release order** and **reviewed curated viewing route** when available. A story chronology requires separate proof and must never be inferred from relation edges.
 - **D06:** Hero rotates every 8s while eligible, pauses on hover/focus/interactions, supports touch swipe, removes numbered and old navigation controls; ensure accessible non-gesture control to stop/operate carousel.
@@ -60,7 +60,7 @@ The above are **approved product direction**, NOT completed code. Any exception 
 `Browser/PWA (React/Vite, video, IndexedDB, SW) -> same-origin Hono API (validation, cache, mappings, bounded network) -> [Tenrai/MAL | AniList | configured source adapters | subtitle APIs]`.
 
 Principles:
-1. Canonical anime identity is `malId`; AniList enrichment requires validated `idMal` mapping and explicit unmatched handling. Never merge by title alone.
+1. **vNext proposed identity:** `aniListId` is metadata primary; verified `malId` is a nullable, separate legacy/provider alias. Preserve old routes/IndexedDB/backups with a tested reversible migration; never join by title alone. Prior MAL-primary design is archival.
 2. Separate `metadata`, `episode listing`, `candidate stream`, `native capability checked`, `playback confirmed`, and `subtitle matched/loaded` states. A cached poster or candidate does not equal playable media.
 3. For Stremio resources, `stream.url` may be a direct playable video URL **only when** HTTPS and content/browser checks pass; `infoHash/fileIdx` identifies torrent data, not a URL; `externalUrl` is navigation, not native playback. `/subtitles` is an independent addon resource. Cross-check manifest and mapped season/episode. See [Stremio stream specification](https://stremio.github.io/stremio-addon-sdk/api/responses/stream.html) and [subtitles specification](https://stremio.github.io/stremio-addon-sdk/api/responses/subtitles.html).
 4. Yoru currently **classifies Torrentio-style hashes as unavailable** (`backend/providers/stremio-core.ts`). Torrentio being configured or returning entries does not mean a browser, especially iPhone Safari, can decode/torrent them. Any opt-in torrent resolver/engine is a *separate owner-approved architecture, hosting, licensing and security decision*. No silent torrent start, arbitrary proxy, credential exposure, DRM bypass or presumptive rights.
@@ -108,3 +108,34 @@ Future AniList hybrid filters require validated provenance, pagination/cursors, 
 - **Planning index:** [CURRENT_STATE](CURRENT_STATE.md), [PHASE_PLAN](PHASE_PLAN.md), [TRACKING](TRACKING.md), [ACCEPTANCE_MATRIX](ACCEPTANCE_MATRIX.md), [handoffs](handoffs/PHASE_00_HANDOFF.md).
 - PRs are isolated by dependency; avoid overlapping App/Player/styles changes; exact-head Linux/Windows and Chromium/WebKit checks before merging; release and deployment are separately authorized.
 - No assumptions about agents/personas: assign real owners for work that is actually dispatched, not imaginary specialist execution.
+
+## 10. 2026-11-01 vNext owner-approved contract (planning only)
+
+**2026-11-01 vNext owner supersession.** Inspected GitHub main [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572); this is **DOCS ONLY**, not hosted/provider verification. D03=**3A AniList-primary** replaces archival D03=3B Tenrai/MAL-primary. D01=1A, D02=2B, D04=4A, D05=5A, D06–D09 retained. Existing Tenrai/MAL code remains until an approved reversible migration.
+
+### Approved D03=3A: AniList-primary metadata with MAL legacy compatibility
+
+- **Future metadata primary key: `aniListId` (`Media.id`)**. Preserve `malId`/`Media.idMal` only as a validated, nullable external mapping for existing `/anime/:malId` links, provider queries, IndexedDB, resume, watch-guide progress and versioned backups. AniList-only titles need a distinct unambiguous route; never conflate numeric namespaces or join on title alone.
+- Existing Tenrai/Jikan APIs and dynamic MAL genre additions #116/#117 are implemented **transitional** capabilities, not completion of the requested AniList-primary migration. No destructive rewrite of saved data, routes, provider IDs or cloud snapshot contracts.
+- Plan provenance-aware GraphQL `Media`, `GenreCollection`, `MediaTagCollection`, genres/tags/status/format/year/season/score/sort and server-side pagination. Return truthful loaded vs total counts. Keep provider and exact episode availability independent of media metadata.
+- Gate rollout on [AniList terms](https://docs.anilist.co/guide/terms-of-use) applicability to a tracking/library-like app and [current rate limit](https://docs.anilist.co/guide/rate-limiting) (degraded temporary 30 req/min at this checkpoint), batching/caching/429 handling, data migration rollback, source-outage behavior, tests, and owner approval. Never silently rebrand Tenrai data as AniList.
+
+### Planned Torrentio/Stremio stream + subtitle federation (not resolver activation)
+
+- A configured Stremio addon declares `stream` and/or `subtitles` via its `manifest.json`. **Torrentio is a candidate video stream addon, not an automatic OpenSubtitles/SubSource/SubDL API gateway**. Use separate Stremio `/stream` and `/subtitles` resources where declared; direct OpenSubtitles, SubSource and SubDL APIs remain independent backend adapters, or a distinct subtitle-only Stremio addon can be configured.
+- The current Yoru source files `backend/providers/stremio.ts`, `stremio-core.ts` and `backend/providers/subtitles.ts` already implement configured addon candidate classification, addon subtitle resources and independent direct API adapters. Label this **CODED/PARTIAL**; no live Torrentio/third-party API compatibility, actual playback, provider rights or physical iPhone PASS may be assumed.
+- Exact validated anime identity, season/cour/movie/special, episode, language and subtitle release must match before joining candidates or ranking them. Rank by real native playability, source health, subtitle control/Indonesian match, then prior healthy source. D01 requires explicit English consent; Off persists. D02 excludes uncontrolled iframe/hard-sub from Play.
+- An HTTPS HLS/MP4 `url` is only a **candidate** until safety and actual browser decoding checks. `infoHash`/`fileIdx` is a **torrent descriptor, not a Safari-playable video URL**. `externalUrl` is navigation, not native Play. A manifest or metadata listing is not playable-video proof.
+- Any torrent resolver/engine, seed/peer access, arbitrary proxy, external service, credentials, hosting, cost, user-data exposure or content authorization requires an **isolated owner-approved architecture/security/licensing decision**. This docs change neither installs nor invokes a resolver.
+- Require end-to-end provider contracts, 401/403/429/timeout/expired-source failures, bounded fetch/SSRF guards, signed subtitle grants, physical Safari tests and release gate #20 before public streaming claims.
+- Reference: [Stremio resources](https://stremio.github.io/stremio-addon-sdk/api/README.html), [protocol](https://stremio.github.io/stremio-addon-sdk/protocol.html), [manifest](https://stremio.github.io/stremio-addon-sdk/api/responses/manifest.html), [stream object](https://stremio.github.io/stremio-addon-sdk/api/responses/stream.html).
+
+### D01/D02/D04/D05/D06–D09 user journeys
+
+- Subtitles: prefer verified Indonesian, explicit English-only approval, never silently switch language; persisted Off; compact readable native system sans (~90%) with thin outline and browser-capability-aware controls; third-party subtitle availability and season mapping need real proof.
+- Hero: 8-second eligible rotation, pause on hover/focus/touch/hidden tab/reduced motion, swipe without hijacking vertical scrolling, no old numbered navigation bar and still accessible non-gesture pause/step controls.
+- Home: `Anime Popular` uniform mobile two-column 2:3 posters, aligned badge/title/score and honest data provenance/counts; Continue Watching first where real progress exists.
+- Browse: one component/spacing/filter system; separate Upcoming destination and Watch Guide entry, truthful results, AniList-backed genre/tag/filter semantics only after migration. [PR #123](https://github.com/rzqllh/Yoru/pull/123) is independent from this docs-only scope.
+- Mobile Detail: full-page shareable URL with backward-compatible MAL route and new AniList-only path, Back/Forward and Browse context, honest source status/resume CTA, episode list and Guide link. Guide distinguishes release order from cited editorial viewing routes; chronology is never inferred.
+
+**Do not interpret this section as permission for code changes, new dependencies, provider config, data migrations, torrent resolver, secrets, Vercel production or release.** See [phase plan](PHASE_PLAN.md), [acceptance](ACCEPTANCE_MATRIX.md), [tracker](TRACKING.md), and [current state](CURRENT_STATE.md).

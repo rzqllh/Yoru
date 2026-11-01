@@ -72,3 +72,10 @@ vercel.json, api/index.ts, docs/public/production-readiness.md, docs/public/oper
 - **Deployment:** READY production `dpl_514E91c6XQkRCvF2wS5YumdgvgrU`, commit `5496aae`, alias `https://yoru-omega.vercel.app`; build logs confirm actual build on Vercel, not a cancelled ignored step. This is not latest `main`.
 - **HTTP evidence:** `/api/health`, `/api/anime/discover` and root request did not return HTTP status in this execution environment (DNS/network access failed). Their **live status remains UNKNOWN**; 30-minute runtime log query returned no entries. Do not infer success or failure.
 - **Release/next:** [#20](https://github.com/rzqllh/Yoru/issues/20) G1–G6 NO-GO; first obtain real live response status/body and provider/device evidence, then follow an approved exact-SHA production deployment/release gate. No production or configuration modification in this checkpoint.
+
+## 2026-11-01 vNext supersession — documentation scope
+
+**2026-11-01 vNext owner supersession.** Inspected GitHub main [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572); this is **DOCS ONLY**, not hosted/provider verification. D03=**3A AniList-primary** replaces archival D03=3B Tenrai/MAL-primary. D01=1A, D02=2B, D04=4A, D05=5A, D06–D09 retained. Existing Tenrai/MAL code remains until an approved reversible migration.
+
+- Verify actual deployed SHA, health/catalog, real authorized native playback and subtitles with physical Safari, ingress security and rollback. Torrentio torrent descriptor ≠ playable source; resolver is separately owner-gated. #20 G1–G6 still NO-GO.
+- **Acceptance:** [AC-VN-01–16](../ACCEPTANCE_MATRIX.md) as relevant; exact SHA, browser/device, actual provider sample and result must be recorded. Previous tests are historical; no new PASS claims, live provider configuration, code changes, resolver activation or release from this documentation merge.
