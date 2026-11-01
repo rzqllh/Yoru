@@ -109,3 +109,9 @@ frontend/src/App.tsx, frontend/src/lib/router.ts, frontend/src/styles.css, front
 
 - [PR #136](https://github.com/rzqllh/Yoru/pull/136) merged into `main` `3334d74417b780878d194b5f6b302566099d6abb`. Its per-origin detail-return snapshot now also retains the Guide route and opener element. The original guide React subtree stays mounted and hidden behind detail, preserving graph/filter state. Existing Browse return behavior from #133 and direct detail link semantics remain unchanged.
 - Exact PR head `e9ab54c6`: [CI](https://github.com/rzqllh/Yoru/actions/runs/41272983355), [Browser E2E Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41272983482) **SUCCESS** for fixed fixtures. No physical Safari or live provider verification. AC-DETAIL-02 / AC-GUIDE-02 **partial deterministic return coverage**. Full semantic detail document and playback-return remain open.
+
+## 2026-11-01 — Detail → native player → Back retains Browse (#139 MERGED)
+
+- [PR #139](https://github.com/rzqllh/Yoru/pull/139) merged main 8e931bb7a6a7dbd0754829fe13425d9955c5480e. Keep Browse and app shell mounted but HTML-hidden while player owns visible controls. Close from detail restores browser history and previously loaded catalog instead of forcing scroll-to-top.
+- Exact PR head 48c07be: [CI](https://github.com/rzqllh/Yoru/actions/runs/41274184023) and [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41274184006) SUCCESS. One initial [browser FAIL](https://github.com/rzqllh/Yoru/actions/runs/41273993615) expected .app-shell removed; updated assertion now requires a hidden background. Fixture loads 25 titles across pages, opens native sample playback, returns with unchanged list, opener focus and no extra catalog fetch.
+- AC-DETAIL-02 / AC-VN-13 PASS deterministic fixture only; Phase 05 PARTIAL. True semantic detail page, live providers and physical iPhone NOT RUN.
