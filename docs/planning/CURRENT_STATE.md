@@ -1,5 +1,16 @@
 # Yoru — Current State & New-Chat Recovery
 
+## 2026-11-01 — Verified navigation work: #141–#144 (after interrupted handoff)
+
+- **Main baseline at this checkpoint:** `c3f5af0996d5ebfff16c6280230c2de9142f53dd`; repository integration, **NOT hosted production**.
+- [#141](https://github.com/rzqllh/Yoru/pull/141) merged as `da70a29`: only canonical singleton `minScore=7|8|9` is accepted. Exact PR head `d7f8df7` [CI](https://github.com/rzqllh/Yoru/actions/runs/41275437997) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41275438058) both SUCCESS (Linux, Windows, Chromium, WebKit).
+- [#142](https://github.com/rzqllh/Yoru/pull/142) merged as `f16e8ae`: combined Browse filters + second-page native player return regression preserves 25 items, URL, scroll/focus, and avoids catalog refetch. Exact PR head `8bff196` [CI](https://github.com/rzqllh/Yoru/actions/runs/41275620079) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41275620076) SUCCESS (four jobs). This supersedes the **PENDING** snapshot appended during initial PR authoring.
+- [#143](https://github.com/rzqllh/Yoru/pull/143) merged as `f9872fa`: Escape during playback now uses detail-origin return path instead of leaving the user on a stale detail route. Exact PR head `1d77519` [CI](https://github.com/rzqllh/Yoru/actions/runs/41275780152) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41275780150) SUCCESS (four jobs).
+- [#144](https://github.com/rzqllh/Yoru/pull/144) merged as `c3f5af0`: browser history Back dismisses active player; routed Browse + original focus return. Exact PR head `1ebf97d` [CI](https://github.com/rzqllh/Yoru/actions/runs/41275880037) and [Browser](https://github.com/rzqllh/Yoru/actions/runs/41275880052) SUCCESS (four jobs).
+- Merged main `c3f5af0`: [CI](https://github.com/rzqllh/Yoru/actions/runs/41276006142) **SUCCESS**; [Chromium/WebKit](https://github.com/rzqllh/Yoru/actions/runs/41276006069) **PENDING at documentation draft**. Verify exact final conclusion before calling merged-main 4/4.
+- This covers deterministic navigation only. Physical iPhone Safari, actual authorized media/subtitle sources, long-detail UX, AniList-primary ToU/compliance, two-account Supabase sync, current production SHA/hosted API and [#20 release G1–G6](https://github.com/rzqllh/Yoru/issues/20) remain **NOT VERIFIED / NO-GO**. No automatic deployment, paid service, credentials, auth policy, schema or public release changed.
+
+
 ### 2026-11-01 — Combined-filter playback-return regression (#142; verification pending)
 
 - [Draft PR #142](https://github.com/rzqllh/Yoru/pull/142), code commit `b2d0f88`: adds browser regression for canonical combined genre/type/minScore/year/order, page-two 25-card state, open detail → native player → Back, original URL, scroll, focus and no redundant filtered-catalog request. Baseline main `005aee1` CI and Browser E2E previously SUCCESS; **new PR-head checks NOT YET VERIFIED**. No runtime code or production changes.
