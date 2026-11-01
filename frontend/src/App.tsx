@@ -177,7 +177,7 @@ function App(){
  const [selected,setSelected]=useState<Anime|null>(null)
  const [detailError,setDetailError]=useState('')
  const detailCache=useRef<Anime|null>(null)
- const detailReturn=useRef<{path:string;scroll:number}|null>(null)
+ const detailReturn=useRef<{path:string;scroll:number;title:string}|null>(null)
  const [playback,setPlayback]=useState<Playback|null>(null)
  const [toast,setToast]=useState('')
  const [mobileNav,setMobileNav]=useState(false)
@@ -225,7 +225,7 @@ function App(){
  },[])
 
  const openDetail=useCallback((anime:Anime)=>{
-  if(route.page!=='detail')detailReturn.current={path:window.location.pathname+window.location.search,scroll:window.scrollY}
+  if(route.page!=='detail')detailReturn.current={path:window.location.pathname+window.location.search,scroll:window.scrollY,title:anime.title}
   detailCache.current=anime
   setSelected(anime)
   setDetailError('')
@@ -260,7 +260,13 @@ function App(){
    setSelected(next.page==='detail'&&detailCache.current?.malId===next.detailMalId?detailCache.current:null)
    const snapshot=detailReturn.current
    if(snapshot&&next.page!=='detail'&&snapshot.path===window.location.pathname+window.location.search){
-    window.requestAnimationFrame(()=>window.scrollTo({top:snapshot.scroll,behavior:'instant'}))
+    window.requestAnimationFrame(()=>{
+     window.scrollTo({top:snapshot.scroll,behavior:'instant'})
+     // The original card unmounts on route transitions; restore focus to its new DOM instance.
+     const matching=Array.from(document.querySelectorAll<HTMLButtonElement>('button[aria-label]'))
+      .find(button=>button.getAttribute('aria-label')===`Buka ${snapshot.title}`)
+     matching?.focus({preventScroll:true})
+    })
     detailReturn.current=null
    }else window.scrollTo({top:0,behavior:'instant'})
   }
