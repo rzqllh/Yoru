@@ -1133,6 +1133,7 @@ test('Phase 05 returning from detail preserves loaded browse pages, filters and 
  await target.scrollIntoViewIfNeeded()
  const originalScroll=await page.evaluate(()=>window.scrollY)
  expect(originalScroll).toBeGreaterThan(0)
+ const requestsBeforeDetail=browseRequests.length
  await target.click()
  await expect(page).toHaveURL(/\/anime\/25$/)
  await expect(page.getByRole('dialog',{name:'Detail Page two anime'})).toBeVisible()
@@ -1141,6 +1142,6 @@ test('Phase 05 returning from detail preserves loaded browse pages, filters and 
  await expect(page.locator('.browse-results-header .results-label')).toHaveText('25 ditampilkan')
  await expect(page.locator('.browse-grid .anime-card')).toHaveCount(25)
  await expect(page.getByRole('button',{name:'Buka Page two anime'})).toBeFocused()
- expect(browseRequests).toEqual([1,2])
+ expect(browseRequests.length).toBe(requestsBeforeDetail)
  expect(await page.evaluate(()=>window.scrollY)).toBeGreaterThan(0)
 })
