@@ -6,7 +6,7 @@
 
 **2026-11-01 vNext owner supersession.** Inspected GitHub main [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572); this is **DOCS ONLY**, not hosted/provider verification. D03=**3A AniList-primary** replaces archival D03=3B Tenrai/MAL-primary. D01=1A, D02=2B, D04=4A, D05=5A, D06–D09 retained. Existing Tenrai/MAL code remains until an approved reversible migration.
 
-**Done in code, not live certified:** PR #100/#101/#103/#106/#107/#108 and Tenrai/MAL dynamic genre #116/#117. **Not done:** D03=3A AniList-primary, full-page mobile Detail, full Stremio/Torrentio provider verification, actual subtitle/live playback or physical iPhone. **Open:** PR #123 Upcoming, draft PR #77 cloud, #20 public release gate. **Next:** follow phases 01/02 for independent addon-stream and addon-subtitle/direct API validation, phase 04 for compliance-gated AniList migration, phase 05 detail, then integrated QA.
+**Done in code, not live certified:** PR #100/#101/#103/#106/#107/#108 and Tenrai/MAL dynamic genre #116/#117. **Not done:** D03=3A AniList-primary, full-page mobile Detail, full Stremio/Torrentio provider verification, actual subtitle/live playback or physical iPhone. **Merged code:** PR #123 standalone Upcoming and PR #124 empty-episode guard. **Open:** draft PR #77 cloud and #20 public release gate. **Next:** follow phases 01/02 for independent addon-stream and addon-subtitle/direct API validation, phase 04 for compliance-gated AniList migration, phase 05 detail, then integrated QA.
 
 Torrent-only `infoHash/fileIdx` remains unavailable; no approved resolver, installer, torrent download, proxy or deployment. Stremio `stream` and `subtitles` are separate and OpenSubtitles/SubSource/SubDL stay independent.
 
