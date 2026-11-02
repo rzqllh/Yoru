@@ -1282,9 +1282,10 @@ function DetailBody({
       {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
        <MonitorPlay size={17}/>
        <span>
-        <strong>{stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Subtitle menyatu':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia':'Bahasa subtitle belum diketahui'}</strong>
-        <small>Video akan diperiksa sebelum diputar</small>
+        <strong>{stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Hardsub Indo (Menyatu)':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia (Softsub)':'Audio Asli (RAW)'}</strong>
+        <small>{stream.subtitleMode==='hard'?'Subtitle tercetak di video · Tidak dapat disembunyikan':stream.tracks.some(t=>t.lang==='id')?'Softsub terpisah · Dapat disembunyikan/diatur':'Kandidat video RAW · Video akan diperiksa'}</small>
        </span>
+       {stream.subtitleMode==='hard'&&<span className="source-tag-hardsub">Hardsub</span>}
        <Play size={16}/>
       </button>)}
       {choices.unavailable?.map(candidate=><button type="button" disabled key={`${candidate.kind}:${candidate.label}:${candidate.reason}`} title={candidate.reason} aria-label={`${candidate.label} · Belum bisa diputar`}>

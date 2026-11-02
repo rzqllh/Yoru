@@ -29,7 +29,12 @@ function normalizeSourceCandidate(value:unknown):Stream|null{
   subtitleMode:source.subtitleMode==='hard'||source.subtitleMode==='soft'?source.subtitleMode:'unknown',
   ...(typeof source.id==='string'?{id:source.id}:{}),
   ...(typeof source.providerId==='string'?{providerId:source.providerId}:{}),
-  ...(typeof source.quality==='string'&&source.quality.length<=100?{quality:source.quality}:{})
+  ...(typeof source.quality==='string'&&source.quality.length<=100?{quality:source.quality}:{}),
+  ...(source.subtitleMode==='hard'?{
+   hardsubWarning:typeof source.hardsubWarning==='string'&&source.hardsubWarning.trim()
+    ?source.hardsubWarning.trim().slice(0,250)
+    :'Subtitle Indonesia sudah menyatu di dalam video (hardsub) — tidak dapat diubah atau disembunyikan.'
+  }:{})
  }
  // A URL that cannot pass the native browser preflight must not appear selectable.
  return isNativeCandidate(candidate)?candidate:null

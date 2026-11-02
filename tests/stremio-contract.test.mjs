@@ -113,3 +113,18 @@ test('Stremio addon resource filter and movie path parity',()=>{
   {...addon,anime:[{...addon.anime[0],type:'unsupported'}]}
  ])assert.throws(()=>validateStremioConfig({addons:[bad]}))
 })
+
+test('Stremio stream parser identifies Indonesian hardsub releases and attaches warnings',()=>{
+ const results=parseStremioStreams({streams:[
+  {url:'https://cdn.example.com/otaku/ep1.mp4',name:'[Otakudesu] Frieren Ep 01 [720p]'},
+  {url:'https://cdn.example.com/samehada/ep1.m3u8',description:'Samehadaku - Hardsub Indo 1080p'},
+  {url:'https://cdn.example.com/raw/ep1.m3u8',name:'Raw Clean 1080p',subtitles:[]}
+ ]},'stremio-anime')
+ assert.equal(results.length,3)
+ assert.equal(results[0].subtitleMode,'hard')
+ assert.match(results[0].hardsubWarning||'',/tidak dapat diubah/i)
+ assert.equal(results[1].subtitleMode,'hard')
+ assert.match(results[1].hardsubWarning||'',/tidak dapat diubah/i)
+ assert.equal(results[2].subtitleMode,'unknown')
+ assert.equal(results[2].hardsubWarning,undefined)
+})
