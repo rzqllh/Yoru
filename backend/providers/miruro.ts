@@ -9,7 +9,7 @@ const arr=(x:unknown):unknown[]=>Array.isArray(x)?x:[]
 const str=(x:unknown,max=180)=>typeof x==='string'?x.trim().slice(0,max):''
 const asId=(x:unknown)=>Number.isSafeInteger(Number(x))&&Number(x)>0&&Number(x)<100000000?Number(x):null
 export function miruroBase():string|null{
- const raw=process.env.MIRURO_API_BASE
+ const raw=process.env.AGGREGATOR_API_BASE||process.env.MIRURO_API_BASE
  if(!raw)return null
  try{
   const url=new URL(raw)
@@ -20,7 +20,9 @@ export function miruroBase():string|null{
   return url.origin
  }catch{return null}
 }
+export const aggregatorBase=miruroBase
 export const isMiruroConfigured=()=>miruroBase()!==null
+export const isAggregatorConfigured=isMiruroConfigured
 const timeout=7000
 async function readJson(url:string,options:RequestInit={}):Promise<unknown>{
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout)
@@ -35,18 +37,29 @@ async function readJson(url:string,options:RequestInit={}):Promise<unknown>{
  }finally{clearTimeout(timer)}
 }
 const cache=new Map<number,{value:number|null;until:number}>()
+const inflight=new Map<number,Promise<number|null>>()
 async function anilistId(malId:number):Promise<number|null>{
  const known=cache.get(malId)
  if(known&&known.until>Date.now())return known.value
- const response=await readJson('https://graphql.anilist.co',{
-  method:'POST',headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({query:'query ($idMal: Int) { Media(idMal: $idMal, type: ANIME) { id } }',
-   variables:{idMal:malId}})
- })
- const id=asId(obj(obj(response)?.data)?.Media&&obj(obj(obj(response)?.data)?.Media)?.id)
- if(cache.size>=1000)cache.clear()
- cache.set(malId,{value:id,until:Date.now()+6*60*60*1000})
- return id
+ const pending=inflight.get(malId)
+ if(pending)return pending
+ const operation=(async()=>{
+  try{
+   const response=await readJson('https://graphql.anilist.co',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({query:'query ($idMal: Int) { Media(idMal: $idMal, type: ANIME) { id } }',
+     variables:{idMal:malId}})
+   })
+   const id=asId(obj(obj(response)?.data)?.Media&&obj(obj(obj(response)?.data)?.Media)?.id)
+   if(cache.size>=1000)cache.delete(cache.keys().next().value ?? 0)
+   cache.set(malId,{value:id,until:Date.now()+(id?24*60*60*1000:30*60*1000)})
+   return id
+  }finally{
+   inflight.delete(malId)
+  }
+ })()
+ inflight.set(malId,operation)
+ return operation
 }
 export type MiruroEpisode={id:string;animeId:string;number:number;title:string;providerId:string}
 export function parseMiruroEpisodes(payload:unknown,malId:number,aniId:number):MiruroEpisode[]{
@@ -111,7 +124,7 @@ export async function getMiruroEpisodes(malId:number):Promise<MiruroEpisode[]>{
  return parseMiruroEpisodes(await readJson(base+'/api/episodes/'+id),malId,id)
 }
 export async function getMiruroStreams(ref:string){
- const base=miruroBase(),match=/^miruro-([a-z][a-z0-9-]{0,24}):([1-9]\d{0,8}):([1-9]\d{0,3})$/.exec(ref)
+ const base=miruroBase(),match=/^(?:miruro|aggregator)-([a-z][a-z0-9-]{0,24}):([1-9]\d{0,8}):([1-9]\d{0,3})$/.exec(ref)
  if(!base||!match)return []
  const [,provider,malIdText,epText]=match,malId=Number(malIdText),episode=Number(epText)
  if(episode>2000)return []
@@ -124,7 +137,10 @@ export async function getMiruroStreams(ref:string){
  const path=str(exact?.id,180)
  if(!new RegExp('^watch/'+provider+'/'+id+'/sub/[A-Za-z0-9_-]{1,120}$').test(path))return []
  const response=await readJson(base+'/api/'+path)
+ const prefix=ref.startsWith('aggregator-')?'aggregator-':'miruro-'
  return parseMiruroStreams(response,provider,episode).map((stream,index)=>({
-  ...stream,id:'miruro-'+provider+':'+malId+':'+episode+':'+index
+  ...stream,id:prefix+provider+':'+malId+':'+episode+':'+index
  }))
 }
+export const getAggregatorStreams=getMiruroStreams
+export const getAggregatorEpisodes=getMiruroEpisodes
