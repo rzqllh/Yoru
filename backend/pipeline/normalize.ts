@@ -1,6 +1,6 @@
 export type Anime = {
-  id: string; malId: number; title: string; englishTitle: string | null;
-  japaneseTitle: string | null; poster: string | null; cover: string | null;
+  id: string; malId: number; aniListId?: number | null; title: string; englishTitle: string | null;
+  japaneseTitle: string | null; poster: string | null; cover: string | null; banner?: string | null;
   synopsis: string; score: number | null; episodes: number | null;
   year: number | null; status: string; type: string; rating: string | null;
   genres: string[]; studios: string[]; trailerYoutubeId: string | null;

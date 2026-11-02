@@ -6,9 +6,13 @@ const isRecord=(value:unknown):value is Record<string,unknown>=>typeof value==='
 const isSafeNumber=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)&&value>=0
 function isAnime(value:unknown):value is Anime{
  if(!isRecord(value))return false
- return typeof value.id==='string'&&/^(?:mal:)[1-9]\d{0,8}$/.test(value.id)&&
-  Number.isSafeInteger(value.malId)&&Number(value.id.slice(4))===value.malId&&
-  typeof value.title==='string'&&value.title.length>0&&value.title.length<=500
+ const id=typeof value.id==='string'?value.id:''
+ const match=/^(mal|anilist):([1-9]\d{0,7})$/.exec(id)
+ if(!match)return false
+ const num=Number(match[2])
+ const malMatches=match[1]==='mal'?Number.isSafeInteger(value.malId)&&value.malId===num:Number.isSafeInteger(value.malId)||value.malId===undefined
+ const aniMatches=match[1]==='anilist'?(Number.isSafeInteger(value.aniListId)&&value.aniListId===num):true
+ return malMatches&&aniMatches&&typeof value.title==='string'&&value.title.length>0&&value.title.length<=500
 }
 function validLibrary(value:unknown):value is LibraryEntry{
  if(!isRecord(value))return false
@@ -63,8 +67,9 @@ export function normalizeBackupAnime(value:Anime):Anime{
  const trailer=maybeText(raw.trailerYoutubeId)
  return {
   id:value.id,malId:value.malId,title:value.title,
+  aniListId:Number.isSafeInteger(raw.aniListId)&&Number(raw.aniListId)>0?Number(raw.aniListId):null,
   englishTitle:maybeText(raw.englishTitle),japaneseTitle:maybeText(raw.japaneseTitle),
-  poster:httpsUrl(raw.poster),cover:httpsUrl(raw.cover),
+  poster:httpsUrl(raw.poster),cover:httpsUrl(raw.cover),banner:httpsUrl(raw.banner),
   synopsis:textOr(raw.synopsis,''),score,episodes,year,
   status:textOr(raw.status,'Unknown'),type:textOr(raw.type,'Unknown'),
   rating:maybeText(raw.rating),genres:list(raw.genres),studios:list(raw.studios),
