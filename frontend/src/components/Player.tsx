@@ -1,6 +1,6 @@
-import {useEffect,useMemo,useRef,useState,type ChangeEvent,type CSSProperties} from 'react'
+import {useCallback,useEffect,useMemo,useRef,useState,type ChangeEvent,type CSSProperties} from 'react'
 import type Hls from 'hls.js'
-import {AlertTriangle,ArrowLeft,Info,Maximize2,MonitorPlay,PictureInPicture2,SkipBack,SkipForward,Subtitles,Play,Pause,Volume2,VolumeX,Upload,SlidersHorizontal} from 'lucide-react'
+import {AlertTriangle,ArrowLeft,Gauge,Info,Maximize2,MonitorPlay,PictureInPicture2,SkipBack,SkipForward,Subtitles,Play,Pause,Volume2,VolumeX,Upload,SlidersHorizontal,X} from 'lucide-react'
 import type {Anime,Stream} from '../types'
 import {getPreference,getProgress,saveProgress,setPreference} from '../lib/db'
 import {applySubtitleOffset,type CueBaseline} from '../lib/subtitle-offset'
@@ -34,6 +34,33 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [subtitleSearch,setSubtitleSearch]=useState(false)
  const [subtitlePanel,setSubtitlePanel]=useState(false)
  const [advancedControls,setAdvancedControls]=useState(false)
+ const [controlsVisible,setControlsVisible]=useState(true)
+ const hideTimerRef=useRef<ReturnType<typeof setTimeout>|null>(null)
+ const resetHideTimer=useCallback(()=>{
+  setControlsVisible(true)
+  if(hideTimerRef.current)clearTimeout(hideTimerRef.current)
+  if(!isPaused&&!subtitlePanel&&!advancedControls){
+   hideTimerRef.current=setTimeout(()=>{setControlsVisible(false)},3500)
+  }
+ },[isPaused,subtitlePanel,advancedControls])
+ useEffect(()=>{
+  if(isPaused||subtitlePanel||advancedControls){
+   if(hideTimerRef.current)clearTimeout(hideTimerRef.current)
+   setControlsVisible(true)
+  }else{
+   resetHideTimer()
+  }
+  return()=>{if(hideTimerRef.current)clearTimeout(hideTimerRef.current)}
+ },[isPaused,subtitlePanel,advancedControls,resetHideTimer])
+
+ const cycleSpeed=()=>{
+  const speeds=[1,1.25,1.5,2,0.5,0.75]
+  const idx=speeds.indexOf(speed)
+  const next=speeds[(idx+1)%speeds.length]
+  setSpeed(next)
+  void setPreference('playback-speed',String(next)).catch(()=>{})
+  resetHideTimer()
+ }
  const [selectedSubtitle,setSelectedSubtitle]=useState<{id:string;lang:string;url:string}|null>(null)
  const [subtitleOff,setSubtitleOff]=useState(false)
  const [subtitleManual,setSubtitleManual]=useState(false)
@@ -101,7 +128,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
 
  useEffect(()=>{
   let active=true
-  const animeKey=anime&&!demo?'subtitle-style:'+anime.id:null
+  const animeKey=anime&&!demo?`subtitle-style:${anime.id}`:null
   void Promise.all([
    getPreference('subtitle-style:global',''),
    animeKey?getPreference(animeKey,''):Promise.resolve('')
@@ -141,7 +168,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   setCaptionBackgroundOpacity(normalized.backgroundOpacity)
   setCaptionOutline(normalized.outline)
   setCaptionPosition(normalized.position)
-  const key=scope==='anime'&&anime&&!demo?'subtitle-style:'+anime.id:'subtitle-style:global'
+  const key=scope==='anime'&&anime&&!demo?`subtitle-style:${anime.id}`:'subtitle-style:global'
   void setPreference(key,JSON.stringify(normalized)).catch(()=>{})
  }
 
@@ -252,7 +279,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    }
    return true
   }catch{
-   setSubtitleState('Subtitle '+item.label+' belum bisa dimuat. Pilih yang lain.')
+   setSubtitleState(`Subtitle ${item.label} belum bisa dimuat. Pilih yang lain.`)
    return false
   }
  }
@@ -631,7 +658,18 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   }
  },[stream.url,stream.format,resumeAt])
 
- return <main ref={watchRef} tabIndex={-1} className="player-overlay" aria-label="Layar tonton">
+ const handleStageClick=(e:React.MouseEvent)=>{
+  const target=e.target as HTMLElement
+  if(target.closest('button,a,input,select'))return
+  if(!controlsVisible){
+   setControlsVisible(true)
+   resetHideTimer()
+  }else if(!isPaused){
+   setControlsVisible(false)
+  }
+ }
+
+ return <main ref={watchRef} tabIndex={-1} className={`player-overlay ${controlsVisible?'controls-active':'controls-hidden'}`} aria-label="Layar tonton" onPointerMove={resetHideTimer} onTouchStart={resetHideTimer}>
   <div className="player-top">
    <button type="button" className="icon-button glass" onClick={onClose} aria-label="Kembali"><ArrowLeft size={20}/></button>
    <div className="player-heading">
@@ -642,6 +680,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    <div className="player-provider">{stream.format==='embed'?'Video alternatif':'Video langsung'}</div>
   </div>
   <div className="player-stage">
+   <button type="button" className="player-stage-hit" tabIndex={-1} aria-label="Alihkan kontrol pemutar" onClick={handleStageClick}/>
    {stream.subtitleMode==='hard'&&<div className="player-hardsub-notice" role="status">
     <AlertTriangle size={15}/>
     <span>{stream.hardsubWarning||'Subtitle Indonesia sudah menyatu di dalam video (hardsub) — tidak dapat diubah atau disembunyikan.'}</span>
@@ -675,60 +714,85 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   </div>}
   {nextMessage&&<div className="player-next" role="status">{nextMessage}</div>}
   {stream.format!=='embed'&&<div className="player-toolbar">
-   <div className="player-transport">
-    <button type="button" className="player-transport-play" aria-label={isPaused?'Putar video':'Jeda video'} onClick={togglePlayback}>{isPaused?<Play size={20} fill="currentColor"/>:<Pause size={20} fill="currentColor"/>}</button>
-    <span className="player-time" aria-live="off">{clock(position)} <span>/</span> {clock(duration)}</span>
+   <div className="player-transport-scrubber">
+    <span className="player-time-badge">{clock(position)}</span>
     <input type="range" min={0} max={Number.isFinite(duration)&&duration>0?duration:1} step="0.1" value={Math.min(position,Number.isFinite(duration)&&duration>0?duration:1)} onChange={event=>seekTo(Number(event.target.value))} aria-label="Posisi video" className="player-seek" style={{'--seek':`${duration>0?position/duration*100:0}%`} as CSSProperties}/>
-    <button type="button" aria-label={isMuted||volume===0?'Aktifkan suara':'Matikan suara'} onClick={()=>{const v=video.current;if(v){v.muted=!v.muted;setIsMuted(v.muted)}}}>{isMuted||volume===0?<VolumeX size={19}/>:<Volume2 size={19}/>}</button>
-    <input type="range" min="0" max="1" step="0.05" value={isMuted?0:volume} onChange={event=>setSound(Number(event.target.value))} aria-label="Volume" className="player-volume"/>
+    <span className="player-time-badge duration">{clock(duration)}</span>
+    <span className="player-time sr-only" aria-live="off">{clock(position)} <span>/</span> {clock(duration)}</span>
    </div>
-   <div className="player-quick-actions">
-    <button type="button" aria-label="Mundur 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.max(0,v.currentTime-10)}}><SkipBack size={16}/> −10s</button>
-    <button type="button" aria-label="Maju 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.min(Number.isFinite(v.duration)?v.duration:Infinity,v.currentTime+10)}}><SkipForward size={16}/> +10s</button>
-    <button type="button" aria-label="Fullscreen video" onClick={()=>void toggleFullscreen()}><Maximize2 size={16}/> Fullscreen</button>
-    {pipSupported&&<button type="button" aria-label="Picture-in-Picture" disabled={hasActiveCaptions||Boolean(selectedSubtitle&&!subtitleOff)} title={hasActiveCaptions?'Matikan subtitle untuk PiP':'Picture-in-Picture'} onClick={()=>void togglePip()}><PictureInPicture2 size={16}/> PiP</button>}
-    <button type="button" className="player-more-trigger" aria-expanded={advancedControls} onClick={()=>setAdvancedControls(value=>!value)}><SlidersHorizontal size={17}/> Pengaturan</button>
+   <div className="player-transport-row">
+    <div className="player-transport-left">
+     <button type="button" className="player-transport-play" aria-label={isPaused?'Putar video':'Jeda video'} onClick={togglePlayback}>{isPaused?<Play size={20} fill="currentColor"/>:<Pause size={20} fill="currentColor"/>}</button>
+     <button type="button" className="player-btn-icon" aria-label="Mundur 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.max(0,v.currentTime-10)}}><SkipBack size={16}/> <span>−10s</span></button>
+     <button type="button" className="player-btn-icon" aria-label="Maju 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.min(Number.isFinite(v.duration)?v.duration:Infinity,v.currentTime+10)}}><SkipForward size={16}/> <span>+10s</span></button>
+     <div className="player-volume-group">
+      <button type="button" className="player-btn-icon" aria-label={isMuted||volume===0?'Aktifkan suara':'Matikan suara'} onClick={()=>{const v=video.current;if(v){v.muted=!v.muted;setIsMuted(v.muted)}}}>{isMuted||volume===0?<VolumeX size={19}/>:<Volume2 size={19}/>}</button>
+      <input type="range" min="0" max="1" step="0.05" value={isMuted?0:volume} onChange={event=>setSound(Number(event.target.value))} aria-label="Volume" className="player-volume"/>
+     </div>
+    </div>
+    <div className="player-transport-right">
+     <button type="button" className="player-quick-speed" title="Ganti kecepatan video" onClick={cycleSpeed}><Gauge size={14}/> <span>{speed}×</span></button>
+     <button type="button" className={`player-subtitle-trigger ${stream.subtitleMode==='hard'?'hardsub':''}`} aria-controls="yoru-subtitle-panel" aria-expanded={subtitlePanel} onClick={()=>{setSubtitlePanel(value=>!value);setAdvancedControls(false)}}>
+      <Subtitles size={15}/> <span>Subtitle · {stream.subtitleMode==='hard'?'Hardsub (Menyatu)':selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':selectedSubtitle.lang==='en'?'English':'pribadi'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}</span>
+     </button>
+     <button type="button" className="player-more-trigger" aria-expanded={advancedControls} onClick={()=>{setAdvancedControls(value=>!value);setSubtitlePanel(false)}}><SlidersHorizontal size={17}/> <span>Pengaturan</span></button>
+     {pipSupported&&<button type="button" className="player-btn-icon" aria-label="Picture-in-Picture" disabled={hasActiveCaptions||Boolean(selectedSubtitle&&!subtitleOff)} title={hasActiveCaptions?'Matikan subtitle untuk PiP':'Picture-in-Picture'} onClick={()=>void togglePip()}><PictureInPicture2 size={16}/></button>}
+     <button type="button" className="player-btn-icon" aria-label="Fullscreen video" onClick={()=>void toggleFullscreen()}><Maximize2 size={16}/></button>
+    </div>
    </div>
    {advancedControls&&<div className="player-extra-controls">
-   <label>Kecepatan
-    <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>{const next=Number(e.target.value);setSpeed(next);void setPreference('playback-speed',String(next)).catch(()=>{})}}>
-     {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
-    </select>
-   </label>
-   {stream.format==='hls'&&<label>Kualitas
-    <select aria-label="Kualitas video" disabled={qualityLevels.length<2} value={qualityIndex===null?'auto':String(qualityIndex)} onChange={e=>{
-     const engine=hlsRef.current
-     if(!engine)return
-     if(e.target.value==='auto'){
-      engine.currentLevel=-1
-      setQualityIndex(null)
-      setQualityNote('')
-      return
-     }
-     const level=Number(e.target.value)
-     if(qualityLevels.some(item=>item.index===level)){
-      engine.currentLevel=level
-      setQualityIndex(level)
-      setQualityNote('')
-     }
-    }}>
-     <option value="auto">Auto</option>
-     {qualityLevels.map(level=><option key={level.index} value={level.index}>{level.height}p</option>)}
-    </select>
-    {qualityLevels.length<2&&<small>Perangkat atau video ini tidak menawarkan pilihan kualitas manual.</small>}
-   </label>}
-   {stream.subtitleMode!=='hard'&&(stream.tracks.length>0||selectedSubtitle!==null)&&<div className="player-offset">
-    <span>Waktu subtitle: {subtitleOffset>0?'+':''}{subtitleOffset.toFixed(1)}s</span>
-    <button type="button" onClick={()=>changeOffset(-0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih awal">−0.5</button>
-    <button type="button" onClick={()=>changeOffset(-0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih awal">−0.1</button>
-    <button type="button" onClick={()=>changeOffset(-subtitleOffset)} disabled={!anime||demo} aria-label="Reset sinkronisasi subtitle">Reset</button>
-    <button type="button" onClick={()=>changeOffset(0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih lambat">+0.1</button>
-    <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
+    <div className="player-extra-header">
+     <strong>Pengaturan Pemutar</strong>
+     <button type="button" className="icon-button glass" onClick={()=>setAdvancedControls(false)} aria-label="Tutup pengaturan"><X size={16}/></button>
+    </div>
+    <div className="player-extra-section">
+     <div className="player-section-label"><Gauge size={14}/> Kecepatan Pemutaran</div>
+     <div className="player-speed-chips">
+      {[0.5,0.75,1,1.25,1.5,2].map(v=><button key={v} type="button" className={`player-speed-chip ${speed===v?'active':''}`} onClick={()=>{setSpeed(v);void setPreference('playback-speed',String(v)).catch(()=>{})}}>{v}×</button>)}
+     </div>
+     <label className="player-accessible-select">
+      <span className="sr-only">Pilihan kecepatan</span>
+      <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>{const next=Number(e.target.value);setSpeed(next);void setPreference('playback-speed',String(next)).catch(()=>{})}}>
+       {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
+      </select>
+     </label>
+    </div>
+    {stream.format==='hls'&&<div className="player-extra-section">
+     <label className="player-section-label">Kualitas Video
+      <select aria-label="Kualitas video" disabled={qualityLevels.length<2} value={qualityIndex===null?'auto':String(qualityIndex)} onChange={e=>{
+       const engine=hlsRef.current
+       if(!engine)return
+       if(e.target.value==='auto'){
+        engine.currentLevel=-1
+        setQualityIndex(null)
+        setQualityNote('')
+        return
+       }
+       const level=Number(e.target.value)
+       if(qualityLevels.some(item=>item.index===level)){
+        engine.currentLevel=level
+        setQualityIndex(level)
+        setQualityNote('')
+       }
+      }}>
+       <option value="auto">Auto</option>
+       {qualityLevels.map(level=><option key={level.index} value={level.index}>{level.height}p</option>)}
+      </select>
+     </label>
+     {qualityLevels.length<2&&<small>Perangkat atau video ini tidak menawarkan pilihan kualitas manual.</small>}
+    </div>}
+    {stream.subtitleMode!=='hard'&&(stream.tracks.length>0||selectedSubtitle!==null)&&<div className="player-extra-section">
+     <div className="player-section-label">Sinkronisasi Subtitle</div>
+     <div className="player-offset">
+      <span>Waktu subtitle: {subtitleOffset>0?'+':''}{subtitleOffset.toFixed(1)}s</span>
+      <button type="button" onClick={()=>changeOffset(-0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih awal">−0.5</button>
+      <button type="button" onClick={()=>changeOffset(-0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih awal">−0.1</button>
+      <button type="button" onClick={()=>changeOffset(-subtitleOffset)} disabled={!anime||demo} aria-label="Reset sinkronisasi subtitle">Reset</button>
+      <button type="button" onClick={()=>changeOffset(0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih lambat">+0.1</button>
+      <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
+     </div>
+    </div>}
    </div>}
-   </div>}
-   <button type="button" className={`player-subtitle-trigger ${stream.subtitleMode==='hard'?'hardsub':''}`} aria-controls="yoru-subtitle-panel" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
-    <Subtitles size={15}/> Subtitle · {stream.subtitleMode==='hard'?'Hardsub (Menyatu)':selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':selectedSubtitle.lang==='en'?'English':'pribadi'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
-   </button>
    {qualityNote&&<small role="status">{qualityNote}</small>}
   </div>}
   {displayNotice&&<div className="player-control-notice" role="status">{displayNotice}</div>}

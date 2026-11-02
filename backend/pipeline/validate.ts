@@ -13,7 +13,12 @@ function string(value:unknown, field:string,max=200):string{
 }
 const privateIp = /^(?:localhost|(?:\d{1,3}\.){3}\d{1,3}|\[[^\]]+\])$/i
 export function assertSafeMediaUrl(value:unknown):string {
- const url = new URL(string(value,'url',2048))
+ const raw = string(value,'url',2048)
+ if(raw.startsWith('/') && !raw.startsWith('//')){
+  if(raw.includes('..') || raw.includes('\\')) throw new Error('Path traversal not allowed')
+  return raw
+ }
+ const url = new URL(raw)
  if(url.protocol !== 'https:' || url.username || url.password) throw new Error('Only credential-free HTTPS URLs allowed')
  const hostname=url.hostname.toLowerCase()
  if(privateIp.test(hostname)||hostname.endsWith('.local')||hostname.endsWith('.internal')||hostname.endsWith('.localhost')||hostname==='0.0.0.0') throw new Error('Private and local hosts are prohibited')
