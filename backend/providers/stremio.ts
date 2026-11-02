@@ -2,6 +2,7 @@ import {readFile} from 'node:fs/promises'
 import {existsSync} from 'node:fs'
 import {resolve} from 'node:path'
 import {lookup} from 'node:dns/promises'
+import type {LookupAddress} from 'node:dns'
 import {request} from 'node:https'
 import {isPublicIPv4,parseStremioStreams,classifyStremioUnplayable,normalizeStremioSubtitles,stremioStreamPath,stremioSubtitlePath,validateStremioConfig,type StremioAddon,type StremioConfig} from './stremio-core.js'
 
@@ -29,8 +30,13 @@ async function fetchJsonPinned(url:URL):Promise<unknown>{
  return new Promise<unknown>((resolveValue,reject)=>{
   let settled=false
   const fail=(error:Error)=>{if(!settled){settled=true;reject(error)}}
-  const req=request(url,{method:'GET',timeout:7000,headers:{Accept:'application/json'},
-   lookup:(_host,_opts,callback)=>callback(null,resolved.address,4)},res=>{
+  const req=request(url,{method:'GET',timeout:7000,headers:{Accept:'application/json','User-Agent':'Yoru/1.0'},
+   lookup:(_host,opts,callback)=>{
+    const cb=typeof opts==='function'?opts:callback
+    const all=typeof opts==='object'&&opts!==null&&Boolean((opts as {all?:boolean}).all)
+    if(all)cb(null,[{address:resolved.address,family:4}] as unknown as string & LookupAddress[])
+    else cb(null,resolved.address,4)
+   }},res=>{
     if(res.statusCode!==200){res.resume();fail(new Error('Addon unavailable'));return}
     const chunks:Buffer[]=[];let bytes=0
     res.on('data',(chunk:Buffer)=>{
@@ -140,7 +146,12 @@ export async function downloadStremioAddonSubtitle(ref:string):Promise<string>{
   const fail=(error:Error)=>{if(!done){done=true;reject(error)}}
   const req=request(url,{method:'GET',timeout:8000,
    headers:{Accept:'text/vtt,text/plain,application/x-subrip'},
-   lookup:(_host,_opts,callback)=>callback(null,dns.address,4)},res=>{
+   lookup:(_host,opts,callback)=>{
+    const cb=typeof opts==='function'?opts:callback
+    const all=typeof opts==='object'&&opts!==null&&Boolean((opts as {all?:boolean}).all)
+    if(all)cb(null,[{address:dns.address,family:4}] as unknown as string & LookupAddress[])
+    else cb(null,dns.address,4)
+   }},res=>{
    if(res.statusCode!==200){res.resume();fail(new Error('SUBTITLE_UNAVAILABLE'));return}
    const type=res.headers['content-type']||''
    if(typeof type!=='string'||!/^(text\/|application\/x-subrip)/i.test(type)){

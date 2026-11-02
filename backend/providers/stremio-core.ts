@@ -59,7 +59,7 @@ export function validateStremioConfig(value:unknown):StremioConfig{
    if(malIds.has(malId))throw new Error('Duplicate MAL id')
    malIds.add(malId)
    const stremioId=nonempty(item.stremioId,120)
-   if(!/^(?:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+|tt[1-9][0-9]{4,11})$/.test(stremioId))throw new Error('Invalid Stremio ID')
+   if(!/^(?:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+|tt[0-9]{5,11})$/.test(stremioId))throw new Error('Invalid Stremio ID')
    const season=item.season===undefined?1:positive(item.season)
    const itemType:('series'|'movie')|undefined=item.type==='movie'?'movie':item.type==='series'?'series':undefined
    if(item.type!==undefined&&itemType===undefined)throw new Error('Invalid anime type')
@@ -140,8 +140,9 @@ export function normalizeStremioSubtitles(payload:unknown,providerId:string):Add
    const lang=subtitleLanguage(rawLang)
    if(!lang)continue
    const url=new URL(nonempty(sub.url,2048))
-   if(url.protocol!=='https:'||url.port||url.username||url.password||url.hash||!mediaHostAllowed(url.hostname)||
-    !(/\.(srt|vtt|ass|ssa)$/).test(url.pathname.toLowerCase()))continue
+   const fileName=typeof sub.subtitleFileName==='string'?sub.subtitleFileName.toLowerCase():''
+   const hasSubtitleExt=/\.(srt|vtt|ass|ssa)$/.test(url.pathname.toLowerCase())||/\.(srt|vtt|ass|ssa)$/.test(fileName)||url.pathname.includes('/download/')
+   if(url.protocol!=='https:'||url.port||url.username||url.password||url.hash||!mediaHostAllowed(url.hostname)||!hasSubtitleExt)continue
    if(known.has(id))continue
    known.add(id)
    const label=typeof sub.label==='string'?sub.label.replace(/<[^>]*>/g,'').trim().slice(0,90):''
