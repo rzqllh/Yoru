@@ -1,1617 +1,3957 @@
-import {useCallback,useEffect,useMemo,useRef,useState} from 'react'
 import {
- AlertTriangle,
- ArrowDownRight,
- ArrowLeft,
- ArrowRight,
- ArrowUpRight,
- Bookmark,
- Check,
- ChevronDown,
- ChevronRight,
- Clapperboard,
- Clock3,
- Compass,
- Download,
- Film,
- Heart,
- Home,
- Info,
- Layers3,
- LoaderCircle,
- Menu,
- MonitorPlay,
- Play,
- Plus,
- RefreshCw,
- Search,
- Settings2,
- SlidersHorizontal,
- Star,
- Trash2,
- Upload,
- WifiOff,
- X,
-} from 'lucide-react'
-import type {Anime,Episode,LibraryEntry,LibraryStatus,ProgressEntry,Stream} from './types'
-import {api,catalog,detail,episodes,providerEpisodes,providers,search,streams,browseFiltered,dailyTrends,getBrowseGenreOptions,type AnimeGenreOption,type DailyTrendResponse,type UnavailableStream} from './lib/api'
-import {clearUserData,exportUserData,getAnimeSaved,importUserData,listLibrary,listProgress,removeAnime,saveAnime,getPreference,setPreference} from './lib/db'
-import {description,durationDisplay,scoreDisplay,yearLabel} from './lib/format'
-import {EMPTY_BROWSE_FILTERS,getBreadcrumbs,parseRoute,routeToPath,type BrowseFilters,type RouteState} from './lib/router'
-import Player from './components/Player'
-import WatchGuide from './components/WatchGuide'
-import {verifyNativeSource} from './lib/source-readiness'
-import {rankNativeStreams} from './lib/source-ranking'
-import {readRememberedSource,saveRememberedSource,preferRememberedSource} from './lib/source-memory'
-import {summarizeSourceSearch} from './lib/source-lifecycle'
-import {isResumableProgress,resolveDetailResumeTarget} from './lib/resume'
-import {sortLibraryEntries,parseLibrarySort,type LibrarySort} from './lib/library-sort'
-import {useDialogFocus} from './lib/useDialogFocus'
-import {useIsMobile} from './lib/useIsMobile'
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Bookmark,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Clapperboard,
+  Clock3,
+  Compass,
+  Download,
+  Film,
+  Heart,
+  Home,
+  Info,
+  Layers3,
+  LayoutGrid,
+  List,
+  LoaderCircle,
+  Menu,
+  MonitorPlay,
+  Play,
+  Plus,
+  RefreshCw,
+  Search,
+  Settings2,
+  SlidersHorizontal,
+  Star,
+  Trash2,
+  Upload,
+  WifiOff,
+  X,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Player from "./components/Player";
+import WatchGuide from "./components/WatchGuide";
+import {
+  type AnimeGenreOption,
+  api,
+  browseFiltered,
+  catalog,
+  type DailyTrendResponse,
+  dailyTrends,
+  detail,
+  episodes,
+  getBrowseGenreOptions,
+  providerEpisodes,
+  providers,
+  search,
+  streams,
+  type UnavailableStream,
+} from "./lib/api";
+import {
+  clearUserData,
+  exportUserData,
+  getAnimeSaved,
+  getPreference,
+  importUserData,
+  listLibrary,
+  listProgress,
+  removeAnime,
+  saveAnime,
+  setPreference,
+} from "./lib/db";
+import {
+  description,
+  durationDisplay,
+  scoreDisplay,
+  yearLabel,
+} from "./lib/format";
+import {
+  type LibrarySort,
+  parseLibrarySort,
+  sortLibraryEntries,
+} from "./lib/library-sort";
+import { isResumableProgress, resolveDetailResumeTarget } from "./lib/resume";
+import {
+  type BrowseFilters,
+  EMPTY_BROWSE_FILTERS,
+  getBreadcrumbs,
+  parseRoute,
+  type RouteState,
+  routeToPath,
+} from "./lib/router";
+import {
+  type SourceSearchResult,
+  getAvailabilityMeta,
+  resolveTruthfulState,
+  summarizeSourceSearch,
+} from "./lib/source-lifecycle";
+import {
+  preferRememberedSource,
+  readRememberedSource,
+  saveRememberedSource,
+} from "./lib/source-memory";
+import { rankNativeStreams } from "./lib/source-ranking";
+import { verifyNativeSource } from "./lib/source-readiness";
+import { useDialogFocus } from "./lib/useDialogFocus";
+import { useIsMobile } from "./lib/useIsMobile";
+import type {
+  Anime,
+  Episode,
+  LibraryEntry,
+  LibraryStatus,
+  ProgressEntry,
+  Stream,
+} from "./types";
 
-type Playback={anime:Anime|null;episode:number;stream:Stream;demo?:boolean;manualSource?:boolean}
+type Playback = {
+  anime: Anime | null;
+  episode: number;
+  stream: Stream;
+  demo?: boolean;
+  manualSource?: boolean;
+};
 
-const TEST_STREAM:Stream={
- id:'demo',
- providerId:'Contoh Yoru',
- format:'hls',
- url:'/demo/stream.m3u8',
- tracks:[{lang:'id',label:'Bahasa Indonesia',url:'/demo-id.vtt'}],
- subtitleMode:'soft',
+const TEST_STREAM: Stream = {
+  id: "demo",
+  providerId: "Contoh Yoru",
+  format: "hls",
+  url: "/demo/stream.m3u8",
+  tracks: [{ lang: "id", label: "Bahasa Indonesia", url: "/demo-id.vtt" }],
+  subtitleMode: "soft",
+};
+
+const navItems: [RouteState["page"], string, typeof Home, string][] = [
+  ["home", "Beranda", Home, "/"],
+  ["browse", "Jelajahi", Compass, "/jelajahi"],
+  ["library", "Koleksi", Bookmark, "/koleksi"],
+  ["settings", "Pengaturan", Settings2, "/pengaturan"],
+];
+
+const LEGACY_BROWSE_GENRES = [
+  "Action",
+  "Adventure",
+  "Comedy",
+  "Drama",
+  "Fantasy",
+  "Horror",
+  "Mystery",
+  "Romance",
+  "Sci-Fi",
+  "Slice of Life",
+  "Sports",
+  "Supernatural",
+] as const;
+const SKELETON_KEYS = [
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "i",
+  "j",
+  "k",
+  "l",
+];
+const posterPlaceholder =
+  "radial-gradient(circle at 68% 25%,#3a3e35 0%,#202422 35%,#13161a 75%)";
+
+function Poster({
+  anime,
+  aspect = "portrait",
+}: {
+  anime: Anime;
+  aspect?: "portrait" | "wide";
+}) {
+  const [failedPoster, setFailedPoster] = useState<string | null>(null);
+  const poster =
+    typeof anime.poster === "string" && anime.poster.length > 0
+      ? anime.poster
+      : null;
+  return (
+    <div
+      className={`poster ${aspect}`}
+      style={{ backgroundImage: posterPlaceholder }}
+      role="img"
+      aria-label={`Poster ${anime.title}`}
+    >
+      {poster && poster !== failedPoster && (
+        <img
+          className="poster-image"
+          src={poster}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailedPoster(poster)}
+        />
+      )}
+      <span className="poster-glow" />
+    </div>
+  );
 }
 
-const navItems:[RouteState['page'],string,typeof Home,string][]=[
- ['home','Beranda',Home,'/'],
- ['browse','Jelajahi',Compass,'/jelajahi'],
- ['library','Koleksi',Bookmark,'/koleksi'],
- ['settings','Pengaturan',Settings2,'/pengaturan'],
-]
-
-const LEGACY_BROWSE_GENRES=['Action','Adventure','Comedy','Drama','Fantasy','Horror','Mystery','Romance','Sci-Fi','Slice of Life','Sports','Supernatural'] as const
-const SKELETON_KEYS=['a','b','c','d','e','f','g','h','i','j','k','l']
-const posterPlaceholder='radial-gradient(circle at 68% 25%,#3a3e35 0%,#202422 35%,#13161a 75%)'
-
-function Poster({anime,aspect='portrait'}:{anime:Anime;aspect?:'portrait'|'wide'}){
- const [failedPoster,setFailedPoster]=useState<string|null>(null)
- const poster=typeof anime.poster==='string'&&anime.poster.length>0?anime.poster:null
- return <div className={`poster ${aspect}`} style={{backgroundImage:posterPlaceholder}} role="img" aria-label={`Poster ${anime.title}`}>
-  {poster&&poster!==failedPoster&&<img className="poster-image" src={poster} alt="" aria-hidden="true" loading="lazy" decoding="async" onError={()=>setFailedPoster(poster)}/>}
-  <span className="poster-glow"/>
- </div>
+function MiniLabel({ children }: { children: React.ReactNode }) {
+  return <span className="mini-label">{children}</span>;
 }
 
-function MiniLabel({children}:{children:React.ReactNode}){
- return <span className="mini-label">{children}</span>
+function Meta({ anime }: { anime: Anime }) {
+  return (
+    <div className="anime-meta">
+      <span>{yearLabel(anime.year)}</span>
+      <i />
+      <span>{anime.type}</span>
+      <i />
+      <span>{anime.episodes ? `${anime.episodes} episode` : "Episode ?"}</span>
+    </div>
+  );
 }
 
-function Meta({anime}:{anime:Anime}){
- return <div className="anime-meta"><span>{yearLabel(anime.year)}</span><i/><span>{anime.type}</span><i/><span>{anime.episodes?`${anime.episodes} episode`:'Episode ?'}</span></div>
+function Card({
+  anime,
+  onOpen,
+  compact = false,
+}: {
+  anime: Anime;
+  onOpen: (anime: Anime) => void;
+  compact?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={`anime-card ${compact ? "compact" : ""}`}
+      onClick={() => onOpen(anime)}
+      aria-label={`Buka ${anime.title}`}
+    >
+      <div className="card-art">
+        <Poster anime={anime} />
+        <div className="card-overlay">
+          <span>
+            LIHAT DETAIL <ArrowUpRight size={14} />
+          </span>
+        </div>
+        {anime.score !== null && (
+          <span className="score-tag" title="Skor komunitas">
+            <Star size={11} fill="currentColor" />
+            {scoreDisplay(anime.score)}
+          </span>
+        )}
+      </div>
+      <div className="card-copy">
+        <strong title={anime.title}>{anime.title}</strong>
+        <span>
+          {anime.year || "—"} <span className="dot-separated">•</span>{" "}
+          {anime.type}
+        </span>
+      </div>
+    </button>
+  );
 }
 
-function Card({anime,onOpen,compact=false}:{anime:Anime;onOpen:(anime:Anime)=>void;compact?:boolean}){
- return <button type="button" className={`anime-card ${compact?'compact':''}`} onClick={()=>onOpen(anime)} aria-label={`Buka ${anime.title}`}>
-  <div className="card-art">
-   <Poster anime={anime}/>
-   <div className="card-overlay"><span>LIHAT DETAIL <ArrowUpRight size={14}/></span></div>
-   {anime.score!==null&&<span className="score-tag" title="Skor komunitas"><Star size={11} fill="currentColor"/>{scoreDisplay(anime.score)}</span>}
-  </div>
-  <div className="card-copy">
-   <strong title={anime.title}>{anime.title}</strong>
-   <span>{anime.year||'—'} <span className="dot-separated">•</span> {anime.type}</span>
-  </div>
- </button>
+function CardSkeleton() {
+  return (
+    <div className="anime-card" aria-hidden="true">
+      <div className="card-art skeleton" />
+      <div className="card-copy">
+        <div className="skeleton skeleton-line" />
+        <div className="skeleton skeleton-line short" />
+      </div>
+    </div>
+  );
 }
 
-function CardSkeleton(){
- return <div className="anime-card" aria-hidden="true"><div className="card-art skeleton"/><div className="card-copy"><div className="skeleton skeleton-line"/><div className="skeleton skeleton-line short"/></div></div>
+function Empty({
+  icon = Film,
+  title,
+  body,
+  action,
+}: {
+  icon?: typeof Film;
+  title: string;
+  body: string;
+  action?: React.ReactNode;
+}) {
+  const Icon = icon;
+  return (
+    <div className="empty-state">
+      <div className="empty-icon">
+        <Icon size={25} />
+      </div>
+      <h3>{title}</h3>
+      <p>{body}</p>
+      {action}
+    </div>
+  );
 }
 
-function Empty({icon=Film,title,body,action}:{icon?:typeof Film;title:string;body:string;action?:React.ReactNode}){
- const Icon=icon
- return <div className="empty-state"><div className="empty-icon"><Icon size={25}/></div><h3>{title}</h3><p>{body}</p>{action}</div>
+function Section({
+  eyebrow,
+  title,
+  action,
+  children,
+}: {
+  eyebrow?: string;
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="content-section">
+      <div className="section-heading">
+        <div>
+          {eyebrow && <MiniLabel>{eyebrow}</MiniLabel>}
+          <h2>{title}</h2>
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
 }
 
-function Section({eyebrow,title,action,children}:{eyebrow?:string;title:string;action?:React.ReactNode;children:React.ReactNode}){
- return <section className="content-section"><div className="section-heading"><div>{eyebrow&&<MiniLabel>{eyebrow}</MiniLabel>}<h2>{title}</h2></div>{action}</div>{children}</section>
+function useCatalog(kind: "season" | "top" | "upcoming") {
+  const [data, setData] = useState<Anime[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: retry counter intentionally forces new catalog request.
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    catalog(kind, 1, controller.signal)
+      .then((result) => setData(result.items))
+      .catch((e) => {
+        if (!controller.signal.aborted) setError((e as Error).message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [kind, retry]);
+
+  return { data, loading, error, retry: () => setRetry((v) => v + 1) };
 }
 
-function useCatalog(kind:'season'|'top'|'upcoming'){
- const [data,setData]=useState<Anime[]>([])
- const [loading,setLoading]=useState(true)
- const [error,setError]=useState('')
- const [retry,setRetry]=useState(0)
-
- // biome-ignore lint/correctness/useExhaustiveDependencies: retry counter intentionally forces new catalog request.
- useEffect(()=>{
-  const controller=new AbortController()
-  setLoading(true)
-  setError('')
-  catalog(kind,1,controller.signal)
-   .then(result=>setData(result.items))
-   .catch(e=>{if(!controller.signal.aborted)setError((e as Error).message)})
-   .finally(()=>{if(!controller.signal.aborted)setLoading(false)})
-  return()=>controller.abort()
- },[kind,retry])
-
- return {data,loading,error,retry:()=>setRetry(v=>v+1)}
+function useDailyTrends() {
+  const [data, setData] = useState<DailyTrendResponse | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    dailyTrends(controller.signal)
+      .then(setData)
+      .catch(() => {
+        if (!controller.signal.aborted) setData(null);
+      });
+    return () => controller.abort();
+  }, []);
+  return data;
 }
-
-function useDailyTrends(){
- const [data,setData]=useState<DailyTrendResponse|null>(null)
- useEffect(()=>{
-  const controller=new AbortController()
-  dailyTrends(controller.signal).then(setData).catch(()=>{if(!controller.signal.aborted)setData(null)})
-  return()=>controller.abort()
- },[])
- return data
-}
-function AppLogo(){
- return <div className="logo"><span className="logo-symbol"><span/></span><span className="logo-type">yoru<span className="logo-punct">.</span></span></div>
+function AppLogo() {
+  return (
+    <div className="logo">
+      <span className="logo-symbol">
+        <span />
+      </span>
+      <span className="logo-type">
+        yoru<span className="logo-punct">.</span>
+      </span>
+    </div>
+  );
 }
 
 /** Resolve only native sources proven to decode in this browser. */
-async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:string):Promise<Stream|null>{
- try{
-  const providers=await providerEpisodes(malId)
-  const matches=providers.items.filter(item=>item.number===episode&&item.providerId!=='public-embed').slice(0,6)
-  const resolved=await Promise.allSettled(matches.map(item=>streams(item.id)))
-  const remembered=await readRememberedSource(malId,episode,key=>getPreference(key,''))
-  const candidates=preferRememberedSource(rankNativeStreams(
-   resolved.flatMap(result=>result.status==='fulfilled'?result.value.items:[])
-  ).filter(source=>source.url!==exceptUrl),remembered)
-  const visited=new Set<string>()
-  for(const candidate of candidates){
-   if(visited.has(candidate.url))continue
-   visited.add(candidate.url)
-   if(visited.size>6)break
-   try{
-    await verifyNativeSource(candidate,10000)
-    void saveRememberedSource(malId,episode,candidate,setPreference)
-    return candidate
-   }catch{/* test other native */}
+async function resolveHealthyNative(
+  malId: number,
+  episode: number,
+  exceptUrl?: string,
+): Promise<Stream | null> {
+  try {
+    const providers = await providerEpisodes(malId);
+    const matches = providers.items
+      .filter(
+        (item) => item.number === episode && item.providerId !== "public-embed",
+      )
+      .slice(0, 6);
+    const resolved = await Promise.allSettled(
+      matches.map((item) => streams(item.id)),
+    );
+    const remembered = await readRememberedSource(malId, episode, (key) =>
+      getPreference(key, ""),
+    );
+    const candidates = preferRememberedSource(
+      rankNativeStreams(
+        resolved.flatMap((result) =>
+          result.status === "fulfilled" ? result.value.items : [],
+        ),
+      ).filter((source) => source.url !== exceptUrl),
+      remembered,
+    );
+    const visited = new Set<string>();
+    for (const candidate of candidates) {
+      if (visited.has(candidate.url)) continue;
+      visited.add(candidate.url);
+      if (visited.size > 6) break;
+      try {
+        await verifyNativeSource(candidate, 10000);
+        void saveRememberedSource(malId, episode, candidate, setPreference);
+        return candidate;
+      } catch {
+        /* test other native */
+      }
+    }
+  } catch {
+    /* failed provider is not available */
   }
- }catch{/* failed provider is not available */}
- return null
+  return null;
 }
 
-function App(){
- const isMobile=useIsMobile()
- const [route,setRoute]=useState<RouteState>(()=>parseRoute(window.location.pathname,window.location.search))
- const [selected,setSelected]=useState<Anime|null>(null)
- const [detailError,setDetailError]=useState('')
- const detailCache=useRef<Anime|null>(null)
- const detailReturn=useRef<{path:string;scroll:number;title:string;browseRoute?:RouteState;guideRoute?:RouteState;guideOpener?:HTMLElement|null}|null>(null)
- const [playback,setPlayback]=useState<Playback|null>(null)
- const [toast,setToast]=useState('')
- const [mobileNav,setMobileNav]=useState(false)
- const [library,setLibrary]=useState<LibraryEntry[]>([])
- const [progress,setProgress]=useState<ProgressEntry[]>([])
- const [resumingAnimeId,setResumingAnimeId]=useState<string|null>(null)
- const resumeAttempt=useRef(0)
- const [featuredIndex,setFeaturedIndex]=useState(0)
- const [heroHovered,setHeroHovered]=useState(false)
- const [heroFocused,setHeroFocused]=useState(false)
- const [heroTouching,setHeroTouching]=useState(false)
- const heroTouchStart=useRef<{x:number;y:number}|null>(null)
- const daily=useDailyTrends()
- const season=useCatalog('season')
- const top=useCatalog('top')
- const upcoming=useCatalog('upcoming')
- const searchInputRef=useRef<HTMLInputElement>(null)
- const prepareNext=useCallback(async():Promise<Stream|null>=>{
-  if(!playback?.anime||playback.demo)return null
-  return resolveHealthyNative(playback.anime.malId,playback.episode+1)
- },[playback])
- const continueNext=useCallback((stream:Stream)=>{
-  setPlayback(current=>current?.anime?{...current,episode:current.episode+1,stream,manualSource:false}:current)
- },[])
- const recoverSource=useCallback(async()=>{
-  if(!playback?.anime||playback.demo)return false
-  const candidate=await resolveHealthyNative(playback.anime.malId,playback.episode,playback.stream.url)
-  if(!candidate)return false
-  setPlayback(current=>current?{...current,stream:candidate,manualSource:false}:current)
-  return true
- },[playback])
-
- const navigateState=useCallback((next:RouteState,replace=false,preserveScroll=false)=>{
-  resumeAttempt.current++
-  setResumingAnimeId(null)
-  setRoute(next)
-  const path=routeToPath(next)
-  if(replace){
-   window.history.replaceState(null,'',path)
-  }else if(window.location.pathname+window.location.search!==path){
-   window.history.pushState(null,'',path)
-  }
-  setMobileNav(false)
-  if(!replace&&!preserveScroll)window.scrollTo({top:0,behavior:'instant'})
- },[])
-
- const openDetail=useCallback((anime:Anime)=>{
-  if(route.page!=='detail')detailReturn.current={path:window.location.pathname+window.location.search,scroll:window.scrollY,title:anime.title,browseRoute:route.page==='browse'?route:undefined,guideRoute:route.page==='guide'?route:undefined,guideOpener:route.page==='guide'&&document.activeElement instanceof HTMLElement?document.activeElement:null}
-  detailCache.current=anime
-  setSelected(anime)
-  setDetailError('')
-  navigateState({...route,page:'detail',detailMalId:anime.malId},false,true)
- },[route,navigateState])
-
- const closeDetail=useCallback(()=>{
-  setSelected(null)
-  if(route.page==='detail'&&detailReturn.current){window.history.back();return}
-  navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''},true)
- },[route.page,navigateState])
-
- useEffect(()=>{
-  if(route.page!=='detail'||!route.detailMalId)return
-  const cached=detailCache.current
-  if(cached?.malId===route.detailMalId){setSelected(cached);setDetailError('');return}
-  const controller=new AbortController()
-  setSelected(null)
-  setDetailError('')
-  void detail(route.detailMalId,controller.signal).then(anime=>{
-   if(controller.signal.aborted)return
-   detailCache.current=anime
-   setSelected(anime)
-  }).catch(()=>{if(!controller.signal.aborted)setDetailError('Detail anime belum dapat dimuat. Coba kembali dari Jelajahi.')})
-  return()=>controller.abort()
- },[route.page,route.detailMalId])
-
- useEffect(()=>{
-  function onPopState(){
-   // Browser history must dismiss an active player before revealing its source page.
-   setPlayback(null)
-   const next=parseRoute(window.location.pathname,window.location.search)
-   setRoute(next)
-   setSelected(next.page==='detail'&&detailCache.current?.malId===next.detailMalId?detailCache.current:null)
-   const snapshot=detailReturn.current
-   if(snapshot&&next.page!=='detail'&&snapshot.path===window.location.pathname+window.location.search){
-    window.requestAnimationFrame(()=>{
-     window.scrollTo({top:snapshot.scroll,behavior:'instant'})
-     // The original card unmounts on route transitions; restore focus to its new DOM instance.
-     const matching=Array.from(document.querySelectorAll<HTMLButtonElement>('button[aria-label]'))
-      .find(button=>button.getAttribute('aria-label')===`Buka ${snapshot.title}`)
-     if(snapshot.guideRoute&&snapshot.guideOpener?.isConnected) snapshot.guideOpener.focus({preventScroll:true})
-     else matching?.focus({preventScroll:true})
-    })
-    detailReturn.current=null
-   }else window.scrollTo({top:0,behavior:'instant'})
-  }
-  window.addEventListener('popstate',onPopState)
-  return()=>window.removeEventListener('popstate',onPopState)
- },[])
-
- const loadLocal=useCallback(()=>{
-  void Promise.all([listLibrary(),listProgress()]).then(([saved,watching])=>{
-   setLibrary(saved)
-   setProgress(watching)
-  }).catch(()=>{})
- },[])
-
- useEffect(()=>{
-  loadLocal()
-  window.addEventListener('yoru-data-updated',loadLocal)
-  return()=>window.removeEventListener('yoru-data-updated',loadLocal)
- },[loadLocal])
-
- useEffect(()=>{
-  if(!toast)return
-  const timer=window.setTimeout(()=>setToast(''),3600)
-  return()=>window.clearTimeout(timer)
- },[toast])
-
- useEffect(()=>{
-  function key(event:KeyboardEvent){
-   if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){
-    event.preventDefault()
-    if(route.page!=='browse'){
-     navigateState({...route,page:'browse'})
-    }
-    window.setTimeout(()=>searchInputRef.current?.focus(),50)
-   }
-   if(event.key==='Escape'){
-    if(playback){
-     const wasDemo=Boolean(playback.demo)
-     setPlayback(null)
-     // Match the Back button: return to the originating page, not a stranded detail route.
-     if(route.page==='detail')closeDetail()
-     else window.scrollTo({top:0,behavior:'instant'})
-     if(wasDemo)window.requestAnimationFrame(()=>{
-      document.querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')?.focus()
-     })
-    }else if(selected){closeDetail()}
-   }
-  }
-  window.addEventListener('keydown',key)
-  return()=>window.removeEventListener('keydown',key)
- },[route,selected,playback,navigateState,closeDetail])
-
- useEffect(()=>{
-  if(playback){
-   document.title=playback.demo?'Contoh Pemutar · yoru.':`Episode ${playback.episode} · ${playback.anime?.title||'Pemutar'} · yoru.`
-   return
-  }
-  if(route.page==='detail'){
-   document.title=selected?`${selected.title} · yoru.`:'Detail Anime · yoru.'
-   return
-  }
-  if(route.page==='browse'){
-   document.title='Jelajahi · yoru.'
-   return
-  }
-  if(route.page==='guide'){
-   document.title='Panduan Urutan · yoru.'
-   return
-  }
-  if(route.page==='library'){
-   document.title='Koleksi · yoru.'
-   return
-  }
-  if(route.page==='settings'){
-   document.title='Pengaturan · yoru.'
-   return
-  }
-  document.title='yoru. — Anime, your way.'
- },[playback,route.page,selected])
-
- const dailyAvailable=daily?.items.length===10
- const featured=dailyAvailable?daily.items:top.data.slice(0,10)
- const hero=featured[featuredIndex%Math.max(1,featured.length)]||season.data[0]
- const sourceDate=dailyAvailable?new Date(daily.date+'T00:00:00Z').toLocaleDateString('id-ID',{timeZone:'UTC',day:'numeric',month:'short',year:'numeric'}):''
- useEffect(()=>{
-  if(route.page!=='home'||selected||playback||heroHovered||heroFocused||heroTouching||featured.length<2)return
-  const motion=window.matchMedia('(prefers-reduced-motion: reduce)')
-  const timer=window.setInterval(()=>{
-   if(!document.hidden&&!motion.matches)setFeaturedIndex(index=>(index+1)%featured.length)
-  },8000)
-  return()=>window.clearInterval(timer)
- },[route.page,selected,playback,heroHovered,heroFocused,heroTouching,featured.length])
- const continueList=useMemo(()=>progress.filter(isResumableProgress).slice(0,6),[progress])
-
- async function resumeRow(row:ProgressEntry){
-  const attempt=++resumeAttempt.current
-  setResumingAnimeId(row.anime.id)
-  try{
-   const stream=await resolveHealthyNative(row.anime.malId,row.episode)
-   if(attempt!==resumeAttempt.current)return
-   if(stream){
-    setSelected(null)
-    setPlayback({anime:row.anime,episode:row.episode,stream,manualSource:false})
-   }else{
-    openDetail(row.anime)
-    setToast('Belum ada video yang siap. Pilih sumber lain untuk episode ini.')
-   }
-  }catch{
-   if(attempt===resumeAttempt.current){openDetail(row.anime);setToast('Sumber belum bisa diperiksa. Coba lagi dari detail anime.')}
-  }finally{
-   if(attempt===resumeAttempt.current)setResumingAnimeId(null)
-  }
- }
-
- async function toggleSave(anime:Anime){
-  try{
-   const entry=await getAnimeSaved(anime.id)
-   if(entry){
-    await removeAnime(anime.id)
-    setToast('Dihapus dari koleksi')
-   }else{
-    await saveAnime(anime,'planned')
-    setToast('Ditambahkan ke koleksi')
-   }
-  }catch{
-   setToast('Gagal memperbarui koleksi')
-  }
- }
-
- // Keep the loaded Browse instance mounted behind a routed detail. Otherwise returning
- // from a later catalog page silently resets pagination to page one.
- const browseContext=route.page==='browse'?route:route.page==='detail'?detailReturn.current?.browseRoute:null
- const guideContext=route.page==='guide'?route:route.page==='detail'?detailReturn.current?.guideRoute:null
- const breadcrumbs=useMemo(()=>getBreadcrumbs(route),[route])
- const closeWatch=()=>{
-  const shouldRestoreDemo=Boolean(playback?.demo)
-  setPlayback(null)
-  if(route.page==='detail')closeDetail()
-  else window.scrollTo({top:0,behavior:'instant'})
-  if(shouldRestoreDemo)window.requestAnimationFrame(()=>{
-   document.querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')?.focus()
-  })
- }
- return <>
- {playback&&<Player
-  key={`${playback.anime?.id||'demo'}:${playback.episode}:${playback.stream.url}`}
-  anime={playback.anime}
-  episode={playback.episode}
-  stream={playback.stream}
-  demo={playback.demo}
-  manualSource={playback.manualSource===true}
-  onPrepareNext={prepareNext}
-  onContinueNext={continueNext}
-  onRecoverSource={recoverSource}
-  onClose={closeWatch}
- />}
-
- <div className={`app-shell${isMobile&&route.page==='detail'&&selected?' detail-mobile-active':''}`} hidden={Boolean(playback)}>
-  <aside className={`sidebar ${mobileNav?'is-open':''}`}>
-   <div className="sidebar-brand">
-    <AppLogo/>
-    <button type="button" className="close-menu" onClick={()=>setMobileNav(false)} aria-label="Tutup menu navigasi"><X size={20}/></button>
-   </div>
-   <div className="sidebar-caption">NAVIGASI</div>
-   <nav className="main-nav" aria-label="Menu utama">
-    {navItems.map(([pageKey,label,Icon])=>{
-     const isActive=route.page===pageKey||(pageKey==='browse'&&route.page==='guide')
-     const hasActiveChild=(pageKey==='browse'&&route.shortcut==='season')||(pageKey==='library'&&route.shortcut==='continue')
-     return <button
-      type="button"
-      key={pageKey}
-      className={`nav-link ${isActive?'active':''} ${hasActiveChild?'has-active-child':''}`}
-      onClick={()=>navigateState({page:pageKey,browseKind:pageKey==='browse'?'season':route.browseKind,libraryView:'all',searchQuery:''})}
-     >
-      <Icon size={19} strokeWidth={1.9}/>
-      <span>{label}</span>
-      {isActive&&<span className="nav-indicator"/>}
-     </button>
-    })}
-   </nav>
-
-   <div className="sidebar-divider"/>
-   <div className="sidebar-caption">AKSES CEPAT</div>
-   <div className="side-shortcuts">
-    <button
-     type="button"
-     className={`side-quick ${route.page==='browse'&&route.shortcut==='season'?'active':''}`}
-     onClick={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:'',shortcut:'season'})}
-    >
-     <Clapperboard size={17}/>
-     <span>Anime musim ini</span>
-     <ArrowUpRight size={14}/>
-    </button>
-    <button
-     type="button"
-     className={`side-quick ${route.page==='library'&&route.libraryView==='continue'?'active':''}`}
-     onClick={()=>navigateState({page:'library',browseKind:'season',libraryView:'continue',searchQuery:'',shortcut:'continue'})}
-    >
-     <Clock3 size={17}/>
-     <span>Lanjut menonton</span>
-     <ArrowUpRight size={14}/>
-    </button>
-   </div>
-
-   <div className="sidebar-bottom">
-    <div className="sidebar-foot">
-     <span>YORU</span>
-     <span>ANIME FAVORITMU</span>
-    </div>
-   </div>
-  </aside>
-
-  {mobileNav&&<button type="button" aria-label="Tutup menu navigasi" className="backdrop-nav" onClick={()=>setMobileNav(false)}/>}
-
-  <div className="workspace">
-   <header className="topbar">
-    <div className="topbar-title">
-     <button type="button" aria-label="Buka menu" className="mobile-menu" onClick={()=>setMobileNav(true)}><Menu size={22}/></button>
-     <div className="page-breadcrumb">
-      {breadcrumbs.map((crumb,idx)=>(
-       <span key={crumb} className="crumb-item">
-        {idx>0&&<ChevronRight size={13} className="crumb-separator"/>}
-        <strong className={idx===breadcrumbs.length-1?'current':''}>{crumb}</strong>
-       </span>
-      ))}
-     </div>
-    </div>
-    <div className="topbar-actions">
-     {route.page!=='browse'&&<button type="button" className="topbar-discover" aria-label="Jelajahi anime" onClick={()=>navigateState({page:'browse',browseKind:route.browseKind,libraryView:'all',searchQuery:route.searchQuery})}><Search size={17}/><span>Jelajahi anime</span><ArrowUpRight size={15}/></button>}
-     <button type="button" className="avatar-button" title="Pengaturan aplikasi" aria-label="Buka pengaturan" onClick={()=>navigateState({page:'settings',browseKind:'season',libraryView:'all',searchQuery:''})}>Y</button>
-    </div>
-   </header>
-
-   <main id="main-content">
-    {route.page==='home'&&<>
-     <div className="page-intro">
-      <div>
-       <h1>Beranda</h1>
-       <p>Katalog anime musim ini, judul populer, dan riwayat tontonan tersimpan.</p>
-      </div>
-     </div>
-
-     {hero&&<section className="hero-card" aria-roledescription="carousel"
-       aria-label="Anime unggulan. Fokuskan area ini lalu tekan panah kiri atau kanan, atau geser mendatar pada layar sentuh."
-       onMouseEnter={()=>setHeroHovered(true)}
-       onMouseLeave={()=>setHeroHovered(false)}
-       onFocusCapture={()=>setHeroFocused(true)}
-       onBlurCapture={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node|null))setHeroFocused(false)}}
-       onKeyDown={event=>{
-        if(featured.length<2)return
-        if(event.key==='ArrowRight'||event.key==='ArrowLeft'){
-         event.preventDefault()
-         setFeaturedIndex(i=>(i+(event.key==='ArrowRight'?1:-1)+featured.length)%featured.length)
-        }
-       }}
-       onTouchStart={event=>{
-        if(event.touches.length!==1)return
-        heroTouchStart.current={x:event.touches[0].clientX,y:event.touches[0].clientY}
-        setHeroTouching(true)
-       }}
-       onTouchEnd={event=>{
-        const start=heroTouchStart.current
-        heroTouchStart.current=null
-        setHeroTouching(false)
-        const end=event.changedTouches[0]
-        if(!start||!end||featured.length<2)return
-        const dx=end.clientX-start.x,dy=end.clientY-start.y
-        if(Math.abs(dx)<48||Math.abs(dx)<Math.abs(dy)*1.25)return
-        setFeaturedIndex(i=>(i+(dx<0?1:-1)+featured.length)%featured.length)
-       }}
-       onTouchCancel={()=>{heroTouchStart.current=null;setHeroTouching(false)}}
-       style={hero.cover?{backgroundImage:`linear-gradient(90deg,#0e1014 0%,rgba(14,16,20,.94) 36%,rgba(14,16,20,.7) 64%,rgba(14,16,20,.2) 100%),linear-gradient(0deg,#0e1014 0%,transparent 60%),url("${hero.cover.replaceAll('"','%22')}")`}:undefined}>
-      <div className="hero-copy">
-       <div className="hero-badge"><span className="pulse"/> {dailyAvailable?'TREN HARIAN ANILIST':'ANIME POPULAR'}</div>
-       <h2>{hero.title}</h2>
-       <div className="hero-meta">
-        <span className="hero-rating"><Star size={14} fill="currentColor"/> {scoreDisplay(hero.score)}</span>
-        <span>{hero.year||'Anime'}</span>
-        <span>{hero.type}</span>
-        <span>{hero.episodes?`${hero.episodes} Episode`:'Sedang tayang'}</span>
-       </div>
-       <p>{description(hero.synopsis).slice(0,210)+(hero.synopsis.length>210?'…':'')}</p>
-       <div className="hero-source"><span>{dailyAvailable?`Aktivitas AniList · ${sourceDate} (UTC)`:'Popularitas katalog · MyAnimeList'}</span>{dailyAvailable&&<a href={daily.sourceUrl} target="_blank" rel="noopener noreferrer">Lihat sumber</a>}</div>
-       <div className="hero-actions">
-        <button type="button" className="btn btn-primary" onClick={()=>openDetail(hero)}>
-         <Play size={16} fill="currentColor"/> Buka anime
-        </button>
-        <button type="button" className="btn btn-outline" onClick={()=>void toggleSave(hero)}>
-         <Plus size={16}/> Koleksiku
-        </button>
-       </div>
-      </div>
-      <div className="hero-corner"><span>{dailyAvailable?'TREN HARIAN · ANILIST':'POPULARITAS KATALOG'}</span><ArrowDownRight size={20}/></div>
-     </section>}
-     {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
-      <div className="continue-grid">
-       {continueList.map(row=><button type="button" key={row.anime.id} className="continue-card" disabled={Boolean(resumingAnimeId)} onClick={()=>void resumeRow(row)}>
-        <div className="continue-image">
-         <Poster anime={row.anime} aspect="wide"/>
-         <span className="continue-play"><Play size={18} fill="currentColor"/></span>
-         <div className="progress-track"><div style={{width:`${Math.min(100,row.duration?row.seconds/row.duration*100:10)}%`}}/></div>
+function AccountModal({
+  onClose,
+  libraryCount,
+  progressCount,
+  onExport,
+  onImport,
+}: {
+  onClose: () => void;
+  libraryCount: number;
+  progressCount: number;
+  onExport: () => void;
+  onImport: (file: File | null) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useDialogFocus();
+  return (
+    <div className="modal-backdrop">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        className="account-modal glass-card"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Profil dan Akun"
+      >
+        <div className="account-modal-header">
+          <div className="account-avatar-large">Y</div>
+          <div className="account-title-group">
+            <h2>Pengguna Tamu</h2>
+            <span className="account-badge">Penyimpanan Lokal (Aktif)</span>
+          </div>
+          <button
+            type="button"
+            className="modal-close icon-button glass"
+            onClick={onClose}
+            aria-label="Tutup profil"
+          >
+            <X size={18} />
+          </button>
         </div>
-        <strong>{row.anime.title}</strong>
-        <small>{resumingAnimeId===row.anime.id?'Memeriksa sumber video…':`Episode ${row.episode} · ${durationDisplay(row.seconds)} ditonton`}</small>
-       </button>)}
+        <div className="account-stats-grid">
+          <div className="account-stat-box">
+            <span>Anime Tersimpan</span>
+            <strong>{libraryCount}</strong>
+          </div>
+          <div className="account-stat-box">
+            <span>Riwayat Tontonan</span>
+            <strong>{progressCount}</strong>
+          </div>
+        </div>
+        <div className="account-section">
+          <h3>Cadangan & Pemulihan Data</h3>
+          <p>
+            Seluruh riwayat dan koleksi tersimpan di browser ini. Unduh cadangan
+            file JSON secara berkala agar datamu aman.
+          </p>
+          <div className="account-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={onExport}
+            >
+              <Download size={15} /> Ekspor Cadangan
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => fileRef.current?.click()}
+            >
+              <Upload size={15} /> Impor Cadangan
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".json,application/json"
+              hidden
+              onChange={(e) => {
+                onImport(e.target.files?.[0] || null);
+                if (e.target) e.target.value = "";
+              }}
+            />
+          </div>
+        </div>
+        <div className="account-section cloud-sync-section">
+          <div className="cloud-sync-info">
+            <strong>Sinkronisasi Cloud Akun Multi-Perangkat</strong>
+            <small>
+              Masuk untuk menyinkronkan daftar koleksi dan progres menonton ke
+              seluruh perangkatmu secara otomatis.
+            </small>
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled
+            title="Fitur integrasi akun segera hadir"
+          >
+            Masuk / Hubungkan Akun (Segera hadir)
+          </button>
+        </div>
       </div>
-     </Section>}
-
-     <Section
-      eyebrow="KATALOG JEPANG"
-      title="Musim ini"
-      action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:'',shortcut:'season'})}>Lihat semua <ArrowRight size={16}/></button>}
-     >
-      {season.error&&!season.data.length?<Empty icon={WifiOff} title="Katalog belum dapat dimuat" body="Layanan metadata sedang tidak merespons. Silakan coba kembali." action={<button type="button" className="btn btn-outline" onClick={season.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{season.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):season.data.slice(0,6).map(a=><Card key={a.id} anime={a} onOpen={openDetail}/>)}</div>}
-     </Section>
-
-     <Section
-      eyebrow={dailyAvailable?`AKTIVITAS ANILIST · ${sourceDate} UTC`:"BERDASARKAN POPULARITAS KATALOG"}
-      title="Anime Popular"
-      action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'top',libraryView:'all',searchQuery:''})}>Lihat semua <ArrowRight size={16}/></button>}
-     >
-      {!dailyAvailable&&top.error&&!top.data.length?<Empty icon={WifiOff} title="Belum dapat memuat anime populer" body="Periksa sambungan internet atau coba muat ulang." action={<button type="button" className="btn btn-outline" onClick={top.retry}><RefreshCw size={15}/> Coba lagi</button>}/>:<div className="card-grid">{!dailyAvailable&&top.loading?SKELETON_KEYS.slice(0,6).map(key=><CardSkeleton key={key}/>):featured.map((a,i)=><div className="ranked-anime" key={a.id}><span className="ranked-anime-number">{i+1}</span><Card anime={a} onOpen={openDetail}/></div>)}</div>}
-     </Section>
-     <Section eyebrow="MUSIM SELANJUTNYA" title="Segera tayang"
-      action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'upcoming',libraryView:'all',searchQuery:''})}>Lihat pratinjau <ArrowRight size={16}/></button>}>
-      {upcoming.error&&!upcoming.data.length?<Empty icon={WifiOff} title="Pratinjau belum tersedia" body="Coba lagi untuk melihat judul yang akan datang." action={<button type="button" className="btn btn-outline" onClick={upcoming.retry}>Coba lagi</button>}/>:<div className="card-grid">{upcoming.loading?SKELETON_KEYS.slice(0,4).map(key=><CardSkeleton key={key}/>):upcoming.data.slice(0,4).map(a=><Card key={a.id} anime={a} onOpen={openDetail}/>)}</div>}
-     </Section>
-    </>}
-
-    {browseContext&&<div hidden={route.page!=='browse'}><Browse
-     onGuide={()=>navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:''})}
-     searchInputRef={searchInputRef}
-     kind={browseContext.browseKind}
-     query={browseContext.searchQuery}
-     filters={browseContext.browseFilters??EMPTY_BROWSE_FILTERS}
-     onTabChange={kind=>navigateState({...browseContext,page:'browse',browseKind:kind,searchQuery:'',shortcut:undefined})}
-     onQueryChange={q=>navigateState({...browseContext,page:'browse',searchQuery:q},true)}
-     onFiltersChange={filters=>navigateState({...browseContext,page:'browse',browseFilters:filters},false,true)}
-     onOpen={openDetail}
-    /></div>}
-
-    {guideContext&&<div hidden={route.page!=='guide'}><WatchGuide
-     malId={guideContext.guideMalId??null}
-     onPick={malId=>navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId:malId})}
-     onBack={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''})}
-     onOpenAnime={malId=>{void detail(malId).then(openDetail).catch(()=>setToast('Detail anime belum bisa dimuat'))}}
-    /></div>}
-
-    {route.page==='detail'&&isMobile&&selected&&<DetailMobilePage
-     anime={selected}
-     isSaved={library.some(e=>e.anime.id===selected.id)}
-     progress={progress}
-     onClose={closeDetail}
-     onToggleSave={()=>void toggleSave(selected)}
-     onWatch={value=>{setPlayback(value);setSelected(null)}}
-     onOpenGuide={()=>{const malId=selected.malId;setSelected(null);navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId:malId})}}
-    />}
-
-    {route.page==='detail'&&!selected&&<div className="page-body"><Empty icon={detailError?WifiOff:LoaderCircle} title={detailError?'Detail belum tersedia':'Memuat detail anime…'} body={detailError||'Mengambil metadata untuk tautan anime ini.'} action={<button type="button" className="btn btn-outline" onClick={closeDetail}>Kembali ke Jelajahi</button>}/></div>}
-
-    {route.page==='library'&&<LibraryPage
-     view={route.libraryView}
-     onViewChange={v=>navigateState({page:'library',browseKind:'season',libraryView:v,searchQuery:'',shortcut:v==='continue'?'continue':undefined})}
-     library={library}
-     progress={progress}
-     onOpen={openDetail}
-     onResume={row=>{void resumeRow(row)}}
-     resumingAnimeId={resumingAnimeId}
-     onBrowse={()=>navigateState({page:'browse',browseKind:'season',libraryView:'all',searchQuery:''})}
-     onRemove={removeAnime}
-     onStatusChange={saveAnime}
-    />}
-
-    {route.page==='settings'&&<SettingsPage
-     onDemo={()=>setPlayback({anime:null,episode:0,stream:TEST_STREAM,demo:true})}
-     onNotify={setToast}
-     onDataChanged={loadLocal}
-    />}
-   </main>
-
-   <footer className="footer">
-    <div className="footer-brand">
-     <AppLogo/>
-     <span>Jelajahi anime dan lanjutkan tontonanmu</span>
     </div>
-    <div className="footer-meta">
-     <span>Temukan cerita berikutnya</span>
-     <span>Lisensi MIT</span>
-     <span>© {new Date().getFullYear()} YORU</span>
-    </div>
-   </footer>
-  </div>
+  );
+}
 
-  <nav className="mobile-bottom" aria-label="Navigasi layar sentuh">
-   {navItems.map(([pageKey,label,Icon])=><button
-    type="button"
-    className={route.page===pageKey||(pageKey==='browse'&&route.page==='guide')?'active':''}
-    key={pageKey}
-    onClick={()=>navigateState({page:pageKey,browseKind:pageKey==='browse'?'season':route.browseKind,libraryView:'all',searchQuery:''})}
-   >
-    <Icon size={20}/>
-    <span>{label}</span>
-   </button>)}
-  </nav>
+function App() {
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const [route, setRoute] = useState<RouteState>(() =>
+    parseRoute(window.location.pathname, window.location.search),
+  );
+  const [selected, setSelected] = useState<Anime | null>(null);
+  const [detailError, setDetailError] = useState("");
+  const detailCache = useRef<Anime | null>(null);
+  const detailReturn = useRef<{
+    path: string;
+    scroll: number;
+    title: string;
+    browseRoute?: RouteState;
+    guideRoute?: RouteState;
+    guideOpener?: HTMLElement | null;
+  } | null>(null);
+  const [playback, setPlayback] = useState<Playback | null>(null);
+  const [toast, setToast] = useState("");
+  const [mobileNav, setMobileNav] = useState(false);
+  async function exportData() {
+    try {
+      const json = await exportUserData();
+      const blob = new Blob([JSON.stringify(json, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "yoru-backup.json";
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setToast("Cadangan data berhasil diekspor");
+    } catch {
+      setToast("Gagal mengekspor data cadangan");
+    }
+  }
+  async function importData(file: File | null) {
+    if (!file) return;
+    try {
+      if (file.size > 5_000_000)
+        throw new Error("Ukuran file cadangan melebihi 5 MB");
+      const json = JSON.parse(await file.text());
+      await importUserData(json);
+      void Promise.all([listLibrary(), listProgress()]).then(
+        ([libs, progs]) => {
+          setLibrary(libs);
+          setProgress(progs);
+        },
+      );
+      setToast("Data berhasil dipulihkan dari cadangan");
+    } catch (e) {
+      setToast((e as Error).message);
+    }
+  }
 
-  {!playback&&!isMobile&&route.page==='detail'&&selected&&<DetailDialog
-   anime={selected}
-   isSaved={library.some(e=>e.anime.id===selected.id)}
-   progress={progress}
-   onClose={closeDetail}
-   onToggleSave={()=>void toggleSave(selected)}
-   onWatch={value=>{setPlayback(value);setSelected(null)}}
-   onOpenGuide={()=>{const malId=selected.malId;setSelected(null);navigateState({page:'guide',browseKind:'season',libraryView:'all',searchQuery:'',guideMalId:malId})}}
-  />}
+  const [library, setLibrary] = useState<LibraryEntry[]>([]);
+  const [progress, setProgress] = useState<ProgressEntry[]>([]);
+  const [resumingAnimeId, setResumingAnimeId] = useState<string | null>(null);
+  const resumeAttempt = useRef(0);
+  const [featuredIndex, setFeaturedIndex] = useState(0);
+  const [heroHovered, setHeroHovered] = useState(false);
+  const [heroFocused, setHeroFocused] = useState(false);
+  const [heroTouching, setHeroTouching] = useState(false);
+  const heroTouchStart = useRef<{ x: number; y: number } | null>(null);
+  const daily = useDailyTrends();
+  const season = useCatalog("season");
+  const top = useCatalog("top");
+  const upcoming = useCatalog("upcoming");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const prepareNext = useCallback(async (): Promise<Stream | null> => {
+    if (!playback?.anime || playback.demo) return null;
+    return resolveHealthyNative(playback.anime.malId, playback.episode + 1);
+  }, [playback]);
+  const continueNext = useCallback((stream: Stream) => {
+    setPlayback((current) =>
+      current?.anime
+        ? {
+            ...current,
+            episode: current.episode + 1,
+            stream,
+            manualSource: false,
+          }
+        : current,
+    );
+  }, []);
+  const recoverSource = useCallback(async () => {
+    if (!playback?.anime || playback.demo) return false;
+    const candidate = await resolveHealthyNative(
+      playback.anime.malId,
+      playback.episode,
+      playback.stream.url,
+    );
+    if (!candidate) return false;
+    setPlayback((current) =>
+      current
+        ? { ...current, stream: candidate, manualSource: false }
+        : current,
+    );
+    return true;
+  }, [playback]);
 
-  {toast&&<div role="status" className="toast"><Check size={16}/>{toast}</div>}
- </div>
- </>
+  const navigateState = useCallback(
+    (next: RouteState, replace = false, preserveScroll = false) => {
+      resumeAttempt.current++;
+      setResumingAnimeId(null);
+      setRoute(next);
+      const path = routeToPath(next);
+      if (replace) {
+        window.history.replaceState(null, "", path);
+      } else if (window.location.pathname + window.location.search !== path) {
+        window.history.pushState(null, "", path);
+      }
+      setMobileNav(false);
+      if (!replace && !preserveScroll)
+        window.scrollTo({ top: 0, behavior: "instant" });
+    },
+    [],
+  );
+
+  const openDetail = useCallback(
+    (anime: Anime) => {
+      if (route.page !== "detail")
+        detailReturn.current = {
+          path: window.location.pathname + window.location.search,
+          scroll: window.scrollY,
+          title: anime.title,
+          browseRoute: route.page === "browse" ? route : undefined,
+          guideRoute: route.page === "guide" ? route : undefined,
+          guideOpener:
+            route.page === "guide" &&
+            document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : null,
+        };
+      detailCache.current = anime;
+      setSelected(anime);
+      setDetailError("");
+      navigateState(
+        { ...route, page: "detail", detailMalId: anime.malId },
+        false,
+        true,
+      );
+    },
+    [route, navigateState],
+  );
+
+  const closeDetail = useCallback(() => {
+    setSelected(null);
+    if (route.page === "detail" && detailReturn.current) {
+      window.history.back();
+      return;
+    }
+    navigateState(
+      {
+        page: "browse",
+        browseKind: "season",
+        libraryView: "all",
+        searchQuery: "",
+      },
+      true,
+    );
+  }, [route.page, navigateState]);
+
+  useEffect(() => {
+    if (route.page !== "detail" || !route.detailMalId) return;
+    const cached = detailCache.current;
+    if (cached?.malId === route.detailMalId) {
+      setSelected(cached);
+      setDetailError("");
+      return;
+    }
+    const controller = new AbortController();
+    setSelected(null);
+    setDetailError("");
+    void detail(route.detailMalId, controller.signal)
+      .then((anime) => {
+        if (controller.signal.aborted) return;
+        detailCache.current = anime;
+        setSelected(anime);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setDetailError(
+            "Detail anime belum dapat dimuat. Coba kembali dari Jelajahi.",
+          );
+      });
+    return () => controller.abort();
+  }, [route.page, route.detailMalId]);
+
+  useEffect(() => {
+    function onPopState() {
+      // Browser history must dismiss an active player before revealing its source page.
+      setPlayback(null);
+      const next = parseRoute(window.location.pathname, window.location.search);
+      setRoute(next);
+      setSelected(
+        next.page === "detail" &&
+          detailCache.current?.malId === next.detailMalId
+          ? detailCache.current
+          : null,
+      );
+      const snapshot = detailReturn.current;
+      if (
+        snapshot &&
+        next.page !== "detail" &&
+        snapshot.path === window.location.pathname + window.location.search
+      ) {
+        window.requestAnimationFrame(() => {
+          window.scrollTo({ top: snapshot.scroll, behavior: "instant" });
+          // The original card unmounts on route transitions; restore focus to its new DOM instance.
+          const matching = Array.from(
+            document.querySelectorAll<HTMLButtonElement>("button[aria-label]"),
+          ).find(
+            (button) =>
+              button.getAttribute("aria-label") === `Buka ${snapshot.title}`,
+          );
+          if (snapshot.guideRoute && snapshot.guideOpener?.isConnected)
+            snapshot.guideOpener.focus({ preventScroll: true });
+          else matching?.focus({ preventScroll: true });
+        });
+        detailReturn.current = null;
+      } else window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  const loadLocal = useCallback(() => {
+    void Promise.all([listLibrary(), listProgress()])
+      .then(([saved, watching]) => {
+        setLibrary(saved);
+        setProgress(watching);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    loadLocal();
+    window.addEventListener("yoru-data-updated", loadLocal);
+    return () => window.removeEventListener("yoru-data-updated", loadLocal);
+  }, [loadLocal]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(""), 3600);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
+    function key(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        if (route.page !== "browse") {
+          navigateState({ ...route, page: "browse" });
+        }
+        window.setTimeout(() => searchInputRef.current?.focus(), 50);
+      }
+      if (event.key === "Escape") {
+        if (playback) {
+          const wasDemo = Boolean(playback.demo);
+          setPlayback(null);
+          // Match the Back button: return to the originating page, not a stranded detail route.
+          if (route.page === "detail") closeDetail();
+          else window.scrollTo({ top: 0, behavior: "instant" });
+          if (wasDemo)
+            window.requestAnimationFrame(() => {
+              document
+                .querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')
+                ?.focus();
+            });
+        } else if (selected) {
+          closeDetail();
+        }
+      }
+    }
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [route, selected, playback, navigateState, closeDetail]);
+
+  useEffect(() => {
+    if (playback) {
+      document.title = playback.demo
+        ? "Contoh Pemutar · yoru."
+        : `Episode ${playback.episode} · ${playback.anime?.title || "Pemutar"} · yoru.`;
+      return;
+    }
+    if (route.page === "detail") {
+      document.title = selected
+        ? `${selected.title} · yoru.`
+        : "Detail Anime · yoru.";
+      return;
+    }
+    if (route.page === "browse") {
+      document.title = "Jelajahi · yoru.";
+      return;
+    }
+    if (route.page === "guide") {
+      document.title = "Panduan Urutan · yoru.";
+      return;
+    }
+    if (route.page === "library") {
+      document.title = "Koleksi · yoru.";
+      return;
+    }
+    if (route.page === "settings") {
+      document.title = "Pengaturan · yoru.";
+      return;
+    }
+    document.title = "yoru. — Anime, your way.";
+  }, [playback, route.page, selected]);
+
+  const dailyAvailable = daily?.items.length === 10;
+  const featured = dailyAvailable ? daily.items : top.data.slice(0, 10);
+  const hero =
+    featured[featuredIndex % Math.max(1, featured.length)] || season.data[0];
+  const sourceDate = dailyAvailable
+    ? new Date(daily.date + "T00:00:00Z").toLocaleDateString("id-ID", {
+        timeZone: "UTC",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "";
+  useEffect(() => {
+    if (
+      route.page !== "home" ||
+      selected ||
+      playback ||
+      heroHovered ||
+      heroFocused ||
+      heroTouching ||
+      featured.length < 2
+    )
+      return;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const timer = window.setInterval(() => {
+      if (!document.hidden && !motion.matches)
+        setFeaturedIndex((index) => (index + 1) % featured.length);
+    }, 8000);
+    return () => window.clearInterval(timer);
+  }, [
+    route.page,
+    selected,
+    playback,
+    heroHovered,
+    heroFocused,
+    heroTouching,
+    featured.length,
+  ]);
+  const continueList = useMemo(
+    () => progress.filter(isResumableProgress).slice(0, 6),
+    [progress],
+  );
+
+  async function resumeRow(row: ProgressEntry) {
+    const attempt = ++resumeAttempt.current;
+    setResumingAnimeId(row.anime.id);
+    try {
+      const stream = await resolveHealthyNative(row.anime.malId, row.episode);
+      if (attempt !== resumeAttempt.current) return;
+      if (stream) {
+        setSelected(null);
+        setPlayback({
+          anime: row.anime,
+          episode: row.episode,
+          stream,
+          manualSource: false,
+        });
+      } else {
+        openDetail(row.anime);
+        setToast(
+          "Belum ada video yang siap. Pilih sumber lain untuk episode ini.",
+        );
+      }
+    } catch {
+      if (attempt === resumeAttempt.current) {
+        openDetail(row.anime);
+        setToast("Sumber belum bisa diperiksa. Coba lagi dari detail anime.");
+      }
+    } finally {
+      if (attempt === resumeAttempt.current) setResumingAnimeId(null);
+    }
+  }
+
+  async function toggleSave(anime: Anime) {
+    try {
+      const entry = await getAnimeSaved(anime.id);
+      if (entry) {
+        await removeAnime(anime.id);
+        setToast("Dihapus dari koleksi");
+      } else {
+        await saveAnime(anime, "planned");
+        setToast("Ditambahkan ke koleksi");
+      }
+    } catch {
+      setToast("Gagal memperbarui koleksi");
+    }
+  }
+
+  // Keep the loaded Browse instance mounted behind a routed detail. Otherwise returning
+  // from a later catalog page silently resets pagination to page one.
+  const browseContext =
+    route.page === "browse"
+      ? route
+      : route.page === "detail"
+        ? detailReturn.current?.browseRoute
+        : null;
+  const guideContext =
+    route.page === "guide"
+      ? route
+      : route.page === "detail"
+        ? detailReturn.current?.guideRoute
+        : null;
+  const breadcrumbs = useMemo(() => getBreadcrumbs(route), [route]);
+  const closeWatch = () => {
+    const shouldRestoreDemo = Boolean(playback?.demo);
+    setPlayback(null);
+    if (route.page === "detail") closeDetail();
+    else window.scrollTo({ top: 0, behavior: "instant" });
+    if (shouldRestoreDemo)
+      window.requestAnimationFrame(() => {
+        document
+          .querySelector<HTMLButtonElement>('[aria-label="Coba pemutar"]')
+          ?.focus();
+      });
+  };
+  return (
+    <>
+      {playback && (
+        <Player
+          key={`${playback.anime?.id || "demo"}:${playback.episode}:${playback.stream.url}`}
+          anime={playback.anime}
+          episode={playback.episode}
+          stream={playback.stream}
+          demo={playback.demo}
+          manualSource={playback.manualSource === true}
+          onPrepareNext={prepareNext}
+          onContinueNext={continueNext}
+          onRecoverSource={recoverSource}
+          onClose={closeWatch}
+        />
+      )}
+
+      <div
+        className={`app-shell${isMobile && route.page === "detail" && selected ? " detail-mobile-active" : ""}`}
+        hidden={Boolean(playback)}
+      >
+        <aside className={`sidebar ${mobileNav ? "is-open" : ""}`}>
+          <div className="sidebar-brand">
+            <AppLogo />
+            <button
+              type="button"
+              className="close-menu"
+              onClick={() => setMobileNav(false)}
+              aria-label="Tutup menu navigasi"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="sidebar-caption">NAVIGASI</div>
+          <nav className="main-nav" aria-label="Menu utama">
+            {navItems.map(([pageKey, label, Icon]) => {
+              const isActive =
+                route.page === pageKey ||
+                (pageKey === "browse" && route.page === "guide");
+              const hasActiveChild =
+                (pageKey === "browse" && route.shortcut === "season") ||
+                (pageKey === "library" && route.shortcut === "continue");
+              return (
+                <button
+                  type="button"
+                  key={pageKey}
+                  className={`nav-link ${isActive ? "active" : ""} ${hasActiveChild ? "has-active-child" : ""}`}
+                  onClick={() =>
+                    navigateState({
+                      page: pageKey,
+                      browseKind:
+                        pageKey === "browse" ? "season" : route.browseKind,
+                      libraryView: "all",
+                      searchQuery: "",
+                    })
+                  }
+                >
+                  <Icon size={19} strokeWidth={1.9} />
+                  <span>{label}</span>
+                  {isActive && <span className="nav-indicator" />}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="sidebar-divider" />
+          <div className="sidebar-caption">AKSES CEPAT</div>
+          <div className="side-shortcuts">
+            <button
+              type="button"
+              className={`side-quick ${route.page === "browse" && route.shortcut === "season" ? "active" : ""}`}
+              onClick={() =>
+                navigateState({
+                  page: "browse",
+                  browseKind: "season",
+                  libraryView: "all",
+                  searchQuery: "",
+                  shortcut: "season",
+                })
+              }
+            >
+              <Clapperboard size={17} />
+              <span>Anime musim ini</span>
+              <ArrowUpRight size={14} />
+            </button>
+            <button
+              type="button"
+              className={`side-quick ${route.page === "library" && route.libraryView === "continue" ? "active" : ""}`}
+              onClick={() =>
+                navigateState({
+                  page: "library",
+                  browseKind: "season",
+                  libraryView: "continue",
+                  searchQuery: "",
+                  shortcut: "continue",
+                })
+              }
+            >
+              <Clock3 size={17} />
+              <span>Lanjut menonton</span>
+              <ArrowUpRight size={14} />
+            </button>
+          </div>
+
+          <div className="sidebar-bottom">
+            <div className="sidebar-foot">
+              <span>YORU</span>
+              <span>ANIME FAVORITMU</span>
+            </div>
+          </div>
+        </aside>
+
+        {mobileNav && (
+          <button
+            type="button"
+            aria-label="Tutup menu navigasi"
+            className="backdrop-nav"
+            onClick={() => setMobileNav(false)}
+          />
+        )}
+
+        <div className="workspace">
+          <header className="topbar">
+            <div className="topbar-title">
+              <button
+                type="button"
+                aria-label="Buka menu"
+                className="mobile-menu"
+                onClick={() => setMobileNav(true)}
+              >
+                <Menu size={22} />
+              </button>
+              <div className="page-breadcrumb">
+                {breadcrumbs.map((crumb, idx) => (
+                  <span key={crumb} className="crumb-item">
+                    {idx > 0 && (
+                      <ChevronRight size={13} className="crumb-separator" />
+                    )}
+                    <strong
+                      className={
+                        idx === breadcrumbs.length - 1 ? "current" : ""
+                      }
+                    >
+                      {crumb}
+                    </strong>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="topbar-actions">
+              {route.page !== "browse" && (
+                <button
+                  type="button"
+                  className="topbar-discover"
+                  aria-label="Jelajahi anime"
+                  onClick={() =>
+                    navigateState({
+                      page: "browse",
+                      browseKind: route.browseKind,
+                      libraryView: "all",
+                      searchQuery: route.searchQuery,
+                    })
+                  }
+                >
+                  <Search size={17} />
+                  <span>Jelajahi anime</span>
+                  <ArrowUpRight size={15} />
+                </button>
+              )}
+              <button
+                type="button"
+                className="avatar-button"
+                title="Profil akun"
+                aria-label="Buka profil dan akun"
+                onClick={() => setAccountModalOpen(true)}
+              >
+                Y
+              </button>
+            </div>
+          </header>
+
+          <main id="main-content">
+            {route.page === "home" && (
+              <>
+                <div className="page-intro">
+                  <div>
+                    <h1>Beranda</h1>
+                    <p>
+                      Katalog anime musim ini, judul populer, dan riwayat
+                      tontonan tersimpan.
+                    </p>
+                  </div>
+                </div>
+
+                {hero && (
+                  <section
+                    className="hero-card"
+                    aria-roledescription="carousel"
+                    aria-label="Anime unggulan. Fokuskan area ini lalu tekan panah kiri atau kanan, atau geser mendatar pada layar sentuh."
+                    onMouseEnter={() => setHeroHovered(true)}
+                    onMouseLeave={() => setHeroHovered(false)}
+                    onFocusCapture={() => setHeroFocused(true)}
+                    onBlurCapture={(event) => {
+                      if (
+                        !event.currentTarget.contains(
+                          event.relatedTarget as Node | null,
+                        )
+                      )
+                        setHeroFocused(false);
+                    }}
+                    onKeyDown={(event) => {
+                      if (featured.length < 2) return;
+                      if (
+                        event.key === "ArrowRight" ||
+                        event.key === "ArrowLeft"
+                      ) {
+                        event.preventDefault();
+                        setFeaturedIndex(
+                          (i) =>
+                            (i +
+                              (event.key === "ArrowRight" ? 1 : -1) +
+                              featured.length) %
+                            featured.length,
+                        );
+                      }
+                    }}
+                    onTouchStart={(event) => {
+                      if (event.touches.length !== 1) return;
+                      heroTouchStart.current = {
+                        x: event.touches[0].clientX,
+                        y: event.touches[0].clientY,
+                      };
+                      setHeroTouching(true);
+                    }}
+                    onTouchEnd={(event) => {
+                      const start = heroTouchStart.current;
+                      heroTouchStart.current = null;
+                      setHeroTouching(false);
+                      const end = event.changedTouches[0];
+                      if (!start || !end || featured.length < 2) return;
+                      const dx = end.clientX - start.x,
+                        dy = end.clientY - start.y;
+                      if (
+                        Math.abs(dx) < 48 ||
+                        Math.abs(dx) < Math.abs(dy) * 1.25
+                      )
+                        return;
+                      setFeaturedIndex(
+                        (i) =>
+                          (i + (dx < 0 ? 1 : -1) + featured.length) %
+                          featured.length,
+                      );
+                    }}
+                    onTouchCancel={() => {
+                      heroTouchStart.current = null;
+                      setHeroTouching(false);
+                    }}
+                    style={
+                      hero.cover
+                        ? {
+                            backgroundImage: `linear-gradient(90deg,#0e1014 0%,rgba(14,16,20,.94) 36%,rgba(14,16,20,.7) 64%,rgba(14,16,20,.2) 100%),linear-gradient(0deg,#0e1014 0%,transparent 60%),url("${hero.cover.replaceAll('"', "%22")}")`,
+                          }
+                        : undefined
+                    }
+                  >
+                    <div className="hero-copy">
+                      <div className="hero-badge">
+                        <span className="pulse" />{" "}
+                        {dailyAvailable
+                          ? "TREN HARIAN ANILIST"
+                          : "ANIME POPULAR"}
+                      </div>
+                      <h2>{hero.title}</h2>
+                      <div className="hero-meta">
+                        <span className="hero-rating">
+                          <Star size={14} fill="currentColor" />{" "}
+                          {scoreDisplay(hero.score)}
+                        </span>
+                        <span>{hero.year || "Anime"}</span>
+                        <span>{hero.type}</span>
+                        <span>
+                          {hero.episodes
+                            ? `${hero.episodes} Episode`
+                            : "Sedang tayang"}
+                        </span>
+                      </div>
+                      <p>
+                        {description(hero.synopsis).slice(0, 210) +
+                          (hero.synopsis.length > 210 ? "…" : "")}
+                      </p>
+                      <div className="hero-source">
+                        <span>
+                          {dailyAvailable
+                            ? `Aktivitas AniList · ${sourceDate} (UTC)`
+                            : "Popularitas katalog · MyAnimeList"}
+                        </span>
+                        {dailyAvailable && (
+                          <a
+                            href={daily.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Lihat sumber
+                          </a>
+                        )}
+                      </div>
+                      <div className="hero-actions">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={() => openDetail(hero)}
+                        >
+                          <Play size={16} fill="currentColor" /> Buka anime
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          onClick={() => void toggleSave(hero)}
+                        >
+                          <Plus size={16} /> Koleksiku
+                        </button>
+                      </div>
+                    </div>
+                    <div className="hero-corner">
+                      <span>
+                        {dailyAvailable
+                          ? "TREN HARIAN · ANILIST"
+                          : "POPULARITAS KATALOG"}
+                      </span>
+                      <ArrowDownRight size={20} />
+                    </div>
+                  </section>
+                )}
+                {continueList.length > 0 && (
+                  <Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
+                    <div className="continue-grid">
+                      {continueList.map((row) => (
+                        <button
+                          type="button"
+                          key={row.anime.id}
+                          className="continue-card"
+                          disabled={Boolean(resumingAnimeId)}
+                          onClick={() => void resumeRow(row)}
+                        >
+                          <div className="continue-image">
+                            <Poster anime={row.anime} aspect="wide" />
+                            <span className="continue-play">
+                              <Play size={18} fill="currentColor" />
+                            </span>
+                            <div className="progress-track">
+                              <div
+                                style={{
+                                  width: `${Math.min(100, row.duration ? (row.seconds / row.duration) * 100 : 10)}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <strong>{row.anime.title}</strong>
+                          <small>
+                            {resumingAnimeId === row.anime.id
+                              ? "Memeriksa sumber video…"
+                              : `Episode ${row.episode} · ${durationDisplay(row.seconds)} ditonton`}
+                          </small>
+                        </button>
+                      ))}
+                    </div>
+                  </Section>
+                )}
+
+                <Section
+                  eyebrow="KATALOG JEPANG"
+                  title="Musim ini"
+                  action={
+                    <button
+                      type="button"
+                      className="text-link"
+                      onClick={() =>
+                        navigateState({
+                          page: "browse",
+                          browseKind: "season",
+                          libraryView: "all",
+                          searchQuery: "",
+                          shortcut: "season",
+                        })
+                      }
+                    >
+                      Lihat semua <ArrowRight size={16} />
+                    </button>
+                  }
+                >
+                  {season.error && !season.data.length ? (
+                    <Empty
+                      icon={WifiOff}
+                      title="Katalog belum dapat dimuat"
+                      body="Layanan metadata sedang tidak merespons. Silakan coba kembali."
+                      action={
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          onClick={season.retry}
+                        >
+                          <RefreshCw size={15} /> Coba lagi
+                        </button>
+                      }
+                    />
+                  ) : (
+                    <div className="card-grid">
+                      {season.loading
+                        ? SKELETON_KEYS.slice(0, 6).map((key) => (
+                            <CardSkeleton key={key} />
+                          ))
+                        : season.data
+                            .slice(0, 6)
+                            .map((a) => (
+                              <Card key={a.id} anime={a} onOpen={openDetail} />
+                            ))}
+                    </div>
+                  )}
+                </Section>
+
+                <Section
+                  eyebrow={
+                    dailyAvailable
+                      ? `AKTIVITAS ANILIST · ${sourceDate} UTC`
+                      : "BERDASARKAN POPULARITAS KATALOG"
+                  }
+                  title="Anime Popular"
+                  action={
+                    <button
+                      type="button"
+                      className="text-link"
+                      onClick={() =>
+                        navigateState({
+                          page: "browse",
+                          browseKind: "top",
+                          libraryView: "all",
+                          searchQuery: "",
+                        })
+                      }
+                    >
+                      Lihat semua <ArrowRight size={16} />
+                    </button>
+                  }
+                >
+                  {!dailyAvailable && top.error && !top.data.length ? (
+                    <Empty
+                      icon={WifiOff}
+                      title="Belum dapat memuat anime populer"
+                      body="Periksa sambungan internet atau coba muat ulang."
+                      action={
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          onClick={top.retry}
+                        >
+                          <RefreshCw size={15} /> Coba lagi
+                        </button>
+                      }
+                    />
+                  ) : (
+                    <div className="card-grid">
+                      {!dailyAvailable && top.loading
+                        ? SKELETON_KEYS.slice(0, 6).map((key) => (
+                            <CardSkeleton key={key} />
+                          ))
+                        : featured.map((a, i) => (
+                            <div className="ranked-anime" key={a.id}>
+                              <span className="ranked-anime-number">
+                                {i + 1}
+                              </span>
+                              <Card anime={a} onOpen={openDetail} />
+                            </div>
+                          ))}
+                    </div>
+                  )}
+                </Section>
+                <Section
+                  eyebrow="MUSIM SELANJUTNYA"
+                  title="Segera tayang"
+                  action={
+                    <button
+                      type="button"
+                      className="text-link"
+                      onClick={() =>
+                        navigateState({
+                          page: "browse",
+                          browseKind: "upcoming",
+                          libraryView: "all",
+                          searchQuery: "",
+                        })
+                      }
+                    >
+                      Lihat pratinjau <ArrowRight size={16} />
+                    </button>
+                  }
+                >
+                  {upcoming.error && !upcoming.data.length ? (
+                    <Empty
+                      icon={WifiOff}
+                      title="Pratinjau belum tersedia"
+                      body="Coba lagi untuk melihat judul yang akan datang."
+                      action={
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          onClick={upcoming.retry}
+                        >
+                          Coba lagi
+                        </button>
+                      }
+                    />
+                  ) : (
+                    <div className="card-grid">
+                      {upcoming.loading
+                        ? SKELETON_KEYS.slice(0, 4).map((key) => (
+                            <CardSkeleton key={key} />
+                          ))
+                        : upcoming.data
+                            .slice(0, 4)
+                            .map((a) => (
+                              <Card key={a.id} anime={a} onOpen={openDetail} />
+                            ))}
+                    </div>
+                  )}
+                </Section>
+              </>
+            )}
+
+            {browseContext && (
+              <div hidden={route.page !== "browse"}>
+                <Browse
+                  onGuide={() =>
+                    navigateState({
+                      page: "guide",
+                      browseKind: "season",
+                      libraryView: "all",
+                      searchQuery: "",
+                    })
+                  }
+                  searchInputRef={searchInputRef}
+                  kind={browseContext.browseKind}
+                  query={browseContext.searchQuery}
+                  filters={browseContext.browseFilters ?? EMPTY_BROWSE_FILTERS}
+                  onTabChange={(kind) =>
+                    navigateState({
+                      ...browseContext,
+                      page: "browse",
+                      browseKind: kind,
+                      searchQuery: "",
+                      shortcut: undefined,
+                    })
+                  }
+                  onQueryChange={(q) =>
+                    navigateState(
+                      { ...browseContext, page: "browse", searchQuery: q },
+                      true,
+                    )
+                  }
+                  onFiltersChange={(filters) =>
+                    navigateState(
+                      {
+                        ...browseContext,
+                        page: "browse",
+                        browseFilters: filters,
+                      },
+                      false,
+                      true,
+                    )
+                  }
+                  onOpen={openDetail}
+                />
+              </div>
+            )}
+
+            {guideContext && (
+              <div hidden={route.page !== "guide"}>
+                <WatchGuide
+                  malId={guideContext.guideMalId ?? null}
+                  onPick={(malId) =>
+                    navigateState({
+                      page: "guide",
+                      browseKind: "season",
+                      libraryView: "all",
+                      searchQuery: "",
+                      guideMalId: malId,
+                    })
+                  }
+                  onBack={() =>
+                    navigateState({
+                      page: "browse",
+                      browseKind: "season",
+                      libraryView: "all",
+                      searchQuery: "",
+                    })
+                  }
+                  onOpenAnime={(malId) => {
+                    void detail(malId)
+                      .then(openDetail)
+                      .catch(() => setToast("Detail anime belum bisa dimuat"));
+                  }}
+                />
+              </div>
+            )}
+
+            {accountModalOpen && (
+              <AccountModal
+                onClose={() => setAccountModalOpen(false)}
+                libraryCount={library.length}
+                progressCount={progress.length}
+                onExport={exportData}
+                onImport={(file: File | null) => void importData(file)}
+              />
+            )}
+            {route.page === "detail" && isMobile && selected && (
+              <DetailMobilePage
+                anime={selected}
+                isSaved={library.some((e) => e.anime.id === selected.id)}
+                progress={progress}
+                onClose={closeDetail}
+                onToggleSave={() => void toggleSave(selected)}
+                onWatch={(value) => {
+                  setPlayback(value);
+                  setSelected(null);
+                }}
+                onOpenGuide={() => {
+                  const malId = selected.malId;
+                  setSelected(null);
+                  navigateState({
+                    page: "guide",
+                    browseKind: "season",
+                    libraryView: "all",
+                    searchQuery: "",
+                    guideMalId: malId,
+                  });
+                }}
+              />
+            )}
+
+            {route.page === "detail" && !selected && (
+              <div className="page-body">
+                <Empty
+                  icon={detailError ? WifiOff : LoaderCircle}
+                  title={
+                    detailError
+                      ? "Detail belum tersedia"
+                      : "Memuat detail anime…"
+                  }
+                  body={
+                    detailError || "Mengambil metadata untuk tautan anime ini."
+                  }
+                  action={
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      onClick={closeDetail}
+                    >
+                      Kembali ke Jelajahi
+                    </button>
+                  }
+                />
+              </div>
+            )}
+
+            {route.page === "library" && (
+              <LibraryPage
+                view={route.libraryView}
+                onViewChange={(v) =>
+                  navigateState({
+                    page: "library",
+                    browseKind: "season",
+                    libraryView: v,
+                    searchQuery: "",
+                    shortcut: v === "continue" ? "continue" : undefined,
+                  })
+                }
+                library={library}
+                progress={progress}
+                onOpen={openDetail}
+                onResume={(row) => {
+                  void resumeRow(row);
+                }}
+                resumingAnimeId={resumingAnimeId}
+                onBrowse={() =>
+                  navigateState({
+                    page: "browse",
+                    browseKind: "season",
+                    libraryView: "all",
+                    searchQuery: "",
+                  })
+                }
+                onRemove={removeAnime}
+                onStatusChange={saveAnime}
+              />
+            )}
+
+            {route.page === "settings" && (
+              <SettingsPage
+                onDemo={() =>
+                  setPlayback({
+                    anime: null,
+                    episode: 0,
+                    stream: TEST_STREAM,
+                    demo: true,
+                  })
+                }
+                onNotify={setToast}
+                onDataChanged={loadLocal}
+              />
+            )}
+          </main>
+
+          <footer className="footer">
+            <div className="footer-brand">
+              <AppLogo />
+              <span>Jelajahi anime dan lanjutkan tontonanmu</span>
+            </div>
+            <div className="footer-meta">
+              <span>Temukan cerita berikutnya</span>
+              <span>Lisensi MIT</span>
+              <span>© {new Date().getFullYear()} YORU</span>
+            </div>
+          </footer>
+        </div>
+
+        <nav className="mobile-bottom" aria-label="Navigasi layar sentuh">
+          {navItems.map(([pageKey, label, Icon]) => (
+            <button
+              type="button"
+              className={
+                route.page === pageKey ||
+                (pageKey === "browse" && route.page === "guide")
+                  ? "active"
+                  : ""
+              }
+              key={pageKey}
+              onClick={() =>
+                navigateState({
+                  page: pageKey,
+                  browseKind:
+                    pageKey === "browse" ? "season" : route.browseKind,
+                  libraryView: "all",
+                  searchQuery: "",
+                })
+              }
+            >
+              <Icon size={20} />
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
+
+        {!playback && !isMobile && route.page === "detail" && selected && (
+          <DetailDialog
+            anime={selected}
+            isSaved={library.some((e) => e.anime.id === selected.id)}
+            progress={progress}
+            onClose={closeDetail}
+            onToggleSave={() => void toggleSave(selected)}
+            onWatch={(value) => {
+              setPlayback(value);
+              setSelected(null);
+            }}
+            onOpenGuide={() => {
+              const malId = selected.malId;
+              setSelected(null);
+              navigateState({
+                page: "guide",
+                browseKind: "season",
+                libraryView: "all",
+                searchQuery: "",
+                guideMalId: malId,
+              });
+            }}
+          />
+        )}
+
+        {toast && (
+          <div role="status" className="toast">
+            <Check size={16} />
+            {toast}
+          </div>
+        )}
+      </div>
+    </>
+  );
 }
 
 function Browse({
- onGuide,
- searchInputRef,
- kind,
- query,
- filters,
- onTabChange,
- onQueryChange,
- onFiltersChange,
- onOpen,
-}:{
- onGuide:()=>void
- searchInputRef:React.Ref<HTMLInputElement>
- kind:'season'|'top'|'upcoming'
- query:string
- filters:BrowseFilters
- onTabChange:(k:'season'|'top'|'upcoming')=>void
- onQueryChange:(q:string)=>void
- onFiltersChange:(f:BrowseFilters)=>void
- onOpen:(anime:Anime)=>void
-}){
- const [items,setItems]=useState<Anime[]>([])
- const [loading,setLoading]=useState(true)
- const [error,setError]=useState('')
- const [next,setNext]=useState(false)
- const [page,setPage]=useState(1)
- const [retry,setRetry]=useState(0)
- const [genreOptions,setGenreOptions]=useState<AnimeGenreOption[]>([])
- const [genreAvailability,setGenreAvailability]=useState<'loading'|'upstream'|'fallback'>('loading')
- useEffect(()=>{
-  const controller=new AbortController()
-  getBrowseGenreOptions(controller.signal).then(response=>{
-   if(controller.signal.aborted)return
-   setGenreOptions(response.items)
-   setGenreAvailability(response.status)
-  }).catch(()=>{
-   if(!controller.signal.aborted)setGenreAvailability('fallback')
-  })
-  return()=>controller.abort()
- },[])
- const {genre,format,minimumScore,year,order}=filters
- const activeFilters=Boolean(genre||format||minimumScore||year||order!=='default')
- const value=query.trim()
- const usesServerFilters=activeFilters
- const choiceList=(genreOptions.length?genreOptions.map(item=>({
-  value:(LEGACY_BROWSE_GENRES as readonly string[]).includes(item.name)?item.name:'mal:'+item.id,
-  label:item.name
- })):LEGACY_BROWSE_GENRES.map(name=>({value:name,label:name})))
- const genreUnavailable=Boolean(genre&&!choiceList.some(item=>item.value===genre))
+  onGuide,
+  searchInputRef,
+  kind,
+  query,
+  filters,
+  onTabChange,
+  onQueryChange,
+  onFiltersChange,
+  onOpen,
+}: {
+  onGuide: () => void;
+  searchInputRef: React.Ref<HTMLInputElement>;
+  kind: "season" | "top" | "upcoming";
+  query: string;
+  filters: BrowseFilters;
+  onTabChange: (k: "season" | "top" | "upcoming") => void;
+  onQueryChange: (q: string) => void;
+  onFiltersChange: (f: BrowseFilters) => void;
+  onOpen: (anime: Anime) => void;
+}) {
+  const [items, setItems] = useState<Anime[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [next, setNext] = useState(false);
+  const [page, setPage] = useState(1);
+  const [retry, setRetry] = useState(0);
+  const [genreOptions, setGenreOptions] = useState<AnimeGenreOption[]>([]);
+  const [genreAvailability, setGenreAvailability] = useState<
+    "loading" | "upstream" | "fallback"
+  >("loading");
+  useEffect(() => {
+    const controller = new AbortController();
+    getBrowseGenreOptions(controller.signal)
+      .then((response) => {
+        if (controller.signal.aborted) return;
+        setGenreOptions(response.items);
+        setGenreAvailability(response.status);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setGenreAvailability("fallback");
+      });
+    return () => controller.abort();
+  }, []);
+  const { genre, format, minimumScore, year, order } = filters;
+  const activeFilters = Boolean(
+    genre || format || minimumScore || year || order !== "default",
+  );
+  const value = query.trim();
+  const usesServerFilters = activeFilters;
+  const choiceList = genreOptions.length
+    ? genreOptions.map((item) => ({
+        value: (LEGACY_BROWSE_GENRES as readonly string[]).includes(item.name)
+          ? item.name
+          : "mal:" + item.id,
+        label: item.name,
+      }))
+    : LEGACY_BROWSE_GENRES.map((name) => ({ value: name, label: name }));
+  const genreUnavailable = Boolean(
+    genre && !choiceList.some((item) => item.value === genre),
+  );
 
- // biome-ignore lint/correctness/useExhaustiveDependencies: normalized query and kind changes reset page.
- useEffect(()=>{
-  setItems([])
-  setNext(false)
-  setError('')
-  setPage(1)
- },[value,kind,genre,format,minimumScore,year,order])
+  // biome-ignore lint/correctness/useExhaustiveDependencies: normalized query and kind changes reset page.
+  useEffect(() => {
+    setItems([]);
+    setNext(false);
+    setError("");
+    setPage(1);
+  }, [value, kind, genre, format, minimumScore, year, order]);
 
- // biome-ignore lint/correctness/useExhaustiveDependencies: retry value intentionally forces new browse request.
- useEffect(()=>{
-  const controller=new AbortController()
-  setLoading(true)
-  setError('')
-  const timer=window.setTimeout(()=>{
-   const req=usesServerFilters?browseFiltered({kind,query:value,genre,format,minimumScore,year,order},page,controller.signal):value?search(value,page,controller.signal):catalog(kind,page,controller.signal)
-   req.then(response=>{
-    if(controller.signal.aborted)return
-    setNext(response.hasNext)
-    setItems(prev=>{
-     if(page===1)return response.items
-     const existingIds=new Set(prev.map(p=>p.malId))
-     const deduped=response.items.filter(item=>!existingIds.has(item.malId))
-     return [...prev,...deduped]
-    })
-   }).catch(e=>{
-    if(!controller.signal.aborted)setError((e as Error).message)
-   }).finally(()=>{
-    if(!controller.signal.aborted)setLoading(false)
-   })
-  },value?300:0)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: retry value intentionally forces new browse request.
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    const timer = window.setTimeout(
+      () => {
+        const req = usesServerFilters
+          ? browseFiltered(
+              { kind, query: value, genre, format, minimumScore, year, order },
+              page,
+              controller.signal,
+            )
+          : value
+            ? search(value, page, controller.signal)
+            : catalog(kind, page, controller.signal);
+        req
+          .then((response) => {
+            if (controller.signal.aborted) return;
+            setNext(response.hasNext);
+            setItems((prev) => {
+              if (page === 1) return response.items;
+              const existingIds = new Set(prev.map((p) => p.malId));
+              const deduped = response.items.filter(
+                (item) => !existingIds.has(item.malId),
+              );
+              return [...prev, ...deduped];
+            });
+          })
+          .catch((e) => {
+            if (!controller.signal.aborted) setError((e as Error).message);
+          })
+          .finally(() => {
+            if (!controller.signal.aborted) setLoading(false);
+          });
+      },
+      value ? 300 : 0,
+    );
 
-  return()=>{
-   controller.abort()
-   window.clearTimeout(timer)
-  }
- },[kind,value,page,retry,usesServerFilters,genre,format,minimumScore,year,order])
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [
+    kind,
+    value,
+    page,
+    retry,
+    usesServerFilters,
+    genre,
+    format,
+    minimumScore,
+    year,
+    order,
+  ]);
 
- const uniqueItems=useMemo(()=>{
-  const seen=new Set<number>()
-  return items.filter(a=>{
-   if(seen.has(a.malId))return false
-   seen.add(a.malId)
-   return true
-  })
- },[items])
+  const uniqueItems = useMemo(() => {
+    const seen = new Set<number>();
+    return items.filter((a) => {
+      if (seen.has(a.malId)) return false;
+      seen.add(a.malId);
+      return true;
+    });
+  }, [items]);
 
- const filteredItems=uniqueItems
- const years=Array.from({length:new Date().getFullYear()+2-1950+1},(_,index)=>new Date().getFullYear()+2-index)
+  const filteredItems = uniqueItems;
+  const years = Array.from(
+    { length: new Date().getFullYear() + 2 - 1950 + 1 },
+    (_, index) => new Date().getFullYear() + 2 - index,
+  );
 
- return <div className="page-body browse-page">
-  <div className="page-intro">
-   <div>
-    <h1>{kind==='upcoming'?'Akan Datang':'Jelajahi'}</h1>
-    <p>{kind==='upcoming'?'Lihat pratinjau anime yang dijadwalkan tayang.':'Cari judul favoritmu, pilih genre, atau urutkan sesuai selera.'}</p>
-   </div>
-   <div className="browse-destinations">
-    {kind==='upcoming'
-     ?<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('season')}>Jelajahi anime <ArrowRight size={16}/></button>
-     :<button type="button" className="upcoming-preview-link" onClick={()=>onTabChange('upcoming')}>Akan Datang <ArrowRight size={16}/></button>}
-    <button type="button" className="btn btn-outline" onClick={onGuide}><Layers3 size={16}/> Panduan urutan anime</button>
-   </div>
-  </div>
+  return (
+    <div className="page-body browse-page">
+      <div className="page-intro">
+        <div>
+          <h1>{kind === "upcoming" ? "Akan Datang" : "Jelajahi"}</h1>
+          <p>
+            {kind === "upcoming"
+              ? "Lihat pratinjau anime yang dijadwalkan tayang."
+              : "Cari judul favoritmu, pilih genre, atau urutkan sesuai selera."}
+          </p>
+        </div>
+        <div className="browse-destinations">
+          {kind === "upcoming" ? (
+            <button
+              type="button"
+              className="upcoming-preview-link"
+              onClick={() => onTabChange("season")}
+            >
+              Jelajahi anime <ArrowRight size={16} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="upcoming-preview-link"
+              onClick={() => onTabChange("upcoming")}
+            >
+              Akan Datang <ArrowRight size={16} />
+            </button>
+          )}
+          <button type="button" className="btn btn-outline" onClick={onGuide}>
+            <Layers3 size={16} /> Panduan urutan anime
+          </button>
+        </div>
+      </div>
 
-  <div className="browse-controls">
-  <div className="browse-toolbar">
-   <div className="browse-input">
-    <Search size={18}/>
-    <input
-     aria-label="Cari anime"
-     ref={searchInputRef}
-     value={query}
-     onChange={e=>onQueryChange(e.target.value)}
-     placeholder="Cari judul anime..."
-    />
-    {query&&<button type="button" aria-label="Bersihkan pencarian" onClick={()=>onQueryChange('')}><X size={17}/></button>}
-   </div>
+      <div className="browse-controls">
+        <div className="browse-toolbar">
+          <div className="browse-input">
+            <Search size={18} />
+            <input
+              aria-label="Cari anime"
+              ref={searchInputRef}
+              value={query}
+              onChange={(e) => onQueryChange(e.target.value)}
+              placeholder="Cari judul anime..."
+            />
+            {query && (
+              <button
+                type="button"
+                aria-label="Bersihkan pencarian"
+                onClick={() => onQueryChange("")}
+              >
+                <X size={17} />
+              </button>
+            )}
+          </div>
+        </div>
+        <fieldset className="browse-filters">
+          <legend className="sr-only">Saring anime</legend>
+          {kind !== "upcoming" && (
+            <div className="browse-filter-group">
+              <span className="browse-filter-title">Lihat anime</span>
+              <fieldset className="category-switch">
+                <legend className="sr-only">Kategori anime</legend>
+                {(
+                  [
+                    ["season", "Musim ini"],
+                    ["top", "Populer"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    type="button"
+                    key={id}
+                    className={kind === id ? "active" : ""}
+                    aria-pressed={kind === id}
+                    onClick={() => onTabChange(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </fieldset>
+            </div>
+          )}
+          <label>
+            Genre
+            <select
+              aria-label="Genre"
+              value={genre}
+              onChange={(e) =>
+                onFiltersChange({ ...filters, genre: e.target.value })
+              }
+            >
+              <option value="">Semua genre</option>
+              {choiceList.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+              {genreUnavailable && (
+                <option value={genre} disabled>
+                  Genre ini sedang tidak tersedia
+                </option>
+              )}
+            </select>
+          </label>
+          <label>
+            Jenis
+            <select
+              aria-label="Jenis anime"
+              value={format}
+              onChange={(e) =>
+                onFiltersChange({ ...filters, format: e.target.value })
+              }
+            >
+              <option value="">Semua jenis</option>
+              {["TV", "Movie", "OVA", "ONA", "Special", "Music"].map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Skor
+            <select
+              aria-label="Skor minimum"
+              value={minimumScore}
+              onChange={(e) =>
+                onFiltersChange({
+                  ...filters,
+                  minimumScore: Number(e.target.value),
+                })
+              }
+            >
+              <option value={0}>Semua skor</option>
+              <option value={7}>7 ke atas</option>
+              <option value={8}>8 ke atas</option>
+              <option value={9}>9 ke atas</option>
+            </select>
+          </label>
+          <label>
+            Tahun
+            <select
+              aria-label="Tahun rilis"
+              value={year}
+              onChange={(e) =>
+                onFiltersChange({ ...filters, year: e.target.value })
+              }
+            >
+              <option value="">Semua tahun</option>
+              {years.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Urutkan
+            <select
+              aria-label="Urutkan anime"
+              value={order}
+              onChange={(e) =>
+                onFiltersChange({
+                  ...filters,
+                  order: e.target.value as BrowseFilters["order"],
+                })
+              }
+            >
+              <option value="default">Paling populer</option>
+              <option value="rating">Skor tertinggi</option>
+              <option value="newest">Tahun terbaru</option>
+            </select>
+          </label>
+          {(genre || format || minimumScore || year || order !== "default") && (
+            <button
+              type="button"
+              className="browse-reset"
+              onClick={() => onFiltersChange(EMPTY_BROWSE_FILTERS)}
+            >
+              Reset filter
+            </button>
+          )}
+        </fieldset>
+      </div>
+      {genreAvailability === "fallback" && (
+        <p className="browse-filter-note" role="status">
+          Daftar genre tambahan belum tersedia. Genre umum tetap bisa dipakai.
+        </p>
+      )}
+      {genreUnavailable && (
+        <p className="browse-filter-note" role="status">
+          Genre pada tautan ini belum tersedia. Pilih genre lain atau reset
+          filter.
+        </p>
+      )}
+      {activeFilters && (
+        <p className="browse-filter-note">
+          Filter aktif · Berlaku untuk seluruh katalog.
+        </p>
+      )}
+      {activeFilters && (
+        <fieldset className="browse-active-chips">
+          <legend className="sr-only">Filter aktif</legend>
+          <span>Filter aktif:</span>
+          {(
+            [
+              ["genre", genre, "Genre"],
+              ["format", format, "Jenis"],
+              [
+                "minimumScore",
+                minimumScore ? String(minimumScore) + "+" : "",
+                "Skor",
+              ],
+              ["year", year, "Tahun"],
+              [
+                "order",
+                order === "default"
+                  ? ""
+                  : order === "rating"
+                    ? "Skor tertinggi"
+                    : "Tahun terbaru",
+                "Urutkan",
+              ],
+            ] as const
+          )
+            .filter(([, value]) => Boolean(value))
+            .map(([key, value, label]) => (
+              <button
+                type="button"
+                key={key}
+                aria-label={`Hapus filter ${label}: ${value}`}
+                onClick={() =>
+                  onFiltersChange({
+                    ...filters,
+                    [key]:
+                      key === "minimumScore"
+                        ? 0
+                        : key === "order"
+                          ? "default"
+                          : "",
+                  })
+                }
+              >
+                {label}: {value} <X size={13} />
+              </button>
+            ))}
+        </fieldset>
+      )}
 
-  </div>
-  <fieldset className="browse-filters"><legend className="sr-only">Saring anime</legend>
-   {kind!=='upcoming'&&<div className="browse-filter-group">
-    <span className="browse-filter-title">Lihat anime</span>
-    <fieldset className="category-switch"><legend className="sr-only">Kategori anime</legend>
-     {([['season','Musim ini'],['top','Populer']] as const).map(([id,label])=><button type="button" key={id} className={kind===id?'active':''} aria-pressed={kind===id} onClick={()=>onTabChange(id)}>{label}</button>)}
-    </fieldset>
-   </div>}
-   <label>Genre<select aria-label="Genre" value={genre} onChange={e=>onFiltersChange({...filters,genre:e.target.value})}>
-    <option value="">Semua genre</option>
-    {choiceList.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}
-    {genreUnavailable&&<option value={genre} disabled>Genre ini sedang tidak tersedia</option>}
-   </select></label>
-   <label>Jenis<select aria-label="Jenis anime" value={format} onChange={e=>onFiltersChange({...filters,format:e.target.value})}><option value="">Semua jenis</option>{['TV','Movie','OVA','ONA','Special','Music'].map(t=><option key={t} value={t}>{t}</option>)}</select></label>
-   <label>Skor<select aria-label="Skor minimum" value={minimumScore} onChange={e=>onFiltersChange({...filters,minimumScore:Number(e.target.value)})}><option value={0}>Semua skor</option><option value={7}>7 ke atas</option><option value={8}>8 ke atas</option><option value={9}>9 ke atas</option></select></label>
-   <label>Tahun<select aria-label="Tahun rilis" value={year} onChange={e=>onFiltersChange({...filters,year:e.target.value})}><option value="">Semua tahun</option>{years.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-   <label>Urutkan<select aria-label="Urutkan anime" value={order} onChange={e=>onFiltersChange({...filters,order:e.target.value as BrowseFilters['order']})}><option value="default">Paling populer</option><option value="rating">Skor tertinggi</option><option value="newest">Tahun terbaru</option></select></label>
-   {(genre||format||minimumScore||year||order!=='default')&&<button type="button" className="browse-reset" onClick={()=>onFiltersChange(EMPTY_BROWSE_FILTERS)}>Reset filter</button>}
-  </fieldset>
-  </div>
-  {genreAvailability==='fallback'&&<p className="browse-filter-note" role="status">Daftar genre tambahan belum tersedia. Genre umum tetap bisa dipakai.</p>}
-  {genreUnavailable&&<p className="browse-filter-note" role="status">Genre pada tautan ini belum tersedia. Pilih genre lain atau reset filter.</p>}
-  {activeFilters&&<p className="browse-filter-note">Filter aktif · Berlaku untuk seluruh katalog.</p>}
-  {activeFilters&&<fieldset className="browse-active-chips"><legend className="sr-only">Filter aktif</legend>
-   <span>Filter aktif:</span>
-   {([
-    ['genre',genre,'Genre'],
-    ['format',format,'Jenis'],
-    ['minimumScore',minimumScore?String(minimumScore)+'+':'','Skor'],
-    ['year',year,'Tahun'],
-    ['order',order==='default'?'':order==='rating'?'Skor tertinggi':'Tahun terbaru','Urutkan']
-   ] as const).filter(([,value])=>Boolean(value)).map(([key,value,label])=>
-    <button type="button" key={key} aria-label={`Hapus filter ${label}: ${value}`}
-     onClick={()=>onFiltersChange({...filters,[key]:key==='minimumScore'?0:key==='order'?'default':''})}>
-     {label}: {value} <X size={13}/>
-    </button>
-   )}
-  </fieldset>}
+      <div className="browse-results-header">
+        <div>
+          <h2>
+            {value
+              ? `Hasil pencarian: “${value}”`
+              : kind === "season"
+                ? "Musim ini"
+                : kind === "top"
+                  ? "Anime terpopuler"
+                  : "Pratinjau musim berikutnya"}
+          </h2>
+        </div>
+        <span className="results-label">
+          <SlidersHorizontal size={14} />{" "}
+          {loading
+            ? "Memuat..."
+            : query
+              ? `${filteredItems.length} hasil ditemukan`
+              : `Menampilkan 1–${filteredItems.length} anime populer`}
+        </span>
+      </div>
+      {error && uniqueItems.length > 0 && (
+        <div className="config-error" role="alert">
+          Belum bisa memuat lebih banyak anime.
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() => setRetry((n) => n + 1)}
+          >
+            Coba lagi
+          </button>
+        </div>
+      )}
 
-  <div className="browse-results-header">
-   <div>
-    <h2>{value?`Hasil pencarian: “${value}”`:kind==='season'?'Musim ini':kind==='top'?'Anime terpopuler':'Pratinjau musim berikutnya'}</h2>
-   </div>
-   <span className="results-label"><SlidersHorizontal size={14}/> {loading?'Memuat...':`${filteredItems.length} ditampilkan`}</span>
-  </div>
-  {error&&uniqueItems.length>0&&<div className="config-error" role="alert">
-   Belum bisa memuat lebih banyak anime.
-   <button type="button" className="btn btn-outline" onClick={()=>setRetry(n=>n+1)}>Coba lagi</button>
-  </div>}
+      {error && uniqueItems.length === 0 ? (
+        <Empty
+          icon={WifiOff}
+          title="Tidak dapat memuat katalog"
+          body="Belum bisa menampilkan anime. Periksa koneksi lalu coba lagi."
+          action={
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => setRetry((n) => n + 1)}
+            >
+              <RefreshCw size={15} /> Coba lagi
+            </button>
+          }
+        />
+      ) : filteredItems.length === 0 && !loading ? (
+        <Empty
+          icon={Search}
+          title="Tidak ada judul yang cocok"
+          body="Periksa ejaan kata kunci atau pilih kategori penjelajahan yang berbeda."
+        />
+      ) : (
+        <div className="card-grid browse-grid">
+          {filteredItems.map((a) => (
+            <Card key={a.id} anime={a} onOpen={onOpen} />
+          ))}
+          {loading &&
+            SKELETON_KEYS.slice(0, page === 1 ? 12 : 6).map((key) => (
+              <CardSkeleton key={key} />
+            ))}
+        </div>
+      )}
 
-  {error&&uniqueItems.length===0?<Empty
-   icon={WifiOff}
-   title="Tidak dapat memuat katalog"
-   body="Belum bisa menampilkan anime. Periksa koneksi lalu coba lagi."
-   action={<button type="button" className="btn btn-outline" onClick={()=>setRetry(n=>n+1)}><RefreshCw size={15}/> Coba lagi</button>}
-  />:filteredItems.length===0&&!loading?<Empty
-   icon={Search}
-   title="Tidak ada judul yang cocok"
-   body="Periksa ejaan kata kunci atau pilih kategori penjelajahan yang berbeda."
-  />:<div className="card-grid browse-grid">
-   {filteredItems.map(a=><Card key={a.id} anime={a} onOpen={onOpen}/>)}
-   {loading&&SKELETON_KEYS.slice(0,page===1?12:6).map(key=><CardSkeleton key={key}/>)}
-  </div>}
-
-  {next&&!loading&&!error&&<div className="load-more">
-   <button type="button" className="btn btn-outline" onClick={()=>setPage(n=>n+1)}>
-    Muat lebih banyak <ChevronDown size={16}/>
-   </button>
-  </div>}
- </div>
+      {next && !loading && !error && (
+        <div className="load-more">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() => setPage((n) => n + 1)}
+          >
+            Muat lebih banyak <ChevronDown size={16} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function LibraryPage({
- view,
- onViewChange,
- library,
- progress,
- onOpen,
- onResume,
- resumingAnimeId,
- onBrowse,
- onRemove,
- onStatusChange,
-}:{
- view:'all'|'continue'
- onViewChange:(v:'all'|'continue')=>void
- library:LibraryEntry[]
- progress:ProgressEntry[]
- onOpen:(a:Anime)=>void
- onResume:(row:ProgressEntry)=>void
- resumingAnimeId:string|null
- onBrowse:()=>void
- onRemove:(id:string)=>Promise<void>
- onStatusChange:(anime:Anime,status:LibraryStatus)=>Promise<void>
-}){
- const [filter,setFilter]=useState<'all'|LibraryStatus>('all')
- const [sortMode,setSortMode]=useState<LibrarySort>('recent')
- useEffect(()=>{
-  let active=true
-  void getPreference('library-sort','recent').then(value=>{
-   if(active)setSortMode(parseLibrarySort(value))
-  }).catch(()=>{})
-  return()=>{active=false}
- },[])
- const saved=useMemo(()=>sortLibraryEntries(
-  library.filter(row=>filter==='all'||row.status===filter),sortMode
- ),[library,filter,sortMode])
- const continueItems=useMemo(()=>progress.filter(isResumableProgress),[progress])
+  view,
+  onViewChange,
+  library,
+  progress,
+  onOpen,
+  onResume,
+  resumingAnimeId,
+  onBrowse,
+  onRemove,
+  onStatusChange,
+}: {
+  view: "all" | "continue";
+  onViewChange: (v: "all" | "continue") => void;
+  library: LibraryEntry[];
+  progress: ProgressEntry[];
+  onOpen: (a: Anime) => void;
+  onResume: (row: ProgressEntry) => void;
+  resumingAnimeId: string | null;
+  onBrowse: () => void;
+  onRemove: (id: string) => Promise<void>;
+  onStatusChange: (anime: Anime, status: LibraryStatus) => Promise<void>;
+}) {
+  const [filter, setFilter] = useState<"all" | LibraryStatus>("all");
+  const [sortMode, setSortMode] = useState<LibrarySort>("recent");
+  const [layoutMode, setLayoutMode] = useState<"grid" | "list">("grid");
+  useEffect(() => {
+    let active = true;
+    void getPreference("library-sort", "recent")
+      .then((value) => {
+        if (active) setSortMode(parseLibrarySort(value));
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  const saved = useMemo(
+    () =>
+      sortLibraryEntries(
+        library.filter((row) => filter === "all" || row.status === filter),
+        sortMode,
+      ),
+    [library, filter, sortMode],
+  );
+  const continueItems = useMemo(
+    () => progress.filter(isResumableProgress),
+    [progress],
+  );
 
- const isCompletelyEmpty=library.length===0&&progress.length===0
+  const isCompletelyEmpty = library.length === 0 && progress.length === 0;
 
- return <div className="page-body library-page">
-  <div className="page-intro">
-   <div>
-    <h1>Koleksi</h1>
-    <p>Simpan anime favoritmu dan lanjutkan dari episode terakhir.</p>
-   </div>
-   <div className="library-view-tabs">
-    <button type="button" className={view==='all'?'active':''} onClick={()=>onViewChange('all')}>Semua simpanan ({library.length})</button>
-    <button type="button" className={view==='continue'?'active':''} onClick={()=>onViewChange('continue')}>Lanjut menonton ({continueItems.length})</button>
-   </div>
-  </div>
-
-  {continueItems.length>0&&<div className="library-highlight"><div className="library-highlight-copy"><span>LANJUTKAN TONTONAN</span><strong>{continueItems[0].anime.title}</strong><small>Episode {continueItems[0].episode} · {durationDisplay(continueItems[0].seconds)} ditonton</small><button type="button" className="btn btn-primary" disabled={Boolean(resumingAnimeId)} onClick={()=>onResume(continueItems[0])}><Play size={16} fill="currentColor"/> {resumingAnimeId===continueItems[0].anime.id?"Memeriksa…":"Lanjutkan"}</button></div><div className="library-highlight-cover"><Poster anime={continueItems[0].anime}/></div></div>}
-  {!isCompletelyEmpty&&<div className="library-stats">
-   <div><span>TOTAL KOLEKSI</span><strong>{library.length.toString().padStart(2,'0')}</strong><small>Judul tersimpan</small></div>
-   <div><span>SEDANG MENONTON</span><strong>{library.filter(l=>l.status==='watching').length.toString().padStart(2,'0')}</strong><small>Anime aktif</small></div>
-   <div><span>RIWAYAT MENONTON</span><strong>{progress.length.toString().padStart(2,'0')}</strong><small>Judul dengan progres</small></div>
-  </div>}
-
-  {view==='continue'&&<Section title="Lanjut menonton">
-   {continueItems.length===0?<Empty
-    icon={Clock3}
-    title="Belum ada tontonan untuk dilanjutkan"
-    body="Episode yang kamu putar akan otomatis tercatat di sini agar kamu bisa langsung melanjutkan kapan saja."
-    action={<button type="button" className="btn btn-primary" onClick={onBrowse}><Play size={15} fill="currentColor"/> Mulai menonton</button>}
-   />:<div className="library-list">
-    {continueItems.map(row=><button type="button" key={row.anime.id} className="library-item library-item-main" disabled={Boolean(resumingAnimeId)} onClick={()=>onResume(row)}>
-     <Poster anime={row.anime}/>
-     <div>
-      <strong>{row.anime.title}</strong>
-      <span>{resumingAnimeId===row.anime.id?"Memeriksa sumber video…":`Episode ${row.episode} · ${durationDisplay(row.seconds)} ditonton`}</span>
-     </div>
-     <ArrowRight size={18}/>
-    </button>)}
-   </div>}
-  </Section>}
-
-  {view==='all'&&<Section title="Daftar koleksi" action={<button type="button" className="text-link" onClick={onBrowse}>Cari anime <ArrowRight size={16}/></button>}>
-   {!isCompletelyEmpty&&<div className="filter-tabs">
-    {([['all','Semua'],['planned','Ingin ditonton'],['watching','Menonton'],['completed','Selesai']] as const).map(([id,label])=><button
-     type="button"
-     key={id}
-     className={filter===id?'active':''}
-     onClick={()=>setFilter(id)}
-    >
-     {label}
-    </button>)}
-   </div>}
-
-   {!isCompletelyEmpty&&<label className="library-sort-control">Urutkan koleksi
-    <select aria-label="Urutkan koleksi" value={sortMode} onChange={event=>{
-     const choice=parseLibrarySort(event.target.value)
-     setSortMode(choice)
-     void setPreference('library-sort',choice).catch(()=>{})
-    }}>
-     <option value="recent">Terakhir disimpan</option>
-     <option value="title">Judul A–Z</option>
-     <option value="score">Skor tertinggi</option>
-     <option value="year">Tahun terbaru</option>
-    </select>
-   </label>}
-   {isCompletelyEmpty?<Empty
-    icon={Bookmark}
-    title="Koleksi masih kosong"
-    body="Anime yang kamu simpan akan muncul di sini. Mulai dari judul yang kamu suka."
-    action={<button type="button" className="btn btn-primary" onClick={onBrowse}><Compass size={16}/> Jelajahi anime</button>}
-   />:saved.length===0?<Empty
-    icon={Bookmark}
-    title="Tidak ada judul di filter ini"
-    body="Belum ada anime dengan status yang dipilih."
-   />:<div className="library-list">
-    {saved.map(row=><div className="library-item" key={row.anime.id}>
-     <button type="button" className="library-item-main" onClick={()=>onOpen(row.anime)}>
-      <Poster anime={row.anime}/>
-      <div>
-       <strong>{row.anime.title}</strong>
-       <Meta anime={row.anime}/>
-       <span className="library-status">{row.status==='planned'?'Ingin ditonton':row.status==='watching'?'Sedang ditonton':'Selesai'}</span>
+  return (
+    <div className="page-body library-page">
+      <div className="page-intro">
+        <div>
+          <h1>Koleksi</h1>
+          <p>Simpan anime favoritmu dan lanjutkan dari episode terakhir.</p>
+        </div>
+        <div className="library-view-tabs">
+          <button
+            type="button"
+            className={view === "all" ? "active" : ""}
+            onClick={() => onViewChange("all")}
+          >
+            Semua simpanan ({library.length})
+          </button>
+          <button
+            type="button"
+            className={view === "continue" ? "active" : ""}
+            onClick={() => onViewChange("continue")}
+          >
+            Lanjut menonton ({continueItems.length})
+          </button>
+        </div>
       </div>
-     </button>
-     <select className="library-status-select" aria-label={`Ubah status ${row.anime.title}`} value={row.status} onChange={e=>void onStatusChange(row.anime,e.target.value as LibraryStatus)}>
-      <option value="planned">Ingin ditonton</option>
-      <option value="watching">Menonton</option>
-      <option value="completed">Selesai</option>
-     </select>
-     <button type="button" className="icon-button" title="Hapus dari koleksi" aria-label={`Hapus ${row.anime.title}`} onClick={()=>void onRemove(row.anime.id)}>
-      <Trash2 size={16}/>
-     </button>
-    </div>)}
-   </div>}
-  </Section>}
- </div>
+
+      {continueItems.length > 0 && (
+        <div className="library-highlight">
+          <div className="library-highlight-copy">
+            <span>LANJUTKAN TONTONAN</span>
+            <strong>{continueItems[0].anime.title}</strong>
+            <small>
+              Episode {continueItems[0].episode} ·{" "}
+              {durationDisplay(continueItems[0].seconds)} ditonton
+            </small>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={Boolean(resumingAnimeId)}
+              onClick={() => onResume(continueItems[0])}
+            >
+              <Play size={16} fill="currentColor" />{" "}
+              {resumingAnimeId === continueItems[0].anime.id
+                ? "Memeriksa…"
+                : "Lanjutkan"}
+            </button>
+          </div>
+          <div className="library-highlight-cover">
+            <Poster anime={continueItems[0].anime} />
+          </div>
+        </div>
+      )}
+      {!isCompletelyEmpty && (
+        <div className="library-stats-bento">
+          <div className="library-stat-card">
+            <Bookmark className="stat-icon" size={20} />
+            <strong>{library.length.toString().padStart(2, "0")}</strong>
+            <small>Total Koleksi</small>
+          </div>
+          <div className="library-stat-card">
+            <Play className="stat-icon" size={20} />
+            <strong>
+              {library
+                .filter((l) => l.status === "watching")
+                .length.toString()
+                .padStart(2, "0")}
+            </strong>
+            <small>Sedang Ditonton</small>
+          </div>
+          <div className="library-stat-card">
+            <Check className="stat-icon" size={20} />
+            <strong>
+              {library
+                .filter((l) => l.status === "completed")
+                .length.toString()
+                .padStart(2, "0")}
+            </strong>
+            <small>Selesai Ditonton</small>
+          </div>
+          <div className="library-stat-card">
+            <Clock3 className="stat-icon" size={20} />
+            <strong>{progress.length.toString().padStart(2, "0")}</strong>
+            <small>Riwayat Tontonan</small>
+          </div>
+        </div>
+      )}
+
+      {view === "continue" && (
+        <Section title="Lanjut menonton">
+          {continueItems.length === 0 ? (
+            <Empty
+              icon={Clock3}
+              title="Belum ada tontonan untuk dilanjutkan"
+              body="Episode yang kamu putar akan otomatis tercatat di sini agar kamu bisa langsung melanjutkan kapan saja."
+              action={
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={onBrowse}
+                >
+                  <Play size={15} fill="currentColor" /> Mulai menonton
+                </button>
+              }
+            />
+          ) : (
+            <div className="library-list">
+              {continueItems.map((row) => (
+                <button
+                  type="button"
+                  key={row.anime.id}
+                  className="library-item library-item-main"
+                  disabled={Boolean(resumingAnimeId)}
+                  onClick={() => onResume(row)}
+                >
+                  <Poster anime={row.anime} />
+                  <div>
+                    <strong>{row.anime.title}</strong>
+                    <span>
+                      {resumingAnimeId === row.anime.id
+                        ? "Memeriksa sumber video…"
+                        : `Episode ${row.episode} · ${durationDisplay(row.seconds)} ditonton`}
+                    </span>
+                  </div>
+                  <ArrowRight size={18} />
+                </button>
+              ))}
+            </div>
+          )}
+        </Section>
+      )}
+
+      {view === "all" && (
+        <Section
+          title="Daftar koleksi"
+          action={
+            <button type="button" className="text-link" onClick={onBrowse}>
+              Cari anime <ArrowRight size={16} />
+            </button>
+          }
+        >
+          {!isCompletelyEmpty && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 10,
+              }}
+            >
+              <div className="filter-tabs">
+                {(
+                  [
+                    ["all", "Semua"],
+                    ["planned", "Ingin ditonton"],
+                    ["watching", "Menonton"],
+                    ["completed", "Selesai"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    type="button"
+                    key={id}
+                    className={filter === id ? "active" : ""}
+                    onClick={() => setFilter(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <fieldset className="library-view-switcher">
+                <legend className="sr-only">Bentuk tampilan koleksi</legend>
+                <button
+                  type="button"
+                  className={layoutMode === "grid" ? "active" : ""}
+                  onClick={() => setLayoutMode("grid")}
+                  aria-label="Tampilan grid"
+                  title="Tampilan grid"
+                >
+                  <LayoutGrid size={16} />
+                </button>
+                <button
+                  type="button"
+                  className={layoutMode === "list" ? "active" : ""}
+                  onClick={() => setLayoutMode("list")}
+                  aria-label="Tampilan daftar"
+                  title="Tampilan daftar"
+                >
+                  <List size={16} />
+                </button>
+              </fieldset>
+            </div>
+          )}
+
+          {!isCompletelyEmpty && (
+            <label className="library-sort-control">
+              Urutkan koleksi
+              <select
+                aria-label="Urutkan koleksi"
+                value={sortMode}
+                onChange={(event) => {
+                  const choice = parseLibrarySort(event.target.value);
+                  setSortMode(choice);
+                  void setPreference("library-sort", choice).catch(() => {});
+                }}
+              >
+                <option value="recent">Terakhir disimpan</option>
+                <option value="title">Judul A–Z</option>
+                <option value="score">Skor tertinggi</option>
+                <option value="year">Tahun terbaru</option>
+              </select>
+            </label>
+          )}
+          {isCompletelyEmpty ? (
+            <Empty
+              icon={Bookmark}
+              title="Koleksi masih kosong"
+              body="Anime yang kamu simpan akan muncul di sini. Mulai dari judul yang kamu suka."
+              action={
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={onBrowse}
+                >
+                  <Compass size={16} /> Jelajahi anime
+                </button>
+              }
+            />
+          ) : saved.length === 0 ? (
+            <Empty
+              icon={Bookmark}
+              title="Tidak ada judul di filter ini"
+              body="Belum ada anime dengan status yang dipilih."
+            />
+          ) : layoutMode === "grid" ? (
+            <div className="library-grid">
+              {saved.map((row) => {
+                const prog = progress.find((p) => p.anime.id === row.anime.id);
+                return (
+                  <div className="library-grid-card" key={row.anime.id}>
+                    <button
+                      type="button"
+                      className="library-grid-poster"
+                      onClick={() => onOpen(row.anime)}
+                      aria-label={`Buka detail ${row.anime.title}`}
+                    >
+                      <Poster anime={row.anime} />
+                      <span className={`library-grid-badge ${row.status}`}>
+                        {row.status === "watching"
+                          ? "Menonton"
+                          : row.status === "completed"
+                            ? "Selesai"
+                            : "Ingin"}
+                      </span>
+                      {prog && (
+                        <div className="library-grid-progress-bar">
+                          <div
+                            className="library-grid-progress-fill"
+                            style={{
+                              width: `${prog.duration > 0 ? Math.min(100, (prog.seconds / prog.duration) * 100) : 20}%`,
+                            }}
+                          />
+                        </div>
+                      )}
+                    </button>
+                    <div className="library-grid-body">
+                      <strong title={row.anime.title}>{row.anime.title}</strong>
+                      <Meta anime={row.anime} />
+                      {prog && (
+                        <small style={{ fontSize: 11, color: "var(--accent)" }}>
+                          Episode {prog.episode} (
+                          {durationDisplay(prog.seconds)})
+                        </small>
+                      )}
+                      <div className="library-grid-actions">
+                        <select
+                          className="library-status-select"
+                          aria-label={`Ubah status ${row.anime.title}`}
+                          value={row.status}
+                          onChange={(e) =>
+                            void onStatusChange(
+                              row.anime,
+                              e.target.value as LibraryStatus,
+                            )
+                          }
+                        >
+                          <option value="planned">Ingin ditonton</option>
+                          <option value="watching">Menonton</option>
+                          <option value="completed">Selesai</option>
+                        </select>
+                        <button
+                          type="button"
+                          className="icon-button"
+                          title="Hapus dari koleksi"
+                          aria-label={`Hapus ${row.anime.title}`}
+                          onClick={() => void onRemove(row.anime.id)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="library-list">
+              {saved.map((row) => (
+                <div className="library-item" key={row.anime.id}>
+                  <button
+                    type="button"
+                    className="library-item-main"
+                    onClick={() => onOpen(row.anime)}
+                  >
+                    <Poster anime={row.anime} />
+                    <div>
+                      <strong>{row.anime.title}</strong>
+                      <Meta anime={row.anime} />
+                      <span className="library-status">
+                        {row.status === "planned"
+                          ? "Ingin ditonton"
+                          : row.status === "watching"
+                            ? "Sedang ditonton"
+                            : "Selesai"}
+                      </span>
+                    </div>
+                  </button>
+                  <select
+                    className="library-status-select"
+                    aria-label={`Ubah status ${row.anime.title}`}
+                    value={row.status}
+                    onChange={(e) =>
+                      void onStatusChange(
+                        row.anime,
+                        e.target.value as LibraryStatus,
+                      )
+                    }
+                  >
+                    <option value="planned">Ingin ditonton</option>
+                    <option value="watching">Menonton</option>
+                    <option value="completed">Selesai</option>
+                  </select>
+                  <button
+                    type="button"
+                    className="icon-button"
+                    title="Hapus dari koleksi"
+                    aria-label={`Hapus ${row.anime.title}`}
+                    onClick={() => void onRemove(row.anime.id)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      )}
+    </div>
+  );
 }
 
 function DetailBody({
- anime,
- isSaved,
- progress,
- onToggleSave,
- onWatch,
- onOpenGuide,
-}:{
- anime:Anime
- isSaved:boolean
- progress?:ProgressEntry[]
- onToggleSave:()=>void
- onWatch:(p:Playback)=>void
- onOpenGuide:()=>void
-}){
- const pickerRef=useRef<HTMLDivElement>(null)
- const [info,setInfo]=useState<Anime>(anime)
- const [listed,setListed]=useState<Episode[]>([])
- const [available,setAvailable]=useState<Episode[]>([])
- const [loading,setLoading]=useState(true)
- const [playing,setPlaying]=useState('')
- const [error,setError]=useState('')
- const [choices,setChoices]=useState<{episode:number;items:Stream[];unavailable?:UnavailableStream[]}|null>(null)
- const [sourceFeedback,setSourceFeedback]=useState<{episode:number;phase:'searching'|'checking'|'candidates'|'degraded'|'no-direct'|'failed'|'verified';message:string}|null>(null)
- const sourceRequest=useRef(0)
- useEffect(()=>{
-  if(!choices)return
-  const frame=requestAnimationFrame(()=>pickerRef.current?.scrollIntoView({block:'nearest',behavior:'auto'}))
-  return()=>cancelAnimationFrame(frame)
- },[choices])
- const [more,setMore]=useState(false)
- const [page,setPage]=useState(1)
- const [hasNext,setHasNext]=useState(false)
- const [loadingMore,setLoadingMore]=useState(false)
- const nextPageInFlight=useRef(false)
- const nextPageAbort=useRef<AbortController|null>(null)
+  anime,
+  isSaved,
+  progress,
+  onToggleSave,
+  onWatch,
+  onOpenGuide,
+  onClose,
+}: {
+  anime: Anime;
+  isSaved: boolean;
+  progress?: ProgressEntry[];
+  onToggleSave: () => void;
+  onWatch: (p: Playback) => void;
+  onOpenGuide: () => void;
+  onClose?: () => void;
+}) {
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const [info, setInfo] = useState<Anime>(anime);
+  const [listed, setListed] = useState<Episode[]>([]);
+  const [available, setAvailable] = useState<Episode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [playing, setPlaying] = useState("");
+  const [error, setError] = useState("");
+  const [choices, setChoices] = useState<{
+    episode: number;
+    items: Stream[];
+    unavailable?: UnavailableStream[];
+  } | null>(null);
+  const [guideData, setGuideData] = useState<{
+    items?: {
+      aniListId: number;
+      malId: number | null;
+      title: string;
+      format?: string;
+      year?: number;
+      relation?: string;
+      image?: string;
+    }[];
+  } | null>(null);
+  const [showInModalGuide, setShowInModalGuide] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/anime/${info.malId}/watch-guide`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (alive && data?.items) setGuideData(data);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [info.malId]);
+  const [sourceFeedback, setSourceFeedback] = useState<{
+    episode: number;
+    phase:
+      | "searching"
+      | "checking"
+      | "candidates"
+      | "degraded"
+      | "no-direct"
+      | "failed"
+      | "verified";
+    message: string;
+  } | null>(null);
+  const sourceRequest = useRef(0);
+  useEffect(() => {
+    if (!choices) return;
+    const frame = requestAnimationFrame(() =>
+      pickerRef.current?.scrollIntoView({ block: "nearest", behavior: "auto" }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [choices]);
+  const [more, setMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const nextPageInFlight = useRef(false);
+  const nextPageAbort = useRef<AbortController | null>(null);
 
- useEffect(()=>{
-  const controller=new AbortController()
-  nextPageAbort.current?.abort()
-  nextPageAbort.current=null
-  nextPageInFlight.current=false
-  setLoadingMore(false)
-  setLoading(true)
-  setError('')
-  setPage(1)
-  setHasNext(false)
-  setListed([])
-  setAvailable([])
-  sourceRequest.current++
-  setChoices(null)
-  setSourceFeedback(null)
-  setInfo(anime)
+  useEffect(() => {
+    const controller = new AbortController();
+    nextPageAbort.current?.abort();
+    nextPageAbort.current = null;
+    nextPageInFlight.current = false;
+    setLoadingMore(false);
+    setLoading(true);
+    setError("");
+    setPage(1);
+    setHasNext(false);
+    setListed([]);
+    setAvailable([]);
+    sourceRequest.current++;
+    setChoices(null);
+    setSourceFeedback(null);
+    setInfo(anime);
 
-  void Promise.allSettled([
-   detail(anime.malId,controller.signal),
-   episodes(anime.malId,1,controller.signal),
-   providerEpisodes(anime.malId,controller.signal),
-  ]).then(results=>{
-   if(controller.signal.aborted)return
-   if(results[0].status==='fulfilled')setInfo(results[0].value)
-   if(results[1].status==='fulfilled'){
-    setListed(results[1].value.items)
-    setHasNext(results[1].value.hasNext)
-   }
-   if(results[2].status==='fulfilled')setAvailable(results[2].value.items)
-  }).finally(()=>{
-   if(!controller.signal.aborted)setLoading(false)
-  })
+    void Promise.allSettled([
+      detail(anime.malId, controller.signal),
+      episodes(anime.malId, 1, controller.signal),
+      providerEpisodes(anime.malId, controller.signal),
+    ])
+      .then((results) => {
+        if (controller.signal.aborted) return;
+        if (results[0].status === "fulfilled") setInfo(results[0].value);
+        if (results[1].status === "fulfilled") {
+          setListed(results[1].value.items);
+          setHasNext(results[1].value.hasNext);
+        }
+        if (results[2].status === "fulfilled")
+          setAvailable(results[2].value.items);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
 
-  return()=>{
-   controller.abort()
-   nextPageAbort.current?.abort()
+    return () => {
+      controller.abort();
+      nextPageAbort.current?.abort();
+    };
+  }, [anime]);
+
+  const [episodeSummaries, setEpisodeSummaries] = useState<Map<number, SourceSearchResult>>(new Map());
+  const [episodeErrors, setEpisodeErrors] = useState<Set<number>>(new Set());
+  const [verifiedEpisodes, setVerifiedEpisodes] = useState<Set<number>>(new Set());
+
+  const meaningfulRelations = useMemo(() => {
+    return (guideData?.items ?? []).filter((item) => item.relation !== "CURRENT");
+  }, [guideData]);
+
+  const availableMap = useMemo(() => {
+    const map = new Map<number, Episode[]>();
+    for (const entry of available) {
+      if (entry.providerId === "public-embed") continue;
+      const current = map.get(entry.number) || [];
+      current.push(entry);
+      map.set(entry.number, current);
+    }
+    return map;
+  }, [available]);
+
+  const displayed = useMemo(() => {
+    const entries = new Map<number, Episode>();
+    for (const ep of listed) entries.set(ep.number, ep);
+    for (const ep of available)
+      entries.set(ep.number, { ...entries.get(ep.number), ...ep });
+    return [...entries.values()].sort((a, b) => a.number - b.number);
+  }, [listed, available]);
+
+  const { animeProgress, progressState, resumableProgress, targetEpisode } =
+    useMemo(
+      () => resolveDetailResumeTarget(displayed, progress, info, available),
+      [displayed, progress, info, available],
+    );
+
+  async function loadNext() {
+    if (loading || !hasNext || nextPageInFlight.current) return;
+    const nextPage = page + 1;
+    const controller = new AbortController();
+    nextPageInFlight.current = true;
+    nextPageAbort.current = controller;
+    setLoadingMore(true);
+    setError("");
+    try {
+      const result = await episodes(anime.malId, nextPage, controller.signal);
+      if (controller.signal.aborted) return;
+      if (
+        !result ||
+        !Array.isArray(result.items) ||
+        typeof result.hasNext !== "boolean" ||
+        result.page !== nextPage
+      )
+        throw new Error("Invalid episode page");
+      setListed((current) => {
+        const seen = new Set(current.map((ep) => ep.number));
+        const additions = result.items.filter((ep) => {
+          if (seen.has(ep.number)) return false;
+          seen.add(ep.number);
+          return true;
+        });
+        return [...current, ...additions];
+      });
+      setHasNext(result.hasNext);
+      setPage(nextPage);
+    } catch {
+      if (!controller.signal.aborted)
+        setError("Tidak dapat mengambil daftar episode berikutnya");
+    } finally {
+      if (nextPageAbort.current === controller) {
+        nextPageAbort.current = null;
+        nextPageInFlight.current = false;
+        setLoadingMore(false);
+      }
+    }
   }
- },[anime])
 
- const availableMap=useMemo(()=>{
-  const map=new Map<number,Episode[]>()
-  for(const entry of available){
-   const current=map.get(entry.number)||[]
-   current.push(entry)
-   map.set(entry.number,current)
+  async function checkAndWatch(
+    stream: Stream,
+    ep: number,
+    manual = false,
+    requestId = ++sourceRequest.current,
+  ) {
+    if (requestId !== sourceRequest.current) return;
+    if (stream.format === "embed") {
+      setError("Pemutar embed alternatif tidak didukung per standar D02.");
+      setSourceFeedback({
+        episode: ep,
+        phase: "failed",
+        message:
+          "Pemutar video alternatif tanpa kontrol subtitle tidak didukung per standar D02.",
+      });
+      return;
+    }
+    setPlaying(String(ep));
+    setError("");
+    setSourceFeedback({
+      episode: ep,
+      phase: "checking",
+      message: "Memeriksa apakah video ini benar-benar dapat diputar…",
+    });
+    try {
+      await verifyNativeSource(stream);
+      if (requestId !== sourceRequest.current) return;
+      setVerifiedEpisodes((prev) => new Set(prev).add(ep));
+      setSourceFeedback({
+        episode: ep,
+        phase: "verified",
+        message: "Video native lolos pemeriksaan browser.",
+      });
+      void saveRememberedSource(info.malId, ep, stream, setPreference);
+      onWatch({ anime: info, episode: ep, stream, manualSource: manual });
+    } catch {
+      if (requestId !== sourceRequest.current) return;
+      setError(
+        "Sumber ini gagal diperiksa. Pilih sumber lain atau coba kembali.",
+      );
+      setSourceFeedback({
+        episode: ep,
+        phase: "failed",
+        message:
+          "Kandidat ini belum bisa diputar. Pemeriksaan gagal; kualitas atau subtitle tidak dapat dijamin.",
+      });
+    } finally {
+      if (requestId === sourceRequest.current) setPlaying("");
+    }
   }
-  return map
- },[available])
-
- const displayed=useMemo(()=>{
-  const entries=new Map<number,Episode>()
-  for(const ep of listed)entries.set(ep.number,ep)
-  for(const ep of available)entries.set(ep.number,{...entries.get(ep.number),...ep})
-  return[...entries.values()].sort((a,b)=>a.number-b.number)
- },[listed,available])
-
- const {animeProgress,progressState,resumableProgress,targetEpisode}=useMemo(
-  ()=>resolveDetailResumeTarget(displayed,progress,info,available),
-  [displayed,progress,info,available]
- )
-
- async function loadNext(){
-  if(loading||!hasNext||nextPageInFlight.current)return
-  const nextPage=page+1
-  const controller=new AbortController()
-  nextPageInFlight.current=true
-  nextPageAbort.current=controller
-  setLoadingMore(true)
-  setError('')
-  try{
-   const result=await episodes(anime.malId,nextPage,controller.signal)
-   if(controller.signal.aborted)return
-   if(!result||!Array.isArray(result.items)||typeof result.hasNext!=='boolean'||result.page!==nextPage)
-    throw new Error('Invalid episode page')
-   setListed(current=>{
-    const seen=new Set(current.map(ep=>ep.number))
-    const additions=result.items.filter(ep=>{
-     if(seen.has(ep.number))return false
-     seen.add(ep.number)
-     return true
-    })
-    return [...current,...additions]
-   })
-   setHasNext(result.hasNext)
-   setPage(nextPage)
-  }catch{
-   if(!controller.signal.aborted)setError('Tidak dapat mengambil daftar episode berikutnya')
-  }finally{
-   if(nextPageAbort.current===controller){
-    nextPageAbort.current=null
-    nextPageInFlight.current=false
-    setLoadingMore(false)
-   }
+  async function play(ep: Episode) {
+    const requestId = ++sourceRequest.current;
+    const sources = availableMap.get(ep.number) || [];
+    setPlaying(String(ep.number));
+    setError("");
+    setChoices(null);
+    setSourceFeedback({
+      episode: ep.number,
+      phase: "searching",
+      message: "Mencari sumber untuk episode ini…",
+    });
+    try {
+      if (!sources.length) {
+        if (requestId !== sourceRequest.current) return;
+        setChoices({ episode: ep.number, items: [] });
+        setSourceFeedback({
+          episode: ep.number,
+          phase: "no-direct",
+          message:
+            "Belum ada sumber video langsung. Video alternatif tanpa kontrol subtitle tidak ditawarkan.",
+        });
+        return;
+      }
+      const results = await Promise.allSettled(
+        sources.map((source) => streams(source.id)),
+      );
+      if (requestId !== sourceRequest.current) return;
+      const summary = summarizeSourceSearch(results);
+      setEpisodeSummaries((prev) => new Map(prev).set(ep.number, summary));
+      const remembered = await readRememberedSource(
+        info.malId,
+        ep.number,
+        (key) => getPreference(key, ""),
+      );
+      if (requestId !== sourceRequest.current) return;
+      const native = preferRememberedSource(
+        rankNativeStreams(summary.items),
+        remembered,
+      );
+      if (!native.length) {
+        setChoices({
+          episode: ep.number,
+          items: [],
+          unavailable: summary.unavailable,
+        });
+        const hasTorrent = summary.unavailable.some((u) => u.kind === "torrent");
+        setSourceFeedback({
+          episode: ep.number,
+          phase: hasTorrent ? "no-direct" : summary.state,
+          message: hasTorrent
+            ? "Torrent membutuhkan mesin streaming/resolver yang terhubung; belum ada sumber video langsung yang didukung pemutar browser."
+            : summary.message,
+        });
+        return;
+      }
+      if (native.length === 1) {
+        // Preserve picker if the sole candidate fails browser verification.
+        setChoices({
+          episode: ep.number,
+          items: native,
+          unavailable: summary.unavailable,
+        });
+        await checkAndWatch(native[0], ep.number, false, requestId);
+      } else {
+        setChoices({
+          episode: ep.number,
+          items: native,
+          unavailable: summary.unavailable,
+        });
+        setSourceFeedback({
+          episode: ep.number,
+          phase: summary.state,
+          message: summary.message,
+        });
+      }
+    } catch {
+      if (requestId !== sourceRequest.current) return;
+      setEpisodeErrors((prev) => new Set(prev).add(ep.number));
+      setError("Layanan sumber gagal diperiksa. Coba lagi.");
+      setSourceFeedback({
+        episode: ep.number,
+        phase: "failed",
+        message:
+          "Tidak dapat mengetahui ketersediaan video dari penyedia saat ini.",
+      });
+    } finally {
+      if (requestId === sourceRequest.current) setPlaying("");
+    }
   }
- }
 
- async function checkAndWatch(stream:Stream,ep:number,manual=false,requestId=++sourceRequest.current){
-  if(requestId!==sourceRequest.current)return
-  if(stream.format==='embed'){
-   // D02: an uncontrolled third-party iframe cannot be a playable source.
-   setError('Video alternatif tanpa kontrol subtitle tidak dapat diputar melalui Yoru.')
-   setSourceFeedback({episode:ep,phase:'no-direct',message:'Gunakan sumber video langsung yang dapat diperiksa.'})
-   return
-  }
-  setPlaying(String(ep))
-  setError('')
-  setSourceFeedback({episode:ep,phase:'checking',message:'Memeriksa apakah video ini benar-benar dapat diputar…'})
-  try{
-   await verifyNativeSource(stream)
-   if(requestId!==sourceRequest.current)return
-   setSourceFeedback({episode:ep,phase:'verified',message:'Video native lolos pemeriksaan browser.'})
-   void saveRememberedSource(info.malId,ep,stream,setPreference)
-   onWatch({anime:info,episode:ep,stream,manualSource:manual})
-  }catch{
-   if(requestId!==sourceRequest.current)return
-   setError('Sumber ini gagal diperiksa. Pilih sumber lain atau coba kembali.')
-   setSourceFeedback({episode:ep,phase:'failed',message:'Kandidat ini belum bisa diputar. Pemeriksaan gagal; kualitas atau subtitle tidak dapat dijamin.'})
-  }finally{
-   if(requestId===sourceRequest.current)setPlaying('')
-  }
- }
- async function play(ep:Episode){
-  const requestId=++sourceRequest.current
-  const sources=(availableMap.get(ep.number)||[]).filter(source=>source.providerId!=='public-embed')
-  setPlaying(String(ep.number))
-  setError('')
-  setChoices(null)
-  setSourceFeedback({episode:ep.number,phase:'searching',message:'Mencari sumber untuk episode ini…'})
-  try{
-   if(!sources.length){
-    if(requestId!==sourceRequest.current)return
-    setChoices({episode:ep.number,items:[]})
-    setSourceFeedback({episode:ep.number,phase:'no-direct',message:'Belum ada sumber video langsung. Video alternatif tanpa kontrol subtitle tidak ditawarkan.'})
-    return
-   }
-   const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
-   if(requestId!==sourceRequest.current)return
-   const summary=summarizeSourceSearch(results)
-   const remembered=await readRememberedSource(info.malId,ep.number,key=>getPreference(key,''))
-   if(requestId!==sourceRequest.current)return
-   const native=preferRememberedSource(rankNativeStreams(summary.items),remembered)
-   if(!native.length){
-    setChoices({episode:ep.number,items:[],unavailable:summary.unavailable})
-    setSourceFeedback({episode:ep.number,phase:summary.state,message:summary.message})
-    return
-   }
-   if(native.length===1){
-    // Preserve picker if the sole candidate fails browser verification.
-    setChoices({episode:ep.number,items:native,unavailable:summary.unavailable})
-    await checkAndWatch(native[0],ep.number,false,requestId)
-   }else{
-    setChoices({episode:ep.number,items:native,unavailable:summary.unavailable})
-    setSourceFeedback({episode:ep.number,phase:summary.state,message:summary.message})
-   }
-  }catch{
-   if(requestId!==sourceRequest.current)return
-   setError('Layanan sumber gagal diperiksa. Coba lagi.')
-   setSourceFeedback({episode:ep.number,phase:'failed',message:'Tidak dapat mengetahui ketersediaan video dari penyedia saat ini.'})
-  }finally{
-   if(requestId===sourceRequest.current)setPlaying('')
-  }
- }
+  const targetEpisodeState = useMemo(() => {
+    if (!targetEpisode) return "unavailable";
+    return resolveTruthfulState({
+      hasRegisteredProvider: (availableMap.get(targetEpisode.number)?.length ?? 0) > 0,
+      isVerified: verifiedEpisodes.has(targetEpisode.number),
+      streamSummary: episodeSummaries.get(targetEpisode.number),
+      searchError: episodeErrors.has(targetEpisode.number),
+    });
+  }, [targetEpisode, availableMap, verifiedEpisodes, episodeSummaries, episodeErrors]);
 
- return <>
-  <div className="detail-cover" style={{backgroundImage:info.cover?`linear-gradient(0deg,#13161d,rgba(19,22,29,.6) 40%,rgba(19,22,29,.15)),url("${info.cover.replaceAll('"','%22')}")`:undefined}}/>
-  <div className="detail-page-main" id="detail-main-content">
-   <header className="detail-main">
-    <div className="detail-poster"><Poster anime={info}/></div>
-    <section className="detail-info" aria-labelledby="detail-title">
-     <MiniLabel>DETAIL ANIME</MiniLabel>
-     <h1 id="detail-title">{info.title}</h1>
-     {info.japaneseTitle&&<p className="detail-japanese">{info.japaneseTitle}</p>}
-     <div className="detail-facts">
-      <span className="hero-rating" title="Skor komunitas"><Star size={14} fill="currentColor"/> {scoreDisplay(info.score)} / 10</span>
-      <span>{yearLabel(info.year)}</span>
-      <span>{info.type}</span>
-      <span>{info.status}</span>
-       {info.rating&&<span>{info.rating}</span>}
-     </div>
-     <div className="genre-tags">{info.genres.map(g=><span key={g}>{g}</span>)}</div>
-     <section className="detail-synopsis-section" aria-label="Sinopsis anime">
-      <p className={`detail-synopsis ${more?'expanded':''}`}>{info.synopsis||'Sinopsis belum tersedia dari metadata.'}</p>
-      {info.synopsis.length>280&&<button type="button" className="read-more" onClick={()=>setMore(v=>!v)}>{more?'Sembunyikan':'Baca selengkapnya'} <ChevronDown size={14}/></button>}
-     </section>
-     <nav className="detail-actions" aria-label="Aksi anime">
-      <button type="button" className="btn btn-primary" disabled={loading||!targetEpisode} onClick={()=>{if(targetEpisode)void play(targetEpisode)}}>
-       <Play size={16} fill="currentColor"/> {loading?'Memuat episode…':resumableProgress?`Lanjutkan Episode ${resumableProgress.episode}`:displayed.length?'Periksa sumber episode':'Episode belum tersedia'}
-      </button>
-      <button type="button" className="btn btn-outline" onClick={onToggleSave}>
-       {isSaved?<Check size={16}/>:<Plus size={16}/>} {isSaved?'Tersimpan':'Koleksiku'}
-      </button>
-      <button type="button" className="btn btn-outline" onClick={onOpenGuide}><Layers3 size={16}/> Urutan cerita</button>
-     </nav>
-    </section>
-   </header>
+  return (
+    <>
+      <div
+        className="detail-cover"
+        style={{
+          backgroundImage: info.cover
+            ? `linear-gradient(0deg,#13161d,rgba(19,22,29,.6) 40%,rgba(19,22,29,.15)),url("${info.cover.replaceAll('"', "%22")}")`
+            : undefined,
+        }}
+      />
+      <div className="detail-page-main" id="detail-main-content">
+        <header className="detail-main">
+          <div className="detail-poster">
+            <Poster anime={info} />
+          </div>
+          <section className="detail-info" aria-labelledby="detail-title">
+            <MiniLabel>DETAIL ANIME</MiniLabel>
+            <h1 id="detail-title">{info.title}</h1>
+            {info.japaneseTitle && (
+              <p className="detail-japanese">{info.japaneseTitle}</p>
+            )}
+            <div className="detail-facts">
+              <span className="hero-rating" title="Skor komunitas">
+                <Star size={14} fill="currentColor" />{" "}
+                {scoreDisplay(info.score)} / 10
+              </span>
+              <span>{yearLabel(info.year)}</span>
+              <span>{info.type}</span>
+              <span>{info.status}</span>
+              {info.rating && <span>{info.rating}</span>}
+            </div>
+            <div className="genre-tags">
+              {info.genres.map((g) => (
+                <span key={g}>{g}</span>
+              ))}
+            </div>
+            <section
+              className="detail-synopsis-section"
+              aria-label="Sinopsis anime"
+            >
+              <p className={`detail-synopsis ${more ? "expanded" : ""}`}>
+                {info.synopsis || "Sinopsis belum tersedia dari metadata."}
+              </p>
+              {info.synopsis.length > 280 && (
+                <button
+                  type="button"
+                  className="read-more"
+                  onClick={() => setMore((v) => !v)}
+                >
+                  {more ? "Sembunyikan" : "Baca selengkapnya"}{" "}
+                  <ChevronDown size={14} />
+                </button>
+              )}
+            </section>
+            <nav className="detail-actions" aria-label="Aksi anime">
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={loading || !targetEpisode}
+                onClick={() => {
+                  if (targetEpisode) void play(targetEpisode);
+                }}
+              >
+                <Play size={16} fill="currentColor" />{" "}
+                {loading
+                  ? "Memuat episode…"
+                  : resumableProgress
+                    ? `Lanjutkan Episode ${resumableProgress.episode}`
+                    : targetEpisodeState === "verified"
+                      ? `Putar Episode ${targetEpisode?.number || 1}`
+                      : targetEpisodeState === "torrent-only"
+                        ? "Sumber langsung tidak tersedia"
+                        : targetEpisodeState === "provider-registered"
+                          ? `Periksa Episode ${targetEpisode?.number || 1}`
+                          : displayed.length
+                            ? "Periksa sumber episode"
+                            : "Episode belum tersedia"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={onToggleSave}
+              >
+                {isSaved ? <Check size={16} /> : <Plus size={16} />}{" "}
+                {isSaved ? "Tersimpan" : "Koleksiku"}
+              </button>
+              {meaningfulRelations.length > 0 && (
+                <button
+                  type="button"
+                  className={`btn ${showInModalGuide ? "btn-primary" : "btn-outline"}`}
+                  onClick={() => setShowInModalGuide((v) => !v)}
+                >
+                  <Layers3 size={16} /> Urutan cerita ({meaningfulRelations.length})
+                </button>
+              )}
+            </nav>
+            {showInModalGuide && guideData?.items && (
+              <div className="detail-guide-section">
+                <div className="detail-guide-header">
+                  <div>
+                    <h3>Urutan Rilis & Hubungan Cerita</h3>
+                    <small style={{ color: "var(--muted)", fontSize: 12 }}>
+                      Franchise {info.title} ({meaningfulRelations.length} judul terkait)
+                    </small>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ minHeight: "32px", padding: "4px 10px", fontSize: "11px" }}
+                      onClick={() => {
+                        setShowInModalGuide(false);
+                        onClose?.();
+                        onOpenGuide();
+                      }}
+                      title="Buka panduan lengkap franchise ini"
+                    >
+                      <Compass size={13} /> Buka Panduan Lengkap
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-button glass"
+                      onClick={() => setShowInModalGuide(false)}
+                      aria-label="Tutup urutan cerita"
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
+                </div>
+                <div className="detail-guide-list">
+                  {guideData.items.map((node) => {
+                    const isCurrent = node.malId === info.malId;
+                    const relLabel =
+                      node.relation === "CURRENT"
+                        ? "Judul Ini"
+                        : node.relation === "PREQUEL"
+                          ? "Cerita Sebelumnya"
+                          : node.relation === "SEQUEL"
+                            ? "Kelanjutan"
+                            : node.relation === "SIDE_STORY"
+                              ? "Cerita Sampingan"
+                              : node.relation === "SUMMARY"
+                                ? "Ringkasan"
+                                : node.relation || "Terkait";
+                    return (
+                      <button
+                        type="button"
+                        key={node.aniListId}
+                        className={`detail-guide-item ${isCurrent ? "current" : ""}`}
+                        onClick={() => {
+                          if (!isCurrent && node.malId) {
+                            void detail(node.malId)
+                              .then((a) => {
+                                setInfo(a);
+                                setShowInModalGuide(false);
+                              })
+                              .catch(() => {});
+                          }
+                        }}
+                      >
+                        {node.image && (
+                          <img
+                            src={node.image}
+                            alt={node.title}
+                            loading="lazy"
+                          />
+                        )}
+                        <div className="detail-guide-item-info">
+                          <strong>{node.title}</strong>
+                          <span>
+                            {[node.format, node.year]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        </div>
+                        <span
+                          className={`detail-guide-badge ${node.relation?.toLowerCase() || ""}`}
+                        >
+                          {relLabel}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </section>
+        </header>
 
-   <section className="detail-episodes" aria-labelledby="episodes-heading">
-    <div className="section-heading">
-     <div>
-      <h2 id="episodes-heading">Daftar episode</h2>
-     </div>
-     <span className="episode-count">
-      {available.filter(e=>e.providerId!=='public-embed').length>0?'Ada kandidat sumber · belum diperiksa':'Belum menemukan kandidat video'}
-     </span>
-    </div>
-    {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
-    {sourceFeedback&&<p className={`source-feedback source-feedback-${sourceFeedback.phase}`} role="status">
-     <Info size={15}/>{sourceFeedback.message}
-    </p>}
+        <section className="detail-episodes" aria-labelledby="episodes-heading">
+          <div className="section-heading">
+            <div>
+              <h2 id="episodes-heading">Daftar episode</h2>
+            </div>
+            <span className="episode-count">
+              {available.some((e) => e.providerId !== "public-embed")
+                ? "Ada kandidat sumber video langsung"
+                : "Sumber video alternatif tersedia"}
+            </span>
+          </div>
+          {error && (
+            <p className="detail-error">
+              <AlertTriangle size={15} />
+              {error}
+            </p>
+          )}
+          {sourceFeedback && (
+            <p
+              className={`source-feedback source-feedback-${sourceFeedback.phase}`}
+              role="status"
+            >
+              <Info size={15} />
+              {sourceFeedback.message}
+            </p>
+          )}
 
-    {choices&&<div className="source-picker" ref={pickerRef}>
-     <div className="source-title">
-      <strong>Pilih video · Episode {choices.episode}</strong>
-      <button type="button" className="icon-button" onClick={()=>{sourceRequest.current++;setChoices(null);setSourceFeedback(null);setPlaying('')}} aria-label="Tutup pilihan sumber"><X size={15}/></button>
-     </div>
-     {choices.items.length===0&&<p role="status" className="source-unavailable">Belum ada video yang dapat diperiksa. Video alternatif tanpa kontrol subtitle tidak ditawarkan.</p>}
-     <div className="source-options">
-      {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
-       <MonitorPlay size={17}/>
-       <span>
-        <strong>{stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Hardsub Indo (Menyatu)':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia (Softsub)':'Audio Asli (RAW)'}</strong>
-        <small>{stream.subtitleMode==='hard'?'Subtitle tercetak di video · Tidak dapat disembunyikan':stream.tracks.some(t=>t.lang==='id')?'Softsub terpisah · Dapat disembunyikan/diatur':'Kandidat video RAW · Video akan diperiksa'}</small>
-       </span>
-       {stream.subtitleMode==='hard'&&<span className="source-tag-hardsub">Hardsub</span>}
-       <Play size={16}/>
-      </button>)}
-      {choices.unavailable?.map(candidate=><button type="button" disabled key={`${candidate.kind}:${candidate.label}:${candidate.reason}`} title={candidate.reason} aria-label={`${candidate.label} · Belum bisa diputar`}>
-       <Info size={17}/>
-       <span><strong>{candidate.label} · Belum bisa diputar</strong><small>{candidate.reason}</small></span>
-      </button>)}
-     </div>
-    </div>}
+          {choices && (
+            <div className="source-picker" ref={pickerRef}>
+              <div className="source-title">
+                <strong>Pilih video · Episode {choices.episode}</strong>
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={() => {
+                    sourceRequest.current++;
+                    setChoices(null);
+                    setSourceFeedback(null);
+                    setPlaying("");
+                  }}
+                  aria-label="Tutup pilihan sumber"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+              {choices.items.length === 0 && (
+                <p role="status" className="source-unavailable">
+                  Belum ada video yang dapat diperiksa. Video alternatif tanpa
+                  kontrol subtitle tidak ditawarkan.
+                </p>
+              )}
+              <div className="source-options">
+                {choices.items.map((stream, i) => (
+                  <button
+                    type="button"
+                    key={stream.id || i}
+                    disabled={!!playing}
+                    onClick={() =>
+                      void checkAndWatch(stream, choices.episode, true)
+                    }
+                  >
+                    <MonitorPlay size={17} />
+                    <span>
+                      <strong>
+                        {stream.quality || "Video langsung"} ·{" "}
+                        {stream.subtitleMode === "hard"
+                          ? "Hardsub Indo (Menyatu)"
+                          : stream.tracks.some((t) => t.lang === "id")
+                            ? "Subtitle Indonesia (Softsub)"
+                            : "Audio Asli (RAW)"}
+                      </strong>
+                      <small>
+                        {stream.subtitleMode === "hard"
+                          ? "Subtitle tercetak di video · Tidak dapat disembunyikan"
+                          : stream.tracks.some((t) => t.lang === "id")
+                            ? "Softsub terpisah · Dapat disembunyikan/diatur"
+                            : "Kandidat video RAW · Video akan diperiksa"}
+                      </small>
+                    </span>
+                    {stream.subtitleMode === "hard" && (
+                      <span className="source-tag-hardsub">Hardsub</span>
+                    )}
+                    <Play size={16} />
+                  </button>
+                ))}
+                {choices.unavailable?.map((candidate) => (
+                  <button
+                    type="button"
+                    disabled
+                    key={`${candidate.kind}:${candidate.label}:${candidate.reason}`}
+                    title={candidate.reason}
+                    aria-label={`${candidate.label} · Belum bisa diputar`}
+                  >
+                    <Info size={17} />
+                    <span>
+                      <strong>{candidate.label} · Belum bisa diputar</strong>
+                      <small>{candidate.reason}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-    {loading?<div className="detail-loading"><LoaderCircle className="spin" size={18}/> Memuat episode…</div>:displayed.length?<div className="episode-list">
-     {displayed.map(ep=>{
-      const streamReady=availableMap.get(ep.number)?.some(e=>e.providerId!=='public-embed')??false
-      const isCurrentProgress=animeProgress?.episode===ep.number
-      const epProgressState=isCurrentProgress?progressState:'NEVER_STARTED'
-      const isResumable=epProgressState==='RESUMABLE'&&!!animeProgress
-      const isCompleted=epProgressState==='COMPLETED'
-      return <button type="button" key={ep.number} className={`episode-row ${streamReady?'available':''}`} onClick={()=>void play(ep)} disabled={!!playing}>
-       <span className="episode-number">{String(ep.number).padStart(2,'0')}</span>
-       <div>
-        <strong>{ep.title}</strong>
-        <small>{isResumable&&animeProgress?`Lanjut (${durationDisplay(animeProgress.seconds)} / ${durationDisplay(animeProgress.duration)}) · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:isCompleted?`Selesai ditonton · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}</small>
-       </div>
-       {(isResumable||isCompleted)&&<div className="progress-track"><div style={{width:`${Math.min(100,isCompleted?100:animeProgress?.duration?(animeProgress.seconds/animeProgress.duration)*100:10)}%`}}/></div>}
-       <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<MonitorPlay size={15}/>}</span>
-      </button>
-     })}
-    </div>:<Empty icon={Film} title="Episode belum tersedia" body="Daftar episode belum ditemukan dalam metadata."/>}
+          {loading ? (
+            <div className="detail-loading">
+              <LoaderCircle className="spin" size={18} /> Memuat episode…
+            </div>
+          ) : displayed.length ? (
+            <div className="episode-list">
+              {displayed.map((ep) => {
+                const epState = resolveTruthfulState({
+                  hasRegisteredProvider: (availableMap.get(ep.number)?.length ?? 0) > 0,
+                  isVerified: verifiedEpisodes.has(ep.number),
+                  streamSummary: episodeSummaries.get(ep.number),
+                  searchError: episodeErrors.has(ep.number),
+                });
+                const meta = getAvailabilityMeta(epState);
+                const isCurrentProgress = animeProgress?.episode === ep.number;
+                const epProgressState = isCurrentProgress
+                  ? progressState
+                  : "NEVER_STARTED";
+                const isResumable =
+                  epProgressState === "RESUMABLE" && !!animeProgress;
+                const isCompleted = epProgressState === "COMPLETED";
+                return (
+                  <button
+                    type="button"
+                    key={ep.number}
+                    className={`episode-row ${meta.className}`}
+                    onClick={() => void play(ep)}
+                    disabled={!!playing}
+                  >
+                    <span className="episode-number">
+                      {String(ep.number).padStart(2, "0")}
+                    </span>
+                    <div>
+                      <strong>{ep.title}</strong>
+                      <small>
+                        {isResumable && animeProgress
+                          ? `Lanjut (${durationDisplay(animeProgress.seconds)} / ${durationDisplay(animeProgress.duration)}) · ${meta.detail}`
+                          : isCompleted
+                            ? `Selesai ditonton · ${meta.detail}`
+                            : meta.detail}
+                      </small>
+                    </div>
+                    {(isResumable || isCompleted) && (
+                      <div className="progress-track">
+                        <div
+                          style={{
+                            width: `${Math.min(100, isCompleted ? 100 : animeProgress?.duration ? (animeProgress.seconds / animeProgress.duration) * 100 : 10)}%`,
+                          }}
+                        />
+                      </div>
+                    )}
+                    <span className="episode-action">
+                      {playing === String(ep.number) ? (
+                        <LoaderCircle size={16} className="spin" />
+                      ) : (
+                        <MonitorPlay size={15} />
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <Empty
+              icon={Film}
+              title="Episode belum tersedia"
+              body="Daftar episode belum ditemukan dalam metadata."
+            />
+          )}
 
-    {hasNext&&<button type="button" className="load-episodes" disabled={loading||loadingMore} aria-busy={loadingMore} onClick={()=>void loadNext()}>{loadingMore?'Memuat episode…':'Muat episode berikutnya'} <ChevronDown size={15}/></button>}
-   </section>
-  </div>
- </>
+          {hasNext && (
+            <button
+              type="button"
+              className="load-episodes"
+              disabled={loading || loadingMore}
+              aria-busy={loadingMore}
+              onClick={() => void loadNext()}
+            >
+              {loadingMore ? "Memuat episode…" : "Muat episode berikutnya"}{" "}
+              <ChevronDown size={15} />
+            </button>
+          )}
+        </section>
+      </div>
+    </>
+  );
 }
 
 function DetailMobilePage({
- anime,
- isSaved,
- progress,
- onClose,
- onToggleSave,
- onWatch,
- onOpenGuide,
-}:{
- anime:Anime
- isSaved:boolean
- progress?:ProgressEntry[]
- onClose:()=>void
- onToggleSave:()=>void
- onWatch:(p:Playback)=>void
- onOpenGuide:()=>void
-}){
- useEffect(()=>{
-  const handleKeyDown=(event:KeyboardEvent)=>{
-   if(event.key==='Escape')onClose()
-  }
-  window.addEventListener('keydown',handleKeyDown)
-  return()=>window.removeEventListener('keydown',handleKeyDown)
- },[onClose])
+  anime,
+  isSaved,
+  progress,
+  onClose,
+  onToggleSave,
+  onWatch,
+  onOpenGuide,
+}: {
+  anime: Anime;
+  isSaved: boolean;
+  progress?: ProgressEntry[];
+  onClose: () => void;
+  onToggleSave: () => void;
+  onWatch: (p: Playback) => void;
+  onOpenGuide: () => void;
+}) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
- return <div className="detail-mobile-page">
-  <nav className="detail-mobile-topbar" aria-label="Navigasi detail">
-   <button type="button" className="page-back-button icon-button glass" onClick={onClose} aria-label="Kembali ke halaman sebelumnya" title="Kembali ke halaman sebelumnya">
-    <ArrowLeft size={20}/>
-   </button>
-  </nav>
-  <DetailBody
-   anime={anime}
-   isSaved={isSaved}
-   progress={progress}
-   onToggleSave={onToggleSave}
-   onWatch={onWatch}
-   onOpenGuide={onOpenGuide}
-  />
- </div>
+  return (
+    <div className="detail-mobile-page">
+      <nav className="detail-mobile-topbar" aria-label="Navigasi detail">
+        <button
+          type="button"
+          className="page-back-button icon-button glass"
+          onClick={onClose}
+          aria-label="Kembali ke halaman sebelumnya"
+          title="Kembali ke halaman sebelumnya"
+        >
+          <ArrowLeft size={20} />
+        </button>
+      </nav>
+      <DetailBody
+        anime={anime}
+        isSaved={isSaved}
+        progress={progress}
+        onToggleSave={onToggleSave}
+        onWatch={onWatch}
+        onOpenGuide={onOpenGuide}
+        onClose={onClose}
+      />
+    </div>
+  );
 }
 
 function DetailDialog({
- anime,
- isSaved,
- progress,
- onClose,
- onToggleSave,
- onWatch,
- onOpenGuide,
-}:{
- anime:Anime
- isSaved:boolean
- progress?:ProgressEntry[]
- onClose:()=>void
- onToggleSave:()=>void
- onWatch:(p:Playback)=>void
- onOpenGuide:()=>void
-}){
- const dialogRef=useDialogFocus()
- return <div className="modal-backdrop detail-page-view">
-  <div ref={dialogRef} tabIndex={-1} className="detail-modal" role="dialog" aria-modal="true" aria-label={`Detail ${anime.title}`}>
-   <button type="button" className="modal-close icon-button glass" onClick={onClose} aria-label="Tutup detail anime" title="Kembali ke halaman sebelumnya"><X size={20}/></button>
-   <DetailBody
-    anime={anime}
-    isSaved={isSaved}
-    progress={progress}
-    onToggleSave={onToggleSave}
-    onWatch={onWatch}
-    onOpenGuide={onOpenGuide}
-   />
-  </div>
- </div>
+  anime,
+  isSaved,
+  progress,
+  onClose,
+  onToggleSave,
+  onWatch,
+  onOpenGuide,
+}: {
+  anime: Anime;
+  isSaved: boolean;
+  progress?: ProgressEntry[];
+  onClose: () => void;
+  onToggleSave: () => void;
+  onWatch: (p: Playback) => void;
+  onOpenGuide: () => void;
+}) {
+  const dialogRef = useDialogFocus();
+  return (
+    <div className="modal-backdrop detail-page-view">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        className="detail-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Detail ${anime.title}`}
+      >
+        <button
+          type="button"
+          className="modal-close icon-button glass"
+          onClick={onClose}
+          aria-label="Tutup detail anime"
+          title="Kembali ke halaman sebelumnya"
+        >
+          <X size={20} />
+        </button>
+        <DetailBody
+          anime={anime}
+          isSaved={isSaved}
+          progress={progress}
+          onToggleSave={onToggleSave}
+          onWatch={onWatch}
+          onOpenGuide={onOpenGuide}
+          onClose={onClose}
+        />
+      </div>
+    </div>
+  );
 }
 
 function SettingsPage({
- onDemo,
- onNotify,
- onDataChanged,
-}:{
- onDemo:()=>void
- onNotify:(value:string)=>void
- onDataChanged:()=>void
-}){
- const [providerList,setProviderList]=useState<{id:string;name:string;animeCount:number|null}[]>([])
- const [providerError,setProviderError]=useState('')
- const [apiOnline,setApiOnline]=useState(false)
- const [importing,setImporting]=useState(false)
- const [defaultSubtitle,setDefaultSubtitle]=useState<'auto'|'id'|'en'|'off'>('id')
- const [autoNext,setAutoNext]=useState(true)
- const [defaultSpeed,setDefaultSpeed]=useState(1)
- const inputRef=useRef<HTMLInputElement>(null)
- useEffect(()=>{
-  let active=true
-  void Promise.all([getPreference('auto-next','on'),getPreference('playback-speed','1')]).then(([next,rate])=>{if(!active)return;setAutoNext(next!=='off');const n=Number(rate);if([0.5,0.75,1,1.25,1.5,2].includes(n))setDefaultSpeed(n)}).catch(()=>{})
-  void getPreference('subtitle-default-language','id').then(value=>{
-   if(active&&['auto','id','en','off'].includes(value))setDefaultSubtitle(value as 'auto'|'id'|'en'|'off')
-  }).catch(()=>{})
-  return()=>{active=false}
- },[])
+  onDemo,
+  onNotify,
+  onDataChanged,
+}: {
+  onDemo: () => void;
+  onNotify: (value: string) => void;
+  onDataChanged: () => void;
+}) {
+  const [providerList, setProviderList] = useState<
+    { id: string; name: string; animeCount: number | null }[]
+  >([]);
+  const [providerError, setProviderError] = useState("");
+  const [apiOnline, setApiOnline] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [defaultSubtitle, setDefaultSubtitle] = useState<
+    "auto" | "id" | "en" | "off"
+  >("id");
+  const [autoNext, setAutoNext] = useState(true);
+  const [defaultSpeed, setDefaultSpeed] = useState(1);
+  const [activeTab, setActiveTab] = useState<
+    "pemutaran" | "subtitle" | "sumber" | "data" | "tentang"
+  >("pemutaran");
+  const [skipIntro, setSkipIntro] = useState(true);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    void getPreference("skip-intro-enabled", "on")
+      .then((v) => setSkipIntro(v !== "off"))
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    let active = true;
+    void Promise.all([
+      getPreference("auto-next", "on"),
+      getPreference("playback-speed", "1"),
+    ])
+      .then(([next, rate]) => {
+        if (!active) return;
+        setAutoNext(next !== "off");
+        const n = Number(rate);
+        if ([0.5, 0.75, 1, 1.25, 1.5, 2].includes(n)) setDefaultSpeed(n);
+      })
+      .catch(() => {});
+    void getPreference("subtitle-default-language", "id")
+      .then((value) => {
+        if (active && ["auto", "id", "en", "off"].includes(value))
+          setDefaultSubtitle(value as "auto" | "id" | "en" | "off");
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
- const refresh=useCallback(()=>{
-  void Promise.allSettled([providers(),api<{status:string}>('/api/health')]).then(results=>{
-   if(results[0].status==='fulfilled'){
-    setProviderList(results[0].value.providers)
-    setProviderError(results[0].value.warnings?.length?'Beberapa sumber sedang tidak tersedia. Coba lagi nanti.':'')
-   }else{
-    setProviderError('Belum bisa memeriksa sumber video.')
-   }
-   setApiOnline(results[1].status==='fulfilled')
-  })
- },[])
+  const refresh = useCallback(() => {
+    void Promise.allSettled([
+      providers(),
+      api<{ status: string }>("/api/health"),
+    ]).then((results) => {
+      if (results[0].status === "fulfilled") {
+        setProviderList(results[0].value.providers);
+        setProviderError(
+          results[0].value.warnings?.length
+            ? "Beberapa sumber sedang tidak tersedia. Coba lagi nanti."
+            : "",
+        );
+      } else {
+        setProviderError("Belum bisa memeriksa sumber video.");
+      }
+      setApiOnline(results[1].status === "fulfilled");
+    });
+  }, []);
 
- useEffect(()=>refresh(),[refresh])
+  useEffect(() => refresh(), [refresh]);
 
- async function exportData(){
-  try{
-   const json=await exportUserData()
-   const blob=new Blob([JSON.stringify(json,null,2)],{type:'application/json'})
-   const url=URL.createObjectURL(blob)
-   const anchor=document.createElement('a')
-   anchor.href=url
-   anchor.download='yoru-backup.json'
-   anchor.click()
-   URL.revokeObjectURL(url)
-   onNotify('Cadangan data berhasil diekspor')
-  }catch{
-   onNotify('Gagal mengekspor data cadangan')
+  async function exportData() {
+    try {
+      const json = await exportUserData();
+      const blob = new Blob([JSON.stringify(json, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "yoru-backup.json";
+      anchor.click();
+      URL.revokeObjectURL(url);
+      onNotify("Cadangan data berhasil diekspor");
+    } catch {
+      onNotify("Gagal mengekspor data cadangan");
+    }
   }
- }
 
- async function importData(file:File|null){
-  if(!file)return
-  setImporting(true)
-  try{
-   if(file.size>5_000_000)throw new Error('Ukuran file cadangan melebihi 5 MB')
-   const json=JSON.parse(await file.text())
-   await importUserData(json)
-   onDataChanged()
-   onNotify('Data berhasil dipulihkan dari cadangan')
-  }catch(e){
-   onNotify((e as Error).message)
-  }finally{
-   setImporting(false)
+  async function importData(file: File | null) {
+    if (!file) return;
+    setImporting(true);
+    try {
+      if (file.size > 5_000_000)
+        throw new Error("Ukuran file cadangan melebihi 5 MB");
+      const json = JSON.parse(await file.text());
+      await importUserData(json);
+      onDataChanged();
+      onNotify("Data berhasil dipulihkan dari cadangan");
+    } catch (e) {
+      onNotify((e as Error).message);
+    } finally {
+      setImporting(false);
+    }
   }
- }
 
- async function reset(){
-  if(!window.confirm('Hapus seluruh koleksi dan riwayat tontonan yang tersimpan di browser ini? Tindakan ini tidak dapat dibatalkan.'))return
-  try{
-   await clearUserData()
-   onDataChanged()
-   onNotify('Data lokal berhasil dibersihkan')
-  }catch{
-   onNotify('Gagal membersihkan data lokal')
+  async function reset() {
+    if (
+      !window.confirm(
+        "Hapus seluruh koleksi dan riwayat tontonan yang tersimpan di browser ini? Tindakan ini tidak dapat dibatalkan.",
+      )
+    )
+      return;
+    try {
+      await clearUserData();
+      onDataChanged();
+      onNotify("Data lokal berhasil dibersihkan");
+    } catch {
+      onNotify("Gagal membersihkan data lokal");
+    }
   }
- }
 
- return <div className="page-body settings-page">
-  <div className="page-intro">
-   <div>
-    <h1>Pengaturan</h1>
-    <p>Atur cara menonton, subtitle, dan koleksi dalam satu tempat.</p>
-   </div>
-  </div>
+  return (
+    <div className="page-body settings-page">
+      <div className="page-intro">
+        <div>
+          <h1>Pengaturan</h1>
+          <p>Atur cara menonton, subtitle, dan koleksi dalam satu tempat.</p>
+        </div>
+      </div>
 
-  <nav className="settings-nav" aria-label="Bagian pengaturan">
-   <a href="#pengaturan-pemutaran">Pemutaran</a>
-   <a href="#pengaturan-sumber">Sumber video</a>
-   <a href="#pengaturan-akun">Akun & perangkat</a>
-   <a href="#pengaturan-data">Data & privasi</a>
-   <a href="#pengaturan-tentang">Tentang</a>
-  </nav>
-  <div className="settings-layout">
-   <div className="settings-section">
-    <div id="pengaturan-pemutaran" className="settings-heading">
-     <div className="settings-heading-icon"><MonitorPlay size={20}/></div>
-     <div>
-      <h2>Pemutaran</h2>
-      <p>Preferensi untuk seluruh episode.</p>
-     </div>
-    </div>
-    <div className="settings-box">
-     <div className="setting-row">
-      <div>
-       <strong>Pratinjau pemutar</strong>
-       <small>Coba kontrol, kualitas, dan pengaturan subtitle sebelum menonton.</small>
+      <div
+        className="settings-tabs"
+        role="tablist"
+        aria-label="Kategori pengaturan"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "pemutaran"}
+          className={`settings-tab-btn ${activeTab === "pemutaran" ? "active" : ""}`}
+          onClick={() => setActiveTab("pemutaran")}
+        >
+          <MonitorPlay size={16} /> Pemutaran
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "subtitle"}
+          className={`settings-tab-btn ${activeTab === "subtitle" ? "active" : ""}`}
+          onClick={() => setActiveTab("subtitle")}
+        >
+          <Layers3 size={16} /> Subtitle
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "sumber"}
+          className={`settings-tab-btn ${activeTab === "sumber" ? "active" : ""}`}
+          onClick={() => setActiveTab("sumber")}
+        >
+          <Film size={16} /> Sumber Video
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "data"}
+          className={`settings-tab-btn ${activeTab === "data" ? "active" : ""}`}
+          onClick={() => setActiveTab("data")}
+        >
+          <Bookmark size={16} /> Data & Privasi
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "tentang"}
+          className={`settings-tab-btn ${activeTab === "tentang" ? "active" : ""}`}
+          onClick={() => setActiveTab("tentang")}
+        >
+          <Heart size={16} /> Tentang
+        </button>
       </div>
-      <button type="button" className="btn btn-primary" onClick={onDemo} aria-label="Coba pemutar">
-       <Play size={15} fill="currentColor"/> Coba pemutar
-      </button>
-     </div>
-     <div className="setting-row"><div><strong>Lanjut ke episode berikutnya</strong><small>Hitung mundur 8 detik setelah video selesai.</small></div><select aria-label="Lanjut otomatis ke episode berikutnya" value={autoNext?'on':'off'} onChange={e=>{const next=e.target.value==='on';setAutoNext(next);void setPreference('auto-next',next?'on':'off').catch(()=>onNotify('Pilihan belum tersimpan'))}}><option value="on">Aktif</option><option value="off">Nonaktif</option></select></div>
-     <div className="setting-row"><div><strong>Kecepatan bawaan</strong><small>Berlaku saat memutar episode baru.</small></div><select aria-label="Kecepatan bawaan" value={defaultSpeed} onChange={e=>{const next=Number(e.target.value);setDefaultSpeed(next);void setPreference('playback-speed',String(next)).catch(()=>onNotify('Pilihan belum tersimpan'))}}>{[0.5,0.75,1,1.25,1.5,2].map(n=><option key={n} value={n}>{n}×</option>)}</select></div>
-     <div className="setting-row">
-      <div><strong>Bahasa subtitle</strong><small>Indonesia diutamakan; English jika belum tersedia. Bisa diganti saat menonton.</small></div>
-      <select aria-label="Bahasa subtitle utama" value={defaultSubtitle} onChange={event=>{
-       const next=event.target.value as 'auto'|'id'|'en'|'off'
-       setDefaultSubtitle(next)
-       void setPreference('subtitle-default-language',next).catch(()=>onNotify('Gagal menyimpan pilihan subtitle'))
-      }}>
-       <option value="id">Bahasa Indonesia</option><option value="en">English</option><option value="auto">Indonesia, lalu English</option><option value="off">Tidak ada subtitle</option>
-      </select>
-     </div>
-    </div>
+      <div className="settings-layout">
+        {activeTab === "pemutaran" && (
+          <div className="settings-section">
+            <div className="settings-heading">
+              <div className="settings-heading-icon">
+                <MonitorPlay size={20} />
+              </div>
+              <div>
+                <h2>Pemutaran</h2>
+                <p>Pengaturan perilaku pemutar video dan otomatisasi.</p>
+              </div>
+            </div>
+            <div className="settings-box">
+              <div className="setting-row">
+                <div>
+                  <strong>Pratinjau pemutar</strong>
+                  <small>
+                    Coba kontrol, kualitas, dan pengaturan subtitle sebelum
+                    menonton.
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={onDemo}
+                  aria-label="Coba pemutar"
+                >
+                  <Play size={15} fill="currentColor" /> Coba pemutar
+                </button>
+              </div>
+              <div className="setting-row">
+                <div>
+                  <strong>Lanjut ke episode berikutnya</strong>
+                  <small>Hitung mundur 8 detik setelah video selesai.</small>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={autoNext}
+                  className={`yoru-switch ${autoNext ? "checked" : ""}`}
+                  onClick={() => {
+                    const next = !autoNext;
+                    setAutoNext(next);
+                    void setPreference("auto-next", next ? "on" : "off").catch(
+                      () => onNotify("Pilihan belum tersimpan"),
+                    );
+                  }}
+                >
+                  <span className="yoru-switch-thumb" />
+                </button>
+              </div>
+              <div className="setting-row">
+                <div>
+                  <strong>Lewati intro & outro otomatis</strong>
+                  <small>
+                    Tampilkan tombol lewati lagu pembuka (+85s) dan penutup.
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={skipIntro}
+                  className={`yoru-switch ${skipIntro ? "checked" : ""}`}
+                  onClick={() => {
+                    const next = !skipIntro;
+                    setSkipIntro(next);
+                    void setPreference(
+                      "skip-intro-enabled",
+                      next ? "on" : "off",
+                    ).catch(() => onNotify("Pilihan belum tersimpan"));
+                  }}
+                >
+                  <span className="yoru-switch-thumb" />
+                </button>
+              </div>
+              <div className="setting-row">
+                <div>
+                  <strong>Kecepatan bawaan</strong>
+                  <small>Berlaku saat memutar episode baru.</small>
+                </div>
+                <select
+                  aria-label="Kecepatan bawaan"
+                  value={defaultSpeed}
+                  onChange={(e) => {
+                    const next = Number(e.target.value);
+                    setDefaultSpeed(next);
+                    void setPreference("playback-speed", String(next)).catch(
+                      () => onNotify("Pilihan belum tersimpan"),
+                    );
+                  }}
+                >
+                  {[0.5, 0.75, 1, 1.25, 1.5, 2].map((n) => (
+                    <option key={n} value={n}>
+                      {n}×
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
 
-    <div id="pengaturan-sumber" className="settings-heading">
-     <div className="settings-heading-icon"><Layers3 size={20}/></div>
-     <div>
-      <h2>Sumber tontonan</h2>
-      <p>Pilih video terbaik yang tersedia untuk setiap episode.</p>
-     </div>
-    </div>
-    <div className="settings-box">
-     <div className="setting-row">
-      <div>
-       <strong>Status katalog</strong>
-       <small>Mendukung pencarian judul dan informasi episode</small>
-      </div>
-      <span className={`setting-state ${apiOnline?'good':'bad'}`}>
-       <span/>{apiOnline?'Terhubung':'Tidak terhubung'}
-      </span>
-     </div>
-     <div className="setting-row">
-      <div>
-       <strong>Sumber tersedia</strong>
-       <small>{providerList.length?providerList.map(p=>`${p.id==='public-embed'?'Video alternatif':p.id==='miruro'?'Pilihan langsung':p.id.startsWith('stremio-')?'Add-on video':'Sumber pribadi'}${p.animeCount===null?'':` · ${p.animeCount} judul`}`).join(', '):'Belum ada sumber video tambahan'}</small>
-      </div>
-      <button type="button" className="icon-button" aria-label="Perbarui daftar sumber video" onClick={refresh}><RefreshCw size={17}/></button>
-     </div>
-     {providerError&&<p className="config-error">{providerError}</p>}
-    </div>
-   </div>
+        {activeTab === "subtitle" && (
+          <div className="settings-section">
+            <div className="settings-heading">
+              <div className="settings-heading-icon">
+                <Layers3 size={20} />
+              </div>
+              <div>
+                <h2>Subtitle</h2>
+                <p>Preferensi bahasa dan perlakuan teks terjemahan.</p>
+              </div>
+            </div>
+            <div className="settings-box">
+              <div className="setting-row">
+                <div>
+                  <strong>Bahasa subtitle utama</strong>
+                  <small>
+                    Indonesia diutamakan; English jika belum tersedia. Bisa
+                    diganti kapan saja saat menonton.
+                  </small>
+                </div>
+                <select
+                  aria-label="Bahasa subtitle utama"
+                  value={defaultSubtitle}
+                  onChange={(event) => {
+                    const next = event.target.value as
+                      | "auto"
+                      | "id"
+                      | "en"
+                      | "off";
+                    setDefaultSubtitle(next);
+                    void setPreference("subtitle-default-language", next).catch(
+                      () => onNotify("Gagal menyimpan pilihan subtitle"),
+                    );
+                  }}
+                >
+                  <option value="id">Bahasa Indonesia</option>
+                  <option value="en">English</option>
+                  <option value="auto">Indonesia, lalu English</option>
+                  <option value="off">Tidak ada subtitle</option>
+                </select>
+              </div>
+              <div className="settings-note">
+                <Info size={16} />
+                <p>
+                  Pengaturan ukuran, font, warna, dan posisi teks subtitle
+                  tersedia langsung di dalam panel Subtitle saat menonton
+                  episode apa saja.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
-   <div className="settings-section">
-    <div id="pengaturan-akun" className="settings-heading">
-     <div className="settings-heading-icon"><Bookmark size={20}/></div>
-     <div><h2>Akun & perangkat</h2><p>Akun dapat ditambahkan tanpa mengubah koleksi saat ini.</p></div>
-    </div>
-    <div className="settings-box">
-     <div className="setting-row"><div><strong>Tanpa akun</strong><small>Koleksi tetap tersimpan di browser ini.</small></div><span className="setting-state good"><span/>Aktif</span></div>
-     <div className="settings-note"><Info size={16}/><p>Login dan sinkronisasi belum tersedia. Gunakan cadangan untuk memindahkan koleksi.</p></div>
-    </div>
-    <div id="pengaturan-data" className="settings-heading">
-     <div className="settings-heading-icon"><Bookmark size={20}/></div>
-     <div>
-      <h2>Data & privasi</h2>
-      <p>Pindahkan atau hapus data yang tersimpan di browser.</p>
-     </div>
-    </div>
-    <div className="settings-box">
-     <div className="setting-row">
-      <div>
-       <strong>Unduh cadangan</strong>
-       <small>Simpan koleksi, progress, dan preferensi sebagai file.</small>
-      </div>
-      <button type="button" className="setting-action" onClick={()=>void exportData()}><Download size={16}/> Ekspor</button>
-     </div>
-     <div className="setting-row">
-      <div>
-       <strong>Pulihkan cadangan</strong>
-       <small>Pulihkan koleksi dan preferensi dari file Yoru.</small>
-      </div>
-      <button type="button" className="setting-action" onClick={()=>inputRef.current?.click()} disabled={importing}><Upload size={16}/> {importing?'Memulihkan...':'Impor'}</button>
-      <input type="file" accept="application/json,.json" className="visually-hidden" ref={inputRef} onChange={e=>{void importData(e.target.files?.[0]||null);e.target.value=''}}/>
-     </div>
-     <div className="setting-row">
-      <div>
-       <strong>Hapus data lokal</strong>
-       <small>Menghapus koleksi, riwayat, dan semua preferensi tersimpan.</small>
-      </div>
-      <button type="button" className="setting-action danger" onClick={()=>void reset()}><Trash2 size={16}/> Hapus</button>
-     </div>
-    </div>
+        {activeTab === "sumber" && (
+          <div className="settings-section">
+            <div className="settings-heading">
+              <div className="settings-heading-icon">
+                <Film size={20} />
+              </div>
+              <div>
+                <h2>Sumber tontonan</h2>
+                <p>Konektivitas katalog dan penyedia video.</p>
+              </div>
+            </div>
+            <div className="settings-box">
+              <div className="setting-row">
+                <div>
+                  <strong>Status katalog & API</strong>
+                  <small>
+                    Pencarian judul, metadata Jikan, dan informasi episode
+                  </small>
+                </div>
+                <span className={`setting-state ${apiOnline ? "good" : "bad"}`}>
+                  <span />
+                  {apiOnline ? "Terhubung" : "Tidak terhubung"}
+                </span>
+              </div>
+              <div className="setting-row">
+                <div>
+                  <strong>Sumber tersedia</strong>
+                  <small>
+                    {providerList.length
+                      ? providerList
+                          .map(
+                            (p) =>
+                              `${p.id === "public-embed" ? "Video alternatif" : p.id === "miruro" ? "Pilihan langsung" : p.id.startsWith("stremio-") ? "Add-on video" : "Sumber pribadi"}${p.animeCount === null ? "" : ` · ${p.animeCount} judul`}`,
+                          )
+                          .join(", ")
+                      : "Belum ada sumber video tambahan"}
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label="Perbarui daftar sumber video"
+                  onClick={refresh}
+                >
+                  <RefreshCw size={17} />
+                </button>
+              </div>
+              {providerError && <p className="config-error">{providerError}</p>}
+            </div>
+          </div>
+        )}
 
-    <div id="pengaturan-tentang" className="settings-heading">
-     <div className="settings-heading-icon"><Heart size={20}/></div>
-     <div>
-      <h2>Tentang Yoru</h2>
-      <p>Versi aplikasi dan informasi proyek.</p>
-     </div>
+        {activeTab === "data" && (
+          <div className="settings-section">
+            <div className="settings-heading">
+              <div className="settings-heading-icon">
+                <Bookmark size={20} />
+              </div>
+              <div>
+                <h2>Data & privasi</h2>
+                <p>Pindahkan atau hapus data yang tersimpan di browser ini.</p>
+              </div>
+            </div>
+            <div className="settings-box">
+              <div className="setting-row">
+                <div>
+                  <strong>Unduh cadangan</strong>
+                  <small>
+                    Simpan koleksi, progres tontonan, dan preferensi sebagai
+                    file JSON.
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="setting-action"
+                  onClick={() => void exportData()}
+                >
+                  <Download size={16} /> Ekspor Cadangan
+                </button>
+              </div>
+              <div className="setting-row">
+                <div>
+                  <strong>Pulihkan cadangan</strong>
+                  <small>
+                    Pulihkan seluruh koleksi dan preferensi dari file cadangan
+                    Yoru.
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="setting-action"
+                  onClick={() => inputRef.current?.click()}
+                  disabled={importing}
+                >
+                  <Upload size={16} />{" "}
+                  {importing ? "Memulihkan..." : "Impor Cadangan"}
+                </button>
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  className="visually-hidden"
+                  ref={inputRef}
+                  onChange={(e) => {
+                    void importData(e.target.files?.[0] || null);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+              <div className="setting-row">
+                <div>
+                  <strong>Hapus data lokal</strong>
+                  <small>
+                    Menghapus koleksi, riwayat menonton, dan semua preferensi
+                    tersimpan di perangkat ini.
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="setting-action danger"
+                  onClick={() => void reset()}
+                >
+                  <Trash2 size={16} /> Hapus Data
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "tentang" && (
+          <div className="settings-section">
+            <div className="settings-heading">
+              <div className="settings-heading-icon">
+                <Heart size={20} />
+              </div>
+              <div>
+                <h2>Tentang Yoru</h2>
+                <p>Versi aplikasi dan informasi proyek.</p>
+              </div>
+            </div>
+            <div className="settings-box about-box">
+              <div className="about-mark">
+                <AppLogo />
+              </div>
+              <p>
+                Yoru menyatukan penjelajahan anime, koleksi pribadi, dan
+                pemutaran video dalam satu wadah elegan.
+              </p>
+              <div className="about-meta">
+                <span>Versi</span>
+                <strong>v1.0.0-rc.2 (Web PWA)</strong>
+              </div>
+              <div className="about-meta">
+                <span>Katalog</span>
+                <strong>Anime Jepang</strong>
+              </div>
+              <div className="about-meta">
+                <span>Lisensi</span>
+                <strong>MIT License</strong>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-    <div className="settings-box about-box">
-     <div className="about-mark"><AppLogo/></div>
-     <p>Yoru menyatukan penjelajahan anime, koleksi pribadi, dan pemutaran video.</p>
-     <div className="about-meta"><span>Versi</span><strong>v1.0.0-rc.2 (Web PWA)</strong></div>
-     <div className="about-meta"><span>Katalog</span><strong>Anime Jepang</strong></div>
-     <div className="about-meta"><span>Lisensi</span><strong>MIT License</strong></div>
-    </div>
-   </div>
-  </div>
- </div>
+  );
 }
 
-export default App
+export default App;
