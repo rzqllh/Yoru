@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import {test} from 'node:test'
-import {isPublicIPv4,validateStremioConfig,parseStremioStreams,classifyStremioUnplayable,stremioStreamPath} from '../backend/providers/stremio-core.ts'
+import {isPublicIPv4,validateStremioConfig,parseStremioStreams,classifyStremioUnplayable,stremioStreamPath,stremioSubtitlePath} from '../backend/providers/stremio-core.ts'
 
 test('only globally routable IPv4 hosts can be connected to',()=>{
  for(const value of ['127.0.0.1','10.0.0.4','172.20.5.1','192.168.1.20','169.254.169.254','0.0.0.0','100.64.0.1','198.51.100.3','224.1.2.3'])assert.equal(isPublicIPv4(value),false,value)
@@ -84,4 +84,32 @@ test('Stremio native tracks normalize Indonesian and English aliases for player 
  assert.deepEqual(results[0].tracks.map(x=>x.lang),['id','id','en','en','ja'])
  assert.deepEqual(results[0].tracks.slice(0,4).map(x=>x.label),['Bahasa Indonesia','Bahasa Indonesia','English','English'])
  assert.equal(results[0].subtitleMode,'soft')
+})
+
+test('Stremio addon resource filter and movie path parity',()=>{
+ const cfg=validateStremioConfig({addons:[
+  {id:'stream-only',name:'Stream Only Addon',manifestUrl:'https://addon.example.com/manifest.json',resources:['stream'],
+   anime:[{malId:1,stremioId:'kitsu:1',season:1,episodes:[1]}]},
+  {id:'sub-only',name:'Subtitles Only Addon',manifestUrl:'https://sub.example.com/manifest.json',resources:['subtitles'],
+   anime:[{malId:2,stremioId:'tt9999999',season:1,episodes:[1],type:'movie'}]}
+ ]})
+ assert.deepEqual(cfg.addons[0].resources,['stream'])
+ assert.deepEqual(cfg.addons[1].resources,['subtitles'])
+ assert.equal(cfg.addons[1].anime[0].type,'movie')
+
+ const movieStream=stremioStreamPath(cfg.addons[1],'tt9999999',1,1,'movie')
+ assert.equal(movieStream.toString(),'https://sub.example.com/stream/movie/tt9999999.json')
+
+ const movieSub=stremioSubtitlePath(cfg.addons[1],'tt9999999',1,1,'movie')
+ assert.equal(movieSub.toString(),'https://sub.example.com/subtitles/movie/tt9999999.json')
+
+ const seriesSub=stremioSubtitlePath(cfg.addons[0],'kitsu:1',1,2,'series')
+ assert.equal(seriesSub.toString(),'https://addon.example.com/subtitles/series/kitsu%3A1%3A1%3A2.json')
+
+ for(const bad of [
+  {...addon,resources:[]},
+  {...addon,resources:['invalid']},
+  {...addon,resources:['stream','subtitles','catalog']},
+  {...addon,anime:[{...addon.anime[0],type:'unsupported'}]}
+ ])assert.throws(()=>validateStremioConfig({addons:[bad]}))
 })

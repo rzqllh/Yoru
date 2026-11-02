@@ -63,6 +63,7 @@ export async function getStremioEpisodes(animeId:string){
  const config=await getStremioConfig()
  const malId=Number(rawId)
  return (config?.addons??[]).flatMap(addon=>{
+  if(addon.resources&&!addon.resources.includes('stream'))return []
   const match=addon.anime.find(a=>a.malId===malId)
   if(!match)return []
   return match.episodes.map(number=>({id:`stremio-${addon.id}:${malId}:${number}`,animeId,number,title:`Episode ${number}`,providerId:`stremio-${addon.id}`}))
@@ -77,8 +78,8 @@ export async function getStremioSourceCandidates(ref:string){
  const cfg=await getStremioConfig()
  const addon:StremioAddon|undefined=cfg?.addons.find(a=>a.id===addonId)
  const anime=addon?.anime.find(a=>a.malId===malId)
- if(!addon||!anime?.episodes.includes(episode))return empty
- const path=stremioStreamPath(addon,anime.stremioId,anime.season,episode)
+ if(!addon||(addon.resources&&!addon.resources.includes('stream'))||!anime?.episodes.includes(episode))return empty
+ const path=stremioStreamPath(addon,anime.stremioId,anime.season,episode,anime.type)
  const payload=await fetchJsonPinned(path)
  return {
   items:parseStremioStreams(payload,`stremio-${addon.id}`).map((stream,i)=>({...stream,id:`stremio-${addon.id}:${malId}:${episode}:${i}`})),
@@ -97,9 +98,10 @@ function validSubtitleRef(ref:string){
  return {addonId:match[1],malId:Number(match[2]),episode:Number(match[3]),index:Number(match[4])}
 }
 async function findMappedSubtitles(addon:StremioAddon,malId:number,episode:number){
+ if(addon.resources&&!addon.resources.includes('subtitles'))return []
  const mapped=addon.anime.find(a=>a.malId===malId&&a.episodes.includes(episode))
  if(!mapped)return []
- const json=await fetchJsonPinned(stremioSubtitlePath(addon,mapped.stremioId,mapped.season,episode))
+ const json=await fetchJsonPinned(stremioSubtitlePath(addon,mapped.stremioId,mapped.season,episode,mapped.type))
  return normalizeStremioSubtitles(json,'stremio-'+addon.id)
 }
 export async function getStremioAddonSubtitles(malId:number,episode:number):Promise<StremioSubtitleResult[]>{

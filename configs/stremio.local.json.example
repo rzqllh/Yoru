@@ -1,10 +1,23 @@
 {
   "addons": [
     {
-      "id": "example",
-      "name": "My configured Stremio addon",
-      "manifestUrl": "https://addon.example.com/manifest.json",
+      "id": "torrentio",
+      "name": "Torrentio Streams",
+      "manifestUrl": "https://torrentio.strem.fun/manifest.json",
+      "resources": ["stream"],
       "anime": [
+        { "malId": 52991, "stremioId": "kitsu:46152", "season": 1, "episodes": [1, 2, 3] },
+        { "malId": 1, "stremioId": "kitsu:1", "season": 1, "episodes": [1, 2] },
+        { "malId": 32281, "stremioId": "tt5323662", "season": 1, "episodes": [1], "type": "movie" }
+      ]
+    },
+    {
+      "id": "opensubtitles-v3",
+      "name": "OpenSubtitles v3",
+      "manifestUrl": "https://opensubtitles-v3.strem.io/manifest.json",
+      "resources": ["subtitles"],
+      "anime": [
+        { "malId": 52991, "stremioId": "kitsu:46152", "season": 1, "episodes": [1, 2, 3] },
         { "malId": 1, "stremioId": "kitsu:1", "season": 1, "episodes": [1, 2] }
       ]
     }
