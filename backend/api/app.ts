@@ -106,7 +106,7 @@ app.get('/api/streams',async c=>{
  const start=Number(c.req.query('start')||'0')
  if(ref.length>160||!(/^[a-z0-9-]+:[1-9]\d*:[1-9]\d*$/.test(ref)))return c.json({error:'INVALID_EPISODE_REF'},400)
  try{if(ref.startsWith('stremio-'))return c.json(await getStremioSourceCandidates(ref))
-  return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('miruro-')?await getMiruroStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
+  return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('miruro-')||ref.startsWith('aggregator-')?await getMiruroStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
 })
 
 app.get('/api/subtitles/status',c=>c.json({configured:subtitleStatus()}))
