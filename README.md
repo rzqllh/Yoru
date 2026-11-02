@@ -35,7 +35,7 @@ The Watch Guide exposes **Tahun rilis** and **Kronologi**. Chronology remains di
 
 ## Documentation
 
-Start from the [documentation portal](docs/public/README.md). Core references: [Getting started](docs/public/getting-started.md), [User guide](docs/public/using-yoru.md), [Provider configuration](docs/public/providers.md), [Watch Guide](docs/public/watch-order.md), [Architecture](docs/public/architecture.md), [Security](docs/public/security.md), [Operations](docs/public/operations.md), [Quality gates](docs/public/quality-gates.md), [Production readiness](docs/public/production-readiness.md), [Releases](docs/public/releases.md) and [Design system](DESIGN.md).
+Start from the [documentation portal](docs/public/README.md). Core references: [Getting started](docs/public/getting-started.md), [User guide](docs/public/using-yoru.md), [Optional device sync](docs/public/cloud-sync.md), [Provider configuration](docs/public/providers.md), [Watch Guide](docs/public/watch-order.md), [Architecture](docs/public/architecture.md), [Security](docs/public/security.md), [Operations](docs/public/operations.md), [Quality gates](docs/public/quality-gates.md), [Production readiness](docs/public/production-readiness.md), [Releases](docs/public/releases.md) and [Design system](DESIGN.md).
 
 ## Release policy
 
