@@ -1,9 +1,9 @@
 {
   "addons": [
     {
-      "id": "torrentio",
-      "name": "Torrentio Streams",
-      "manifestUrl": "https://torrentio.strem.fun/manifest.json",
+      "id": "anime-streams",
+      "name": "Anime Stream Addon",
+      "manifestUrl": "https://addon.example.com/manifest.json",
       "resources": ["stream"],
       "anime": [
         { "malId": 52991, "stremioId": "kitsu:46152", "season": 1, "episodes": [1, 2, 3] },
@@ -12,9 +12,9 @@
       ]
     },
     {
-      "id": "opensubtitles-v3",
-      "name": "OpenSubtitles v3",
-      "manifestUrl": "https://opensubtitles-v3.strem.io/manifest.json",
+      "id": "anime-subtitles",
+      "name": "Anime Subtitles Addon",
+      "manifestUrl": "https://subtitles.example.com/manifest.json",
       "resources": ["subtitles"],
       "anime": [
         { "malId": 52991, "stremioId": "kitsu:46152", "season": 1, "episodes": [1, 2, 3] },
