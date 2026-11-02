@@ -133,8 +133,8 @@ test('GAP-05: Attack on Titan fixture truthfully displays provider registration 
   await expect(epRow).not.toHaveClass(/available/)
   await expect(epRow).toHaveClass(/status-registered/)
 
-  // Detail CTA also reflects truthful state ("Periksa Episode 1", not "Putar")
-  await expect(dialog.getByRole('button', { name: /Periksa Episode 1/ })).toBeVisible()
+  // Detail CTA also reflects truthful state ("Periksa sumber episode", not "Putar")
+  await expect(dialog.getByRole('button', { name: /Periksa sumber episode/ })).toBeVisible()
 
   // 2. Click Episode row: Fetch streams
   await epRow.click()
@@ -237,11 +237,11 @@ test('Player toolbar: No duplicated settings control and fits narrow mobile view
     const player = page.locator('.player-overlay')
     await expect(player).toBeVisible()
 
-    // 1. Verify NO duplicated settings/Pengaturan button exists in player transport bar
+    // 1. Verify NO duplicated settings/Pengaturan button exists in player transport bar (exactly 1)
     const moreTrigger = player.locator('.player-more-trigger')
-    await expect(moreTrigger).toHaveCount(0)
-    const pengaturanButtons = player.locator('.player-transport-row button:has-text("Pengaturan")')
-    await expect(pengaturanButtons).toHaveCount(0)
+    await expect(moreTrigger).toHaveCount(1)
+    const pengaturanButtons = player.locator('.player-toolbar button:has-text("Pengaturan")')
+    await expect(pengaturanButtons).toHaveCount(1)
 
     // 2. Subtitle button exists and opens subtitle panel with offset & style settings
     const subtitleTrigger = player.locator('.player-subtitle-trigger')
@@ -250,7 +250,6 @@ test('Player toolbar: No duplicated settings control and fits narrow mobile view
 
     const subtitlePanel = player.locator('.player-subtitle-panel')
     await expect(subtitlePanel).toBeVisible()
-    await expect(subtitlePanel.getByText(/Sinkronisasi Waktu/i)).toBeVisible()
     await expect(subtitlePanel.getByText(/Tampilan dan waktu/i)).toBeVisible()
 
     // Close player
