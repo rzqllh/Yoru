@@ -17,7 +17,7 @@ export function normalizeDailyTrends(raw:unknown,day:number):DailyTrendResponse{
  const page=obj(root.Page)
  const rows=Array.isArray(page.mediaTrends)?page.mediaTrends:[]
  for(const row of rows){
-  const trend=obj(row),media=obj(trend.media),id=integer(media.idMal),activity=integer(trend.trending)
+  const trend=obj(row),media=obj(trend.media),id=integer(media.idMal),aniId=integer(media.id),activity=integer(trend.trending)
   if(integer(trend.date)!==day||!id||activity<1||media.type!=='ANIME'||media.isAdult===true||seen.has(id))continue
   const title=obj(media.title),images=obj(media.coverImage)
   const headline=plain(title.english,180)||plain(title.romaji,180)||plain(title.native,180)
@@ -30,9 +30,9 @@ export function normalizeDailyTrends(raw:unknown,day:number):DailyTrendResponse{
   const score=integer(media.averageScore)
   seen.add(id)
   items.push({
-   id:'mal:'+id,malId:id,title:headline,
+   id:'mal:'+id,malId:id,...(aniId?{aniListId:aniId}:{}),title:headline,
    englishTitle:plain(title.english,180)||null,japaneseTitle:plain(title.native,180)||null,
-   poster:poster||null,cover:banner||poster||null,
+   poster:poster||null,cover:banner||poster||null,banner:banner||null,
    synopsis:plain(media.description,900),
    score:score>0&&score<=100?score/10:null,episodes:integer(media.episodes)||null,
    year:integer(media.seasonYear)||null,
@@ -45,7 +45,7 @@ export function normalizeDailyTrends(raw:unknown,day:number):DailyTrendResponse{
  if(items.length<10)throw new Error('INSUFFICIENT_DATED_TRENDS')
  return {items,source:'AniList',sourceUrl:'https://anilist.co',date:new Date(day*1000).toISOString().slice(0,10),metric:'daily-media-activity'}
 }
-const GRAPHQL='query DailyAnimeTrends($after:Int,$before:Int){Page(page:1,perPage:50){mediaTrends(date_greater:$after,date_lesser:$before,sort:TRENDING_DESC){date trending media{idMal type isAdult title{english romaji native} coverImage{extraLarge large} bannerImage description averageScore format seasonYear episodes genres status}}}}'
+const GRAPHQL='query DailyAnimeTrends($after:Int,$before:Int){Page(page:1,perPage:50){mediaTrends(date_greater:$after,date_lesser:$before,sort:TRENDING_DESC){date trending media{id idMal type isAdult title{english romaji native} coverImage{extraLarge large} bannerImage description averageScore format seasonYear episodes genres status}}}}'
 let cache:{day:number;expires:number;data:DailyTrendResponse}|null=null
 /** External AniList data is optional. Never replace failures with invented rankings. */
 export async function getDailyAnimeTrends(now=Date.now()):Promise<DailyTrendResponse>{

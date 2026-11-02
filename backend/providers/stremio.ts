@@ -2,6 +2,7 @@ import {readFile} from 'node:fs/promises'
 import {existsSync} from 'node:fs'
 import {resolve} from 'node:path'
 import {lookup} from 'node:dns/promises'
+import type {LookupAddress} from 'node:dns'
 import {request} from 'node:https'
 import {isPublicIPv4,parseStremioStreams,classifyStremioUnplayable,normalizeStremioSubtitles,stremioStreamPath,stremioSubtitlePath,validateStremioConfig,type StremioAddon,type StremioConfig} from './stremio-core.js'
 
@@ -29,8 +30,13 @@ async function fetchJsonPinned(url:URL):Promise<unknown>{
  return new Promise<unknown>((resolveValue,reject)=>{
   let settled=false
   const fail=(error:Error)=>{if(!settled){settled=true;reject(error)}}
-  const req=request(url,{method:'GET',timeout:7000,headers:{Accept:'application/json'},
-   lookup:(_host,_opts,callback)=>callback(null,resolved.address,4)},res=>{
+  const req=request(url,{method:'GET',timeout:7000,headers:{Accept:'application/json','User-Agent':'Yoru/1.0'},
+   lookup:(_host,opts,callback)=>{
+    const cb=typeof opts==='function'?opts:callback
+    const all=typeof opts==='object'&&opts!==null&&Boolean((opts as {all?:boolean}).all)
+    if(all)cb(null,[{address:resolved.address,family:4}] as unknown as string & LookupAddress[])
+    else cb(null,resolved.address,4)
+   }},res=>{
     if(res.statusCode!==200){res.resume();fail(new Error('Addon unavailable'));return}
     const chunks:Buffer[]=[];let bytes=0
     res.on('data',(chunk:Buffer)=>{
@@ -63,6 +69,7 @@ export async function getStremioEpisodes(animeId:string){
  const config=await getStremioConfig()
  const malId=Number(rawId)
  return (config?.addons??[]).flatMap(addon=>{
+  if(addon.resources&&!addon.resources.includes('stream'))return []
   const match=addon.anime.find(a=>a.malId===malId)
   if(!match)return []
   return match.episodes.map(number=>({id:`stremio-${addon.id}:${malId}:${number}`,animeId,number,title:`Episode ${number}`,providerId:`stremio-${addon.id}`}))
@@ -77,8 +84,8 @@ export async function getStremioSourceCandidates(ref:string){
  const cfg=await getStremioConfig()
  const addon:StremioAddon|undefined=cfg?.addons.find(a=>a.id===addonId)
  const anime=addon?.anime.find(a=>a.malId===malId)
- if(!addon||!anime?.episodes.includes(episode))return empty
- const path=stremioStreamPath(addon,anime.stremioId,anime.season,episode)
+ if(!addon||(addon.resources&&!addon.resources.includes('stream'))||!anime?.episodes.includes(episode))return empty
+ const path=stremioStreamPath(addon,anime.stremioId,anime.season,episode,anime.type)
  const payload=await fetchJsonPinned(path)
  return {
   items:parseStremioStreams(payload,`stremio-${addon.id}`).map((stream,i)=>({...stream,id:`stremio-${addon.id}:${malId}:${episode}:${i}`})),
@@ -97,9 +104,10 @@ function validSubtitleRef(ref:string){
  return {addonId:match[1],malId:Number(match[2]),episode:Number(match[3]),index:Number(match[4])}
 }
 async function findMappedSubtitles(addon:StremioAddon,malId:number,episode:number){
+ if(addon.resources&&!addon.resources.includes('subtitles'))return []
  const mapped=addon.anime.find(a=>a.malId===malId&&a.episodes.includes(episode))
  if(!mapped)return []
- const json=await fetchJsonPinned(stremioSubtitlePath(addon,mapped.stremioId,mapped.season,episode))
+ const json=await fetchJsonPinned(stremioSubtitlePath(addon,mapped.stremioId,mapped.season,episode,mapped.type))
  return normalizeStremioSubtitles(json,'stremio-'+addon.id)
 }
 export async function getStremioAddonSubtitles(malId:number,episode:number):Promise<StremioSubtitleResult[]>{
@@ -138,7 +146,12 @@ export async function downloadStremioAddonSubtitle(ref:string):Promise<string>{
   const fail=(error:Error)=>{if(!done){done=true;reject(error)}}
   const req=request(url,{method:'GET',timeout:8000,
    headers:{Accept:'text/vtt,text/plain,application/x-subrip'},
-   lookup:(_host,_opts,callback)=>callback(null,dns.address,4)},res=>{
+   lookup:(_host,opts,callback)=>{
+    const cb=typeof opts==='function'?opts:callback
+    const all=typeof opts==='object'&&opts!==null&&Boolean((opts as {all?:boolean}).all)
+    if(all)cb(null,[{address:dns.address,family:4}] as unknown as string & LookupAddress[])
+    else cb(null,dns.address,4)
+   }},res=>{
    if(res.statusCode!==200){res.resume();fail(new Error('SUBTITLE_UNAVAILABLE'));return}
    const type=res.headers['content-type']||''
    if(typeof type!=='string'||!/^(text\/|application\/x-subrip)/i.test(type)){

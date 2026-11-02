@@ -10,7 +10,7 @@ export function rankNativeStreams<T extends Pick<Stream,'format'|'quality'|'trac
   const height=Number(/(?:^|[^a-z0-9])(2160|1440|1080|720|480|360|240)p(?![a-z])/i.exec(quality)?.[1]||0)
   // Provider metadata is untrusted: malformed tracks must not hide valid video candidates.
   const tracks=Array.isArray(stream.tracks)?stream.tracks:[]
-  const subtitles=tracks.some(track=>track&&typeof track.lang==='string'&&track.lang.toLowerCase()==='id')?55:0
+  const subtitles=tracks.some(track=>track&&typeof track.lang==='string'&&track.lang.toLowerCase()==='id')?55:stream.subtitleMode==='hard'?40:0
   const direct=stream.format==='hls'?15:10
   return height+subtitles+direct
  }

@@ -1,5 +1,5 @@
 export type SubtitleTrack = { lang:string; label:string; url:string }
-export type Stream = {format:'hls'|'mp4';url:string;subtitleMode:'hard'|'soft'|'unknown';tracks:SubtitleTrack[];quality?:string}
+export type Stream = {format:'hls'|'mp4';url:string;subtitleMode:'hard'|'soft'|'unknown';tracks:SubtitleTrack[];quality?:string;hardsubWarning?:string}
 export type EpisodeConfig = {number:number;title?:string;streams:Stream[]}
 export type ProviderConfig = {id:string;name:string;anime:{malId:number;title?:string;episodes:EpisodeConfig[]}[]}
 
@@ -13,7 +13,12 @@ function string(value:unknown, field:string,max=200):string{
 }
 const privateIp = /^(?:localhost|(?:\d{1,3}\.){3}\d{1,3}|\[[^\]]+\])$/i
 export function assertSafeMediaUrl(value:unknown):string {
- const url = new URL(string(value,'url',2048))
+ const raw = string(value,'url',2048)
+ if(raw.startsWith('/') && !raw.startsWith('//')){
+  if(raw.includes('..') || raw.includes('\\')) throw new Error('Path traversal not allowed')
+  return raw
+ }
+ const url = new URL(raw)
  if(url.protocol !== 'https:' || url.username || url.password) throw new Error('Only credential-free HTTPS URLs allowed')
  const hostname=url.hostname.toLowerCase()
  if(privateIp.test(hostname)||hostname.endsWith('.local')||hostname.endsWith('.internal')||hostname.endsWith('.localhost')||hostname==='0.0.0.0') throw new Error('Private and local hosts are prohibited')
@@ -48,8 +53,10 @@ export function validateProviderConfig(input:unknown):ProviderConfig {
     if(format!=='hls'&&format!=='mp4') throw new Error('Unsupported format')
     if(subtitleMode!=='hard'&&subtitleMode!=='soft'&&subtitleMode!=='unknown') throw new Error('Invalid subtitle mode')
     if(!Array.isArray(stream.tracks)||stream.tracks.length>20) throw new Error('Invalid tracks')
+    const hardsubWarning=subtitleMode==='hard'?(typeof stream.hardsubWarning==='string'&&stream.hardsubWarning.trim()?stream.hardsubWarning.trim().slice(0,250):'Subtitle Indonesia sudah menyatu di dalam video (hardsub) — tidak dapat diubah atau disembunyikan.'):undefined
     return {format,url:assertSafeMediaUrl(stream.url),subtitleMode:subtitleMode as Stream['subtitleMode'],
       quality:typeof stream.quality==='string'?stream.quality.slice(0,30):undefined,
+      ...(hardsubWarning?{hardsubWarning}:{}),
       tracks:stream.tracks.map(t=>{
         const track=record(t);const lang=string(track.lang,'track lang',15).toLowerCase();
         if(!/^[a-z]{2,3}(?:-[a-z0-9]+)*$/.test(lang))throw new Error('Invalid language code')

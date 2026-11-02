@@ -1,8 +1,8 @@
-export type StremioAnime = {malId:number;stremioId:string;season:number;episodes:number[]}
-export type StremioAddon = {id:string;name:string;manifestUrl:string;anime:StremioAnime[]}
+export type StremioAnime = {malId:number;stremioId:string;season:number;episodes:number[];type?:'series'|'movie'}
+export type StremioAddon = {id:string;name:string;manifestUrl:string;anime:StremioAnime[];resources?:('stream'|'subtitles')[]}
 export type StremioConfig = {addons:StremioAddon[]}
 export type AddonTrack={lang:string;label:string;url:string}
-export type AddonStream={format:'hls'|'mp4';url:string;subtitleMode:'soft'|'unknown';tracks:AddonTrack[];quality?:string;providerId:string}
+export type AddonStream={format:'hls'|'mp4';url:string;subtitleMode:'hard'|'soft'|'unknown';tracks:AddonTrack[];quality?:string;providerId:string;hardsubWarning?:string}
 const object=(value:unknown):Record<string,unknown>=>{
  if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Expected object')
  return value as Record<string,unknown>
@@ -43,24 +43,39 @@ export function validateStremioConfig(value:unknown):StremioConfig{
     !/^(?=.{4,253}$)[a-z0-9.-]+\.[a-z]{2,}$/i.test(url.hostname)||
     url.hostname.endsWith('.local')||url.hostname.endsWith('.localhost')||url.hostname.endsWith('.internal'))throw new Error('Invalid manifest URL')
   if(!Array.isArray(entry.anime)||entry.anime.length>200)throw new Error('Invalid anime list')
+  let resources:('stream'|'subtitles')[]|undefined=undefined
+  if(entry.resources!==undefined){
+   if(!Array.isArray(entry.resources)||entry.resources.length===0||entry.resources.length>2)throw new Error('Invalid resources')
+   const resSet=new Set<'stream'|'subtitles'>()
+   for(const r of entry.resources){
+    if(r!=='stream'&&r!=='subtitles')throw new Error('Invalid resource type')
+    resSet.add(r)
+   }
+   resources=Array.from(resSet)
+  }
   const malIds=new Set<number>()
   const anime=entry.anime.map(rawAnime=>{
    const item=object(rawAnime),malId=positive(item.malId)
    if(malIds.has(malId))throw new Error('Duplicate MAL id')
    malIds.add(malId)
    const stremioId=nonempty(item.stremioId,120)
-   if(!/^(?:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+|tt[1-9][0-9]{4,11})$/.test(stremioId))throw new Error('Invalid Stremio ID')
+   if(!/^(?:[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+|tt[0-9]{5,11})$/.test(stremioId))throw new Error('Invalid Stremio ID')
    const season=item.season===undefined?1:positive(item.season)
+   const itemType:('series'|'movie')|undefined=item.type==='movie'?'movie':item.type==='series'?'series':undefined
+   if(item.type!==undefined&&itemType===undefined)throw new Error('Invalid anime type')
    if(!Array.isArray(item.episodes)||item.episodes.length>2000)throw new Error('Invalid episodes')
    const episodes=item.episodes.map(positive)
    if(new Set(episodes).size!==episodes.length)throw new Error('Duplicate episodes')
-   return {malId,stremioId,season,episodes}
+   return {malId,stremioId,season,episodes,...(itemType?{type:itemType}:{})}
   })
-  return {id,name,manifestUrl:url.toString(),anime}
+  return {id,name,manifestUrl:url.toString(),anime,...(resources?{resources}:{})}
  })
  return {addons}
 }
-export function stremioStreamPath(addon:StremioAddon,stremioId:string,season:number,episode:number):URL{
+export function stremioStreamPath(addon:StremioAddon,stremioId:string,season:number,episode:number,type:'series'|'movie'='series'):URL{
+ if(type==='movie'){
+  return new URL(`stream/movie/${encodeURIComponent(stremioId)}.json`,addon.manifestUrl)
+ }
  return new URL(`stream/series/${encodeURIComponent(`${stremioId}:${season}:${episode}`)}.json`,addon.manifestUrl)
 }
 const mediaHostAllowed=(host:string)=>/^(?=.{4,253}$)[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)&&!/(?:\.local|\.localhost|\.internal|\.invalid)$/.test(host)
@@ -92,7 +107,12 @@ export function parseStremioStreams(payload:unknown,providerId:string):AddonStre
      tracks.push({lang,label:lang==='id'?'Bahasa Indonesia':lang==='en'?'English':lang,url:subUrl.toString()})
     }catch{/* malformed optional subtitle is ignored */}
    }
-   result.push({format,url:url.toString(),tracks,subtitleMode:tracks.length?'soft':'unknown',quality:typeof obj.name==='string'?obj.name.slice(0,80):undefined,providerId})
+   const descriptor=`${typeof obj.name==='string'?obj.name:''} ${typeof obj.title==='string'?obj.title:''} ${typeof obj.description==='string'?obj.description:''}`.toLowerCase()
+   const hasExplicitHardsub=/\bhardsub\b/i.test(descriptor)
+   const isIndoReleaseWithoutTracks=/\b(sub\s*indo|otakudesu|samehadaku|oploverz|kuronime|anoboy|anichin)\b/i.test(descriptor)&&tracks.length===0
+   const subtitleMode:'hard'|'soft'|'unknown'=(hasExplicitHardsub||isIndoReleaseWithoutTracks)?'hard':tracks.length?'soft':'unknown'
+   const hardsubWarning=subtitleMode==='hard'?'Subtitle Indonesia sudah menyatu di dalam video (hardsub) — tidak dapat diubah atau disembunyikan.':undefined
+   result.push({format,url:url.toString(),tracks,subtitleMode,quality:typeof obj.name==='string'?obj.name.slice(0,80):undefined,providerId,...(hardsubWarning?{hardsubWarning}:{})})
   }catch{continue}
   if(result.length>=20)break
  }
@@ -102,7 +122,10 @@ export function parseStremioStreams(payload:unknown,providerId:string):AddonStre
 
 /** Stremio /subtitles resource: only original language tracks; no translation/dubbing. */
 export type AddonSubtitle={id:string;lang:'id'|'en';label:string;url:string;providerId:string}
-export function stremioSubtitlePath(addon:StremioAddon,stremioId:string,season:number,episode:number):URL{
+export function stremioSubtitlePath(addon:StremioAddon,stremioId:string,season:number,episode:number,type:'series'|'movie'='series'):URL{
+ if(type==='movie'){
+  return new URL(`subtitles/movie/${encodeURIComponent(stremioId)}.json`,addon.manifestUrl)
+ }
  return new URL('subtitles/series/'+encodeURIComponent(stremioId+':'+season+':'+episode)+'.json',addon.manifestUrl)
 }
 export function normalizeStremioSubtitles(payload:unknown,providerId:string):AddonSubtitle[]{
@@ -117,8 +140,9 @@ export function normalizeStremioSubtitles(payload:unknown,providerId:string):Add
    const lang=subtitleLanguage(rawLang)
    if(!lang)continue
    const url=new URL(nonempty(sub.url,2048))
-   if(url.protocol!=='https:'||url.port||url.username||url.password||url.hash||!mediaHostAllowed(url.hostname)||
-    !(/\.(srt|vtt|ass|ssa)$/).test(url.pathname.toLowerCase()))continue
+   const fileName=typeof sub.subtitleFileName==='string'?sub.subtitleFileName.toLowerCase():''
+   const hasSubtitleExt=/\.(srt|vtt|ass|ssa)$/.test(url.pathname.toLowerCase())||/\.(srt|vtt|ass|ssa)$/.test(fileName)||url.pathname.includes('/download/')
+   if(url.protocol!=='https:'||url.port||url.username||url.password||url.hash||!mediaHostAllowed(url.hostname)||!hasSubtitleExt)continue
    if(known.has(id))continue
    known.add(id)
    const label=typeof sub.label==='string'?sub.label.replace(/<[^>]*>/g,'').trim().slice(0,90):''

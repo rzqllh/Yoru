@@ -148,3 +148,16 @@ test('oversized quality text and invalid subtitle tracks cannot break picker ren
  assert.deepEqual(result.items[0].tracks,[])
  assert.equal(result.items[0].subtitleMode,'unknown')
 })
+
+test('hardsub candidates retain bounded hardsubWarning and fallback to honest default notice',()=>{
+ const result=summarizeSourceSearch([{status:'fulfilled',value:{items:[
+  {format:'hls',url:'https://test.example/otakudesu.m3u8',subtitleMode:'hard'},
+  {format:'mp4',url:'https://test.example/custom.mp4',subtitleMode:'hard',hardsubWarning:'Peringatan kustom.'},
+  {format:'mp4',url:'https://test.example/oversize.mp4',subtitleMode:'hard',hardsubWarning:'W'.repeat(500)}
+ ]}}])
+ assert.equal(result.items.length,3)
+ assert.equal(result.items[0].subtitleMode,'hard')
+ assert.match(result.items[0].hardsubWarning||'',/tidak dapat diubah/i)
+ assert.equal(result.items[1].hardsubWarning,'Peringatan kustom.')
+ assert.equal(result.items[2].hardsubWarning?.length,250)
+})

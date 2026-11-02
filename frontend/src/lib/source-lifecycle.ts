@@ -29,7 +29,12 @@ function normalizeSourceCandidate(value:unknown):Stream|null{
   subtitleMode:source.subtitleMode==='hard'||source.subtitleMode==='soft'?source.subtitleMode:'unknown',
   ...(typeof source.id==='string'?{id:source.id}:{}),
   ...(typeof source.providerId==='string'?{providerId:source.providerId}:{}),
-  ...(typeof source.quality==='string'&&source.quality.length<=100?{quality:source.quality}:{})
+  ...(typeof source.quality==='string'&&source.quality.length<=100?{quality:source.quality}:{}),
+  ...(source.subtitleMode==='hard'?{
+   hardsubWarning:typeof source.hardsubWarning==='string'&&source.hardsubWarning.trim()
+    ?source.hardsubWarning.trim().slice(0,250)
+    :'Subtitle Indonesia sudah menyatu di dalam video (hardsub) — tidak dapat diubah atau disembunyikan.'
+  }:{})
  }
  // A URL that cannot pass the native browser preflight must not appear selectable.
  return isNativeCandidate(candidate)?candidate:null
@@ -66,4 +71,101 @@ export function summarizeSourceSearch(
   state==='candidates'?`${items.length} kandidat sumber ditemukan. Ketersediaan pemutaran belum diverifikasi.`:
   'Belum ada sumber video langsung yang bisa dipilih dari respons penyedia.'
  return {items,unavailable,queried:results.length,responded,failed,state,message}
+}
+
+export type TruthfulAvailabilityState =
+ | 'provider-registered'
+ | 'native-candidate'
+ | 'verified'
+ | 'torrent-only'
+ | 'unavailable'
+ | 'provider-error'
+
+export type AvailabilityMeta = {
+ state: TruthfulAvailabilityState
+ label: string
+ detail: string
+ hint: string
+ className: string
+ isPlayable: boolean
+}
+
+export function resolveTruthfulState(params: {
+ hasRegisteredProvider: boolean
+ isVerified?: boolean
+ streamSummary?: SourceSearchResult | null
+ searchError?: boolean
+}): TruthfulAvailabilityState {
+ if (params.searchError) return 'provider-error'
+ if (params.isVerified) return 'verified'
+ if (params.streamSummary) {
+  if (params.streamSummary.state === 'failed') return 'provider-error'
+  if (params.streamSummary.items.length > 0) return 'native-candidate'
+  if (params.streamSummary.unavailable.some(u => u.kind === 'torrent' || u.kind === 'unsupported' || u.kind === 'external')) {
+   return 'torrent-only'
+  }
+  return 'unavailable'
+ }
+ if (params.hasRegisteredProvider) return 'provider-registered'
+ return 'unavailable'
+}
+
+export function getAvailabilityMeta(state: TruthfulAvailabilityState): AvailabilityMeta {
+ switch (state) {
+  case 'provider-registered':
+   return {
+    state,
+    label: 'Penyedia terdaftar',
+    detail: 'Penyedia terdaftar · Belum diperiksa',
+    hint: 'Penyedia terdaftar — ketersediaan pemutaran belum diperiksa',
+    className: 'status-registered',
+    isPlayable: false,
+   }
+  case 'native-candidate':
+   return {
+    state,
+    label: 'Kandidat ditemukan',
+    detail: 'Kandidat ditemukan · Menunggu verifikasi',
+    hint: 'Kandidat sumber ditemukan — menunggu verifikasi pemutaran',
+    className: 'status-candidate',
+    isPlayable: false,
+   }
+  case 'verified':
+   return {
+    state,
+    label: 'Tersedia',
+    detail: 'Tersedia · Siap diputar',
+    hint: 'Sumber terverifikasi — siap diputar',
+    className: 'status-verified available',
+    isPlayable: true,
+   }
+  case 'torrent-only':
+   return {
+    state,
+    label: 'Torrent saja',
+    detail: 'Torrent saja · Tidak ada sumber langsung',
+    hint: 'Hanya tersedia via torrent — belum ada sumber langsung yang didukung',
+    className: 'status-torrent',
+    isPlayable: false,
+   }
+  case 'provider-error':
+   return {
+    state,
+    label: 'Gangguan penyedia',
+    detail: 'Gangguan penyedia · Coba lagi',
+    hint: 'Penyedia video gagal dihubungi — dapat dicoba lagi',
+    className: 'status-error',
+    isPlayable: false,
+   }
+  case 'unavailable':
+  default:
+   return {
+    state: 'unavailable',
+    label: 'Tidak tersedia',
+    detail: 'Sumber belum tersedia',
+    hint: 'Belum ada penyedia atau pemetaan sumber langsung',
+    className: 'status-unavailable',
+    isPlayable: false,
+   }
+ }
 }

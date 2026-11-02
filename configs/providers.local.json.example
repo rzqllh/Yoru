@@ -16,6 +16,14 @@
               "quality": "Auto",
               "subtitleMode": "soft",
               "tracks": [{"lang":"id","label":"Bahasa Indonesia","url":"https://media.example.org/subtitles/episode-1.vtt"}]
+            },
+            {
+              "format": "mp4",
+              "url": "https://media.example.org/authorized/episode-1-hardsub.mp4",
+              "quality": "720p",
+              "subtitleMode": "hard",
+              "hardsubWarning": "Subtitle Indonesia sudah menyatu di dalam video (hardsub) — tidak dapat diubah atau disembunyikan.",
+              "tracks": []
             }
           ]
         }

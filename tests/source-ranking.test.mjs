@@ -50,3 +50,14 @@ test('bitrate and dimension labels never masquerade as advertised video height',
   'explicit-1080','explicit-720','explicit-480','bitrate-2160','dimensions','pixels'
  ])
 })
+
+test('ranks Indonesian softsub ahead of hardsub, and hardsub ahead of raw clean streams at equal resolution',()=>{
+ const sources=[
+  {format:'hls',quality:'720p',subtitleMode:'unknown',tracks:[],providerId:'raw-720'},
+  {format:'hls',quality:'720p',subtitleMode:'soft',tracks:[{lang:'id',label:'Indonesia',url:'https://test/1.vtt'}],providerId:'softsub-720'},
+  {format:'hls',quality:'720p',subtitleMode:'hard',tracks:[],providerId:'hardsub-720'}
+ ]
+ assert.deepEqual(rankNativeStreams(sources).map(s=>s.providerId),[
+  'softsub-720','hardsub-720','raw-720'
+ ])
+})

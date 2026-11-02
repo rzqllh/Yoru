@@ -642,6 +642,10 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    <div className="player-provider">{stream.format==='embed'?'Video alternatif':'Video langsung'}</div>
   </div>
   <div className="player-stage">
+   {stream.subtitleMode==='hard'&&<div className="player-hardsub-notice" role="status">
+    <AlertTriangle size={15}/>
+    <span>{stream.hardsubWarning||'Subtitle Indonesia sudah menyatu di dalam video (hardsub) — tidak dapat diubah atau disembunyikan.'}</span>
+   </div>}
    {stream.format==='embed'?<div className="embedded-source">
     <div className="embed-notice">
      <Info size={16}/>
@@ -722,8 +726,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
    </div>}
    </div>}
-   <button type="button" className="player-subtitle-trigger" aria-controls="yoru-subtitle-panel" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
-    <Subtitles size={15}/> Subtitle · {selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':selectedSubtitle.lang==='en'?'English':'pribadi'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
+   <button type="button" className={`player-subtitle-trigger ${stream.subtitleMode==='hard'?'hardsub':''}`} aria-controls="yoru-subtitle-panel" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
+    <Subtitles size={15}/> Subtitle · {stream.subtitleMode==='hard'?'Hardsub (Menyatu)':selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':selectedSubtitle.lang==='en'?'English':'pribadi'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
    </button>
    {qualityNote&&<small role="status">{qualityNote}</small>}
   </div>}
@@ -731,8 +735,14 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   {subtitlePanel&&<div className="player-subtitle-panel" id="yoru-subtitle-panel">
    <div className="subtitle-picker-header"><strong>Subtitle episode {episode}</strong><button type="button" onClick={()=>setSubtitlePanel(false)}>Tutup</button></div>
    {stream.format==='embed'?<p className="subtitle-embed-explainer" role="status">Pilihan subtitle diatur oleh pemutar video alternatif. Buka pengaturan di dalam video jika tersedia.</p>:<>
+   {stream.subtitleMode==='hard'&&<div className="subtitle-hardsub-banner" role="status">
+    <strong><AlertTriangle size={16}/> Subtitle Bawaan (Hardsub)</strong>
+    <p>{stream.hardsubWarning||'Subtitle Indonesia sudah menyatu langsung pada frame video (hardsub). Pilihan untuk mematikan subtitle, mengganti bahasa, atau mengubah ukuran teks tidak tersedia untuk sumber ini.'}</p>
+   </div>}
    <div className="subtitle-section-label">Bahasa subtitle</div>
-   <button type="button" onClick={disableSubtitle} aria-pressed={subtitleOff}>Off</button>
+   <button type="button" onClick={disableSubtitle} aria-pressed={subtitleOff} disabled={stream.subtitleMode==='hard'} title={stream.subtitleMode==='hard'?'Subtitle bawaan tercetak di video dan tidak dapat dimatikan':undefined}>
+    {stream.subtitleMode==='hard'?'Off (Tidak tersedia untuk hardsub)':'Off'}
+   </button>
    {stream.tracks.filter(item=>item.lang==='id'||item.lang==='en').map(item=><button type="button" key={item.url} onClick={()=>chooseNativeSubtitle(item.lang as 'id'|'en')} aria-pressed={!subtitleOff&&!selectedSubtitle&&subtitlePreference===item.lang}>{item.lang==='id'?'Bahasa Indonesia':'English'} · Bawaan video</button>)}
    {subtitleChoices.map(item=><button type="button" key={item.id} onClick={()=>{setSubtitleManual(true);void activateSubtitle(item,true)}} aria-pressed={selectedSubtitle?.id===item.id}>
     {item.label} · {item.provider==='stremio'?'Sumber tambahan':'Sumber subtitle'} · Pilihan {subtitleChoices.indexOf(item)+1}
@@ -762,7 +772,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <input id="yoru-subtitle-upload" type="file" accept=".srt,.vtt,text/vtt,text/plain" onChange={event=>void importSubtitle(event)} aria-label="Unggah subtitle SRT atau VTT"/>
     {uploadedName&&<small>Dipilih: {uploadedName}</small>}
    </div>
-   <div className="subtitle-section-label"><SlidersHorizontal size={14}/> Tampilan dan waktu</div>
+   <div className="subtitle-section-label"><SlidersHorizontal size={14}/> Tampilan dan waktu {stream.subtitleMode==='hard'&&<span className="subtitle-disabled-note">(Hanya untuk subtitle tambahan/unggah)</span>}</div>
    <div className="subtitle-style-controls">
     <label>Jenis huruf <select aria-label="Font subtitle" value={captionFont} onChange={event=>saveCaptionStyle(event.target.value as 'sans'|'serif',captionSize,captionBackdrop,captionScope)}>
      <option value="sans">Sans-serif</option><option value="serif">Serif</option>
@@ -800,7 +810,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    </>}
   </div>}
   <div className="player-footer">
-   <span><Subtitles size={16}/> {stream.format==='embed'?'Pilihan subtitle mengikuti video':stream.subtitleMode==='hard'?'Subtitle menyatu dengan video':selectedSubtitle?`Subtitle ${selectedSubtitle.lang==='id'?'Indonesia':'English'} dimuat`:subtitleOff?'Subtitle mati':stream.tracks.length?`${stream.tracks.length} pilihan subtitle tersedia`:'Subtitle belum ditemukan'}</span>
+   <span><Subtitles size={16}/> {stream.format==='embed'?'Pilihan subtitle mengikuti video':stream.subtitleMode==='hard'?'Subtitle bawaan video (hardsub) · Tidak dapat disembunyikan':selectedSubtitle?`Subtitle ${selectedSubtitle.lang==='id'?'Indonesia':'English'} dimuat`:subtitleOff?'Subtitle mati':stream.tracks.length?`${stream.tracks.length} pilihan subtitle tersedia`:'Subtitle belum ditemukan'}</span>
    <span><Info size={16}/> {demo?'Contoh video dengan subtitle Indonesia.':stream.format==='embed'?'Progress tersimpan di browser ini.':'Riwayat menonton tersimpan di perangkat ini.'}</span>
   </div>
  </main>

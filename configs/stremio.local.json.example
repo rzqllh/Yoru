@@ -1,10 +1,23 @@
 {
   "addons": [
     {
-      "id": "example",
-      "name": "My configured Stremio addon",
+      "id": "anime-streams",
+      "name": "Anime Stream Addon",
       "manifestUrl": "https://addon.example.com/manifest.json",
+      "resources": ["stream"],
       "anime": [
+        { "malId": 52991, "stremioId": "kitsu:46152", "season": 1, "episodes": [1, 2, 3] },
+        { "malId": 1, "stremioId": "kitsu:1", "season": 1, "episodes": [1, 2] },
+        { "malId": 32281, "stremioId": "tt5323662", "season": 1, "episodes": [1], "type": "movie" }
+      ]
+    },
+    {
+      "id": "anime-subtitles",
+      "name": "Anime Subtitles Addon",
+      "manifestUrl": "https://subtitles.example.com/manifest.json",
+      "resources": ["subtitles"],
+      "anime": [
+        { "malId": 52991, "stremioId": "kitsu:46152", "season": 1, "episodes": [1, 2, 3] },
         { "malId": 1, "stremioId": "kitsu:1", "season": 1, "episodes": [1, 2] }
       ]
     }

@@ -43,7 +43,7 @@ import WatchGuide from './components/WatchGuide'
 import {verifyNativeSource} from './lib/source-readiness'
 import {rankNativeStreams} from './lib/source-ranking'
 import {readRememberedSource,saveRememberedSource,preferRememberedSource} from './lib/source-memory'
-import {summarizeSourceSearch} from './lib/source-lifecycle'
+import {summarizeSourceSearch,resolveTruthfulState,getAvailabilityMeta} from './lib/source-lifecycle'
 import {isResumableProgress,resolveDetailResumeTarget} from './lib/resume'
 import {sortLibraryEntries,parseLibrarySort,type LibrarySort} from './lib/library-sort'
 import {useDialogFocus} from './lib/useDialogFocus'
@@ -1050,6 +1050,15 @@ function DetailBody({
  const [choices,setChoices]=useState<{episode:number;items:Stream[];unavailable?:UnavailableStream[]}|null>(null)
  const [sourceFeedback,setSourceFeedback]=useState<{episode:number;phase:'searching'|'checking'|'candidates'|'degraded'|'no-direct'|'failed'|'verified';message:string}|null>(null)
  const sourceRequest=useRef(0)
+ const [relations,setRelations]=useState<{relation:string;malId:number}[]>([])
+ useEffect(()=>{
+  api<{items?:{relation:string;malId:number}[]}>('/api/anime/'+anime.malId+'/watch-guide')
+   .then(res=>setRelations(res.items||[]))
+   .catch(()=>setRelations([]))
+ },[anime.malId])
+ const meaningfulRelations=useMemo(()=>{
+  return relations.filter(r=>r.malId!==anime.malId&&['SEQUEL','PREQUEL','PARENT','ALTERNATIVE','SPIN_OFF','SIDE_STORY'].includes(r.relation.toUpperCase()))
+ },[relations,anime.malId])
  useEffect(()=>{
   if(!choices)return
   const frame=requestAnimationFrame(()=>pickerRef.current?.scrollIntoView({block:'nearest',behavior:'auto'}))
@@ -1253,7 +1262,7 @@ function DetailBody({
       <button type="button" className="btn btn-outline" onClick={onToggleSave}>
        {isSaved?<Check size={16}/>:<Plus size={16}/>} {isSaved?'Tersimpan':'Koleksiku'}
       </button>
-      <button type="button" className="btn btn-outline" onClick={onOpenGuide}><Layers3 size={16}/> Urutan cerita</button>
+      {meaningfulRelations.length>0&&<button type="button" className="btn btn-outline" onClick={onOpenGuide}><Layers3 size={16}/> Urutan cerita ({meaningfulRelations.length})</button>}
      </nav>
     </section>
    </header>
@@ -1282,9 +1291,10 @@ function DetailBody({
       {choices.items.map((stream,i)=><button type="button" key={stream.id||i} disabled={!!playing} onClick={()=>void checkAndWatch(stream,choices.episode,true)}>
        <MonitorPlay size={17}/>
        <span>
-        <strong>{stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Subtitle menyatu':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia':'Bahasa subtitle belum diketahui'}</strong>
-        <small>Video akan diperiksa sebelum diputar</small>
+        <strong>{stream.quality||'Video langsung'} · {stream.subtitleMode==='hard'?'Hardsub Indo (Menyatu)':stream.tracks.some(t=>t.lang==='id')?'Subtitle Indonesia (Softsub)':'Audio Asli (RAW)'}</strong>
+        <small>{stream.subtitleMode==='hard'?'Subtitle tercetak di video · Tidak dapat disembunyikan':stream.tracks.some(t=>t.lang==='id')?'Softsub terpisah · Dapat disembunyikan/diatur':'Kandidat video RAW · Video akan diperiksa'}</small>
        </span>
+       {stream.subtitleMode==='hard'&&<span className="source-tag-hardsub">Hardsub</span>}
        <Play size={16}/>
       </button>)}
       {choices.unavailable?.map(candidate=><button type="button" disabled key={`${candidate.kind}:${candidate.label}:${candidate.reason}`} title={candidate.reason} aria-label={`${candidate.label} · Belum bisa diputar`}>
@@ -1296,16 +1306,25 @@ function DetailBody({
 
     {loading?<div className="detail-loading"><LoaderCircle className="spin" size={18}/> Memuat episode…</div>:displayed.length?<div className="episode-list">
      {displayed.map(ep=>{
-      const streamReady=availableMap.get(ep.number)?.some(e=>e.providerId!=='public-embed')??false
+      const hasRegistered=availableMap.get(ep.number)?.some(e=>e.providerId!=='public-embed')??false
+      const isThisChoice=choices?.episode===ep.number?choices:null
+      const searchFailed=sourceFeedback?.episode===ep.number&&sourceFeedback.phase==='failed'
+      const truthfulState=resolveTruthfulState({
+       hasRegisteredProvider:hasRegistered,
+       isVerified:false,
+       streamSummary:isThisChoice?{items:isThisChoice.items,unavailable:isThisChoice.unavailable||[],state:isThisChoice.items.length?'candidates':'no-direct',queried:1,responded:1,failed:0,message:''}:null,
+       searchError:searchFailed&&!isThisChoice?.items.length
+      })
+      const meta=getAvailabilityMeta(truthfulState)
       const isCurrentProgress=animeProgress?.episode===ep.number
       const epProgressState=isCurrentProgress?progressState:'NEVER_STARTED'
       const isResumable=epProgressState==='RESUMABLE'&&!!animeProgress
       const isCompleted=epProgressState==='COMPLETED'
-      return <button type="button" key={ep.number} className={`episode-row ${streamReady?'available':''}`} onClick={()=>void play(ep)} disabled={!!playing}>
+      return <button type="button" key={ep.number} className={`episode-row ${meta.className}`} onClick={()=>void play(ep)} disabled={!!playing}>
        <span className="episode-number">{String(ep.number).padStart(2,'0')}</span>
        <div>
         <strong>{ep.title}</strong>
-        <small>{isResumable&&animeProgress?`Lanjut (${durationDisplay(animeProgress.seconds)} / ${durationDisplay(animeProgress.duration)}) · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:isCompleted?`Selesai ditonton · ${streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}`:streamReady?'Ketuk untuk memilih video':'Cek pilihan video'}</small>
+        <small>{isResumable&&animeProgress?`Lanjut (${durationDisplay(animeProgress.seconds)} / ${durationDisplay(animeProgress.duration)}) · ${meta.detail}`:isCompleted?`Selesai ditonton · ${meta.detail}`:meta.detail}</small>
        </div>
        {(isResumable||isCompleted)&&<div className="progress-track"><div style={{width:`${Math.min(100,isCompleted?100:animeProgress?.duration?(animeProgress.seconds/animeProgress.duration)*100:10)}%`}}/></div>}
        <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<MonitorPlay size={15}/>}</span>
