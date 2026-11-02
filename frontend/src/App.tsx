@@ -1052,7 +1052,7 @@ function DetailBody({
  const sourceRequest=useRef(0)
  const [relations,setRelations]=useState<{relation:string;malId:number}[]>([])
  useEffect(()=>{
-  api<{items?:{relation:string;malId:number}[]}>('/anime/'+anime.malId+'/watch-guide')
+  api<{items?:{relation:string;malId:number}[]}>('/api/anime/'+anime.malId+'/watch-guide')
    .then(res=>setRelations(res.items||[]))
    .catch(()=>setRelations([]))
  },[anime.malId])
