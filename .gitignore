@@ -20,3 +20,5 @@ test-results/
 .playwright-mcp/
 .superpowers/
 
+
+.vercel

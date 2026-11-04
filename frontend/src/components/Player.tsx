@@ -748,14 +748,14 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
       <button type="button" aria-label={isMuted||volume===0?'Aktifkan suara':'Matikan suara'} onClick={()=>{const v=video.current;if(v){v.muted=!v.muted;setIsMuted(v.muted)}}}>{isMuted||volume===0?<VolumeX size={17}/>:<Volume2 size={17}/>}</button>
       <input type="range" min="0" max="1" step="0.05" value={isMuted?0:volume} onChange={event=>setSound(Number(event.target.value))} aria-label="Volume" className="player-volume"/>
      </div>
-     <button type="button" className={`player-dock-btn ${stream.subtitleMode==='hard'?'hardsub':''}`} aria-controls="yoru-subtitle-panel" aria-expanded={subtitlePanel} onClick={()=>{setSubtitlePanel(v=>{const next=!v;if(next)setAdvancedControls(false);return next})}}>
-      <Subtitles size={14}/> <span>{stream.subtitleMode==='hard'?'Hardsub':selectedSubtitle?(selectedSubtitle.lang==='id'?'Sub Indo':'English'):subtitleOff?'Sub Off':'Subtitle'}</span>
+     <button type="button" className={`player-dock-btn player-subtitle-trigger ${stream.subtitleMode==='hard'?'hardsub':''}`} aria-controls="yoru-subtitle-panel" aria-expanded={subtitlePanel} onClick={()=>{setSubtitlePanel(v=>{const next=!v;if(next)setAdvancedControls(false);return next})}}>
+      <Subtitles size={14}/> <span>Subtitle · {stream.subtitleMode==='hard'?'Hardsub':selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':selectedSubtitle.lang==='en'?'English':'pribadi'):subtitleOff?'Off':'Pilihan'}</span>
      </button>
      <button type="button" className="player-dock-btn" aria-label="Rasio video" title={fitMode==='contain'?'Isi seluruh layar (Fill)':'Rasio asli 16:9 (Fit)'} onClick={()=>setFitMode(f=>f==='contain'?'cover':'contain')}>
       <span>{fitMode==='contain'?'Fit':'Fill'}</span>
      </button>
      {pipSupported&&<button type="button" className="player-dock-btn icon-only" aria-label="Picture-in-Picture" disabled={hasActiveCaptions||Boolean(selectedSubtitle&&!subtitleOff)} title={hasActiveCaptions?'Matikan subtitle untuk PiP':'Picture-in-Picture'} onClick={()=>void togglePip()}><PictureInPicture2 size={15}/></button>}
-     <button type="button" className="player-dock-btn icon-only player-more-trigger" aria-label="Pengaturan" aria-expanded={advancedControls} onClick={()=>{setAdvancedControls(v=>{const next=!v;if(next)setSubtitlePanel(false);return next})}}><SlidersHorizontal size={15}/></button>
+     <button type="button" className="player-dock-btn player-more-trigger" aria-label="Pengaturan" aria-expanded={advancedControls} onClick={()=>{setAdvancedControls(v=>{const next=!v;if(next)setSubtitlePanel(false);return next})}}><SlidersHorizontal size={15}/> <span>Pengaturan</span></button>
      <button type="button" className="player-dock-btn icon-only" aria-label="Fullscreen video" onClick={()=>void toggleFullscreen()}><Maximize2 size={15}/></button>
     </div>
    </div>

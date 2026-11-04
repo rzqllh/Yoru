@@ -567,8 +567,8 @@ function App(){
        <p>{description(hero.synopsis).slice(0,210)+(hero.synopsis.length>210?'…':'')}</p>
        <div className="hero-source"><span>{dailyAvailable?`Aktivitas AniList · ${sourceDate}`:'Popularitas katalog · MyAnimeList (Populer Sepanjang Masa)'}</span>{dailyAvailable&&<a href={daily.sourceUrl} target="_blank" rel="noopener noreferrer">Lihat sumber</a>}</div>
        <div className="hero-actions">
-        <button type="button" className="hero-btn-play" onClick={()=>openDetail(hero)}>
-         <Play size={18} fill="currentColor"/> <span>Putar Sekarang</span>
+        <button type="button" className="hero-btn-play" aria-label="Buka anime" onClick={()=>openDetail(hero)}>
+         <Play size={18} fill="currentColor"/> <span>Buka anime</span>
         </button>
         <button type="button" className="hero-btn-details" onClick={()=>openDetail(hero)}>
          <span>Detail Anime</span>
@@ -1230,7 +1230,7 @@ function DetailBody({
    if(!sources.length){
     if(requestId!==sourceRequest.current)return
     setChoices({episode:ep.number,items:[]})
-    setSourceFeedback({episode:ep.number,phase:'no-direct',message:'Belum ada sumber video yang dapat ditemukan.'})
+    setSourceFeedback({episode:ep.number,phase:'no-direct',message:'Belum ada sumber video langsung. Video alternatif tanpa kontrol subtitle tidak ditawarkan.'})
     return
    }
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))

@@ -3131,8 +3131,8 @@ body {
 .browse-controls .browse-filters label{color:var(--soft);font-size:12px;gap:7px}
 .browse-controls .browse-filters select{min-height:44px;border-radius:var(--radius-sm);border-color:var(--line-strong);color:var(--text);background:var(--yoru-control-fill);font-size:13px;font-weight:600}
 .browse-filter-note{margin:12px 2px 18px;color:var(--muted);font-size:12px;line-height:1.5}
-.modal-backdrop{overflow:hidden;align-items:center;padding:max(12px,env(safe-area-inset-top,0px)) 12px max(12px,env(safe-area-inset-bottom,0px));overscroll-behavior:none}
-.modal-backdrop .detail-modal{display:block;min-height:0;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;margin:0;border-radius:var(--radius-lg);scroll-padding-top:18px}
+.modal-backdrop{overflow:hidden;align-items:center;padding:max(12px,env(safe-area-inset-top,0px)) 12px max(12px,env(safe-area-inset-bottom,0px));overscroll-behavior:none;scroll-behavior:auto!important}
+.modal-backdrop .detail-modal{display:block;min-height:0;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;margin:0;border-radius:var(--radius-lg);scroll-padding-top:18px;scroll-behavior:auto!important}
 .source-picker{scroll-margin-top:20px}
 .library-view-tabs,.filter-tabs{border-radius:var(--radius-md);box-shadow:none}
 .library-view-tabs button,.filter-tabs button{min-height:44px;border-radius:var(--radius-sm)}
