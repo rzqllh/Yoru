@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useRef,useState,type ChangeEvent,type CSSProperties} from 'react'
+import {useCallback,useEffect,useMemo,useRef,useState,type ChangeEvent,type CSSProperties} from 'react'
 import type Hls from 'hls.js'
 import {AlertTriangle,ArrowLeft,Info,Maximize2,MonitorPlay,PictureInPicture2,SkipBack,SkipForward,Subtitles,Play,Pause,Volume2,VolumeX,Upload,SlidersHorizontal} from 'lucide-react'
 import type {Anime,Stream} from '../types'
@@ -34,6 +34,25 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
  const [subtitleSearch,setSubtitleSearch]=useState(false)
  const [subtitlePanel,setSubtitlePanel]=useState(false)
  const [advancedControls,setAdvancedControls]=useState(false)
+ const [controlsVisible,setControlsVisible]=useState(true)
+ const [fitMode,setFitMode]=useState<'contain'|'cover'>('contain')
+ const hideTimer=useRef<number|null>(null)
+ const showControls=useCallback(()=>{
+  setControlsVisible(true)
+  if(hideTimer.current){window.clearTimeout(hideTimer.current);hideTimer.current=null}
+  if(!isPaused&&!advancedControls&&!subtitlePanel){
+   hideTimer.current=window.setTimeout(()=>{setControlsVisible(false)},2800)
+  }
+ },[isPaused,advancedControls,subtitlePanel])
+ useEffect(()=>{
+  if(isPaused||advancedControls||subtitlePanel){
+   setControlsVisible(true)
+   if(hideTimer.current){window.clearTimeout(hideTimer.current);hideTimer.current=null}
+  }else{
+   showControls()
+  }
+  return()=>{if(hideTimer.current){window.clearTimeout(hideTimer.current);hideTimer.current=null}}
+ },[isPaused,advancedControls,subtitlePanel,showControls])
  const [selectedSubtitle,setSelectedSubtitle]=useState<{id:string;lang:string;url:string}|null>(null)
  const [subtitleOff,setSubtitleOff]=useState(false)
  const [subtitleManual,setSubtitleManual]=useState(false)
@@ -161,8 +180,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
      if(!(cue instanceof VTTCue))continue
      if(!captionLines.current.has(cue))captionLines.current.set(cue,cue.line)
      try{
-      cue.line=captionPosition==='original'?captionLines.current.get(cue)??'auto':
-       captionPosition==='top'?0:-1
+      cue.snapToLines=false
+      cue.line=captionPosition==='top'?8:(controlsVisible?70:86)
      }catch{/* native cue renderer may reject placement */}
     }
    }
@@ -175,7 +194,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    for(const track of Array.from(v.querySelectorAll('track')))track.removeEventListener('load',load)
    v.textTracks.removeEventListener('addtrack',load)
   }
- },[stream.format,captionPosition])
+ },[stream.format,captionPosition,controlsVisible])
 
 
  useEffect(()=>{
@@ -262,6 +281,13 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   setSelectedSubtitle(null)
   setSubtitlePreference(language)
   setSubtitleState(`Subtitle ${language==='id'?'Indonesia':'English'} dipilih`)
+  const tracks=video.current?.textTracks
+  if(tracks){
+   for(let i=0;i<tracks.length;i++){
+    const match=tracks[i].language===language||(language==='id'&&tracks[i].label.toLowerCase().includes('indonesia'))
+    tracks[i].mode=match?'showing':'disabled'
+   }
+  }
   if(anime&&!demo)void setPreference(`subtitle-language:${anime.id}`,language).catch(()=>{})
  }
  async function importSubtitle(event:ChangeEvent<HTMLInputElement>){
@@ -363,6 +389,32 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   setSubtitleOffset(next)
   void setPreference(`subtitle-offset:${anime.id}`,String(next)).catch(()=>{})
  }
+
+ const elevateTracks=useCallback(()=>{
+  const tracks=video.current?.textTracks
+  if(!tracks)return
+  const targetLine=captionPosition==='top'?8:(controlsVisible?70:86)
+  for(let i=0;i<tracks.length;i++){
+   const track=tracks[i]
+   const applyElevation=()=>{
+    if(track.cues){
+     for(let j=0;j<track.cues.length;j++){
+      const cue=track.cues[j] as VTTCue
+      if(cue&&typeof cue.line!=='undefined'){
+       cue.snapToLines=false
+       cue.line=targetLine
+      }
+     }
+    }
+   }
+   applyElevation()
+   track.oncuechange=applyElevation
+  }
+ },[captionPosition,controlsVisible])
+
+ useEffect(()=>{
+  elevateTracks()
+ },[elevateTracks])
 
  useEffect(()=>{
   let alive=true
@@ -517,6 +569,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   const root=watchRef.current
   const v=video.current
   if(!root||!v)return
+  setSubtitlePanel(false)
+  setAdvancedControls(false)
   try{
    if(document.fullscreenElement){await document.exitFullscreen();return}
    if(typeof root.requestFullscreen==='function'){await root.requestFullscreen();return}
@@ -552,6 +606,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    if(target instanceof Element&&target.closest('input,select,textarea,[contenteditable="true"]'))return
    const v=video.current
    if(!v)return
+   showControls()
    const key=event.key.toLowerCase()
    if(key===' '||key==='k'){
     event.preventDefault()
@@ -566,6 +621,8 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     v.muted=!v.muted
    }else if(key==='f'){
     event.preventDefault()
+    setSubtitlePanel(false)
+    setAdvancedControls(false)
     const root=video.current?.closest<HTMLElement>('.player-overlay')
     if(document.fullscreenElement)void document.exitFullscreen().catch(()=>{})
     else if(root?.requestFullscreen)void root.requestFullscreen().catch(()=>{})
@@ -576,7 +633,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   }
   document.addEventListener('keydown',handle)
   return()=>document.removeEventListener('keydown',handle)
- },[stream.format,stream.subtitleMode,anime,demo])
+ },[stream.format,stream.subtitleMode,anime,demo,showControls])
 
  const saveLocal=()=>{
   if(demo||!anime||!video.current)return
@@ -631,7 +688,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   }
  },[stream.url,stream.format,resumeAt])
 
- return <main ref={watchRef} tabIndex={-1} className="player-overlay" aria-label="Layar tonton">
+ return <main ref={watchRef} tabIndex={-1} className={`player-overlay ${controlsVisible ? 'controls-visible' : 'controls-hidden'}`} aria-label="Layar tonton" onMouseMove={showControls} onClick={showControls} onKeyDown={showControls} onTouchStart={showControls}>
   <div className="player-top">
    <button type="button" className="icon-button glass" onClick={onClose} aria-label="Kembali"><ArrowLeft size={20}/></button>
    <div className="player-heading">
@@ -655,11 +712,12 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <a href={resolvedEmbedUrl} target="_blank" rel="noopener noreferrer">Buka video di tab baru</a>
    </div>:<>
    {/* biome-ignore lint/a11y/useMediaCaption: Caption tracks are supplied dynamically from the active stream. */}
-   <video ref={video} className={captionClasses(normalizeCaptionSettings({font:captionFont,size:captionSize,backdrop:captionBackdrop,textOpacity:captionTextOpacity,backgroundOpacity:captionBackgroundOpacity,outline:captionOutline,position:captionPosition}))} playsInline preload="metadata" crossOrigin="anonymous" onPlay={()=>setIsPaused(false)} onPause={()=>{setIsPaused(true);saveLocal()}} onVolumeChange={()=>{if(video.current){setVolume(video.current.volume);setIsMuted(video.current.muted)}}} onLoadedMetadata={()=>{setReady(true);setDuration(video.current?.duration||0);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt}} onDurationChange={()=>setDuration(video.current?.duration||0)} onTimeUpdate={()=>{setPosition(video.current?.currentTime||0);if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onEnded={()=>{setIsPaused(true);saveLocal();void prepareNextEpisode()}} autoPlay>
-    {stream.tracks.map(t=><track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={subtitlePreferenceReady&&!subtitleOff&&!selectedSubtitle&&t.lang===(subtitlePreference==='en'?'en':'id')}/>)}
+   <video ref={video} style={{objectFit:fitMode}} className={captionClasses(normalizeCaptionSettings({font:captionFont,size:captionSize,backdrop:captionBackdrop,textOpacity:captionTextOpacity,backgroundOpacity:captionBackgroundOpacity,outline:captionOutline,position:captionPosition}))} playsInline preload="metadata" crossOrigin="anonymous" onPlay={()=>setIsPaused(false)} onPause={()=>{setIsPaused(true);saveLocal()}} onVolumeChange={()=>{if(video.current){setVolume(video.current.volume);setIsMuted(video.current.muted)}}} onLoadedMetadata={()=>{setReady(true);setDuration(video.current?.duration||0);if(resumeAt>0&&video.current&&video.current.duration>resumeAt+3)video.current.currentTime=resumeAt;const tracks=video.current?.textTracks;if(tracks&&!subtitleOff&&!selectedSubtitle){const lang=subtitlePreference==='en'?'en':'id';for(let i=0;i<tracks.length;i++){if(tracks[i].language===lang||(lang==='id'&&tracks[i].label.toLowerCase().includes('indonesia'))){tracks[i].mode='showing'}}}elevateTracks()}} onDurationChange={()=>setDuration(video.current?.duration||0)} onTimeUpdate={()=>{setPosition(video.current?.currentTime||0);if(Date.now()-lastSave.current>6000){lastSave.current=Date.now();saveLocal()}}} onEnded={()=>{setIsPaused(true);saveLocal();void prepareNextEpisode()}} autoPlay>
+    {stream.tracks.map(t=>{const isDefault=subtitlePreferenceReady&&!subtitleOff&&!selectedSubtitle&&t.lang===(subtitlePreference==='en'?'en':'id');return <track key={t.lang+t.url} kind="subtitles" srcLang={t.lang} label={t.label} src={t.url} default={isDefault} onLoad={()=>{if(isDefault&&video.current?.textTracks){const tracks=video.current.textTracks;for(let i=0;i<tracks.length;i++){if(tracks[i].language===t.lang||tracks[i].label===t.label)tracks[i].mode='showing'}}elevateTracks()}}/>})}
     {selectedSubtitle&&!subtitleOff&&<track key={selectedSubtitle.url} kind="subtitles" srcLang={selectedSubtitle.lang} label={selectedSubtitle.id} src={selectedSubtitle.url} default onLoad={()=>{
      const tracks=video.current?.textTracks
      if(tracks)for(let i=0;i<tracks.length;i++)tracks[i].mode=tracks[i].label===selectedSubtitle.id?'showing':'disabled'
+     elevateTracks()
     }}/>} 
    </video>
    {ready&&isPaused&&!error&&<button type="button" className="player-center-play" aria-label="Putar video" onClick={togglePlayback}><Play size={30} fill="currentColor"/></button>}
@@ -675,21 +733,37 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
   </div>}
   {nextMessage&&<div className="player-next" role="status">{nextMessage}</div>}
   {stream.format!=='embed'&&<div className="player-toolbar">
-   <div className="player-transport">
-    <button type="button" className="player-transport-play" aria-label={isPaused?'Putar video':'Jeda video'} onClick={togglePlayback}>{isPaused?<Play size={20} fill="currentColor"/>:<Pause size={20} fill="currentColor"/>}</button>
-    <span className="player-time" aria-live="off">{clock(position)} <span>/</span> {clock(duration)}</span>
+   <div className="player-dock-scrubber">
     <input type="range" min={0} max={Number.isFinite(duration)&&duration>0?duration:1} step="0.1" value={Math.min(position,Number.isFinite(duration)&&duration>0?duration:1)} onChange={event=>seekTo(Number(event.target.value))} aria-label="Posisi video" className="player-seek" style={{'--seek':`${duration>0?position/duration*100:0}%`} as CSSProperties}/>
-    <button type="button" aria-label={isMuted||volume===0?'Aktifkan suara':'Matikan suara'} onClick={()=>{const v=video.current;if(v){v.muted=!v.muted;setIsMuted(v.muted)}}}>{isMuted||volume===0?<VolumeX size={19}/>:<Volume2 size={19}/>}</button>
-    <input type="range" min="0" max="1" step="0.05" value={isMuted?0:volume} onChange={event=>setSound(Number(event.target.value))} aria-label="Volume" className="player-volume"/>
    </div>
-   <div className="player-quick-actions">
-    <button type="button" aria-label="Mundur 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.max(0,v.currentTime-10)}}><SkipBack size={16}/> −10s</button>
-    <button type="button" aria-label="Maju 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.min(Number.isFinite(v.duration)?v.duration:Infinity,v.currentTime+10)}}><SkipForward size={16}/> +10s</button>
-    <button type="button" aria-label="Fullscreen video" onClick={()=>void toggleFullscreen()}><Maximize2 size={16}/> Fullscreen</button>
-    {pipSupported&&<button type="button" aria-label="Picture-in-Picture" disabled={hasActiveCaptions||Boolean(selectedSubtitle&&!subtitleOff)} title={hasActiveCaptions?'Matikan subtitle untuk PiP':'Picture-in-Picture'} onClick={()=>void togglePip()}><PictureInPicture2 size={16}/> PiP</button>}
-    <button type="button" className="player-more-trigger" aria-expanded={advancedControls} onClick={()=>setAdvancedControls(value=>!value)}><SlidersHorizontal size={17}/> Pengaturan</button>
+   <div className="player-dock-row">
+    <div className="player-dock-left">
+     <button type="button" className="player-transport-play" aria-label={isPaused?'Putar video':'Jeda video'} onClick={togglePlayback}>{isPaused?<Play size={18} fill="currentColor"/>:<Pause size={18} fill="currentColor"/>}</button>
+     <button type="button" className="player-dock-btn icon-only" aria-label="Mundur 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.max(0,v.currentTime-10)}}><SkipBack size={15}/> <span>10</span></button>
+     <button type="button" className="player-dock-btn icon-only" aria-label="Maju 10 detik" onClick={()=>{const v=video.current;if(v)v.currentTime=Math.min(Number.isFinite(v.duration)?v.duration:Infinity,v.currentTime+10)}}><SkipForward size={15}/> <span>10</span></button>
+     <span className="player-time" aria-live="off">{clock(position)} <span className="time-sep">/</span> {clock(duration)}</span>
+    </div>
+    <div className="player-dock-right">
+     <div className="player-volume-group">
+      <button type="button" aria-label={isMuted||volume===0?'Aktifkan suara':'Matikan suara'} onClick={()=>{const v=video.current;if(v){v.muted=!v.muted;setIsMuted(v.muted)}}}>{isMuted||volume===0?<VolumeX size={17}/>:<Volume2 size={17}/>}</button>
+      <input type="range" min="0" max="1" step="0.05" value={isMuted?0:volume} onChange={event=>setSound(Number(event.target.value))} aria-label="Volume" className="player-volume"/>
+     </div>
+     <button type="button" className={`player-dock-btn ${stream.subtitleMode==='hard'?'hardsub':''}`} aria-controls="yoru-subtitle-panel" aria-expanded={subtitlePanel} onClick={()=>{setSubtitlePanel(v=>{const next=!v;if(next)setAdvancedControls(false);return next})}}>
+      <Subtitles size={14}/> <span>{stream.subtitleMode==='hard'?'Hardsub':selectedSubtitle?(selectedSubtitle.lang==='id'?'Sub Indo':'English'):subtitleOff?'Sub Off':'Subtitle'}</span>
+     </button>
+     <button type="button" className="player-dock-btn" aria-label="Rasio video" title={fitMode==='contain'?'Isi seluruh layar (Fill)':'Rasio asli 16:9 (Fit)'} onClick={()=>setFitMode(f=>f==='contain'?'cover':'contain')}>
+      <span>{fitMode==='contain'?'Fit':'Fill'}</span>
+     </button>
+     {pipSupported&&<button type="button" className="player-dock-btn icon-only" aria-label="Picture-in-Picture" disabled={hasActiveCaptions||Boolean(selectedSubtitle&&!subtitleOff)} title={hasActiveCaptions?'Matikan subtitle untuk PiP':'Picture-in-Picture'} onClick={()=>void togglePip()}><PictureInPicture2 size={15}/></button>}
+     <button type="button" className="player-dock-btn icon-only player-more-trigger" aria-label="Pengaturan" aria-expanded={advancedControls} onClick={()=>{setAdvancedControls(v=>{const next=!v;if(next)setSubtitlePanel(false);return next})}}><SlidersHorizontal size={15}/></button>
+     <button type="button" className="player-dock-btn icon-only" aria-label="Fullscreen video" onClick={()=>void toggleFullscreen()}><Maximize2 size={15}/></button>
+    </div>
    </div>
-   {advancedControls&&<div className="player-extra-controls">
+   {qualityNote&&<small role="status" className="player-quality-pill">{qualityNote}</small>}
+  </div>}
+  {(advancedControls||subtitlePanel)&&<div className="player-drawer-backdrop" aria-hidden="true" onClick={()=>{setAdvancedControls(false);setSubtitlePanel(false)}}/>}
+  {advancedControls&&<div className="player-extra-controls" role="dialog" aria-label="Pengaturan video">
+   <div className="subtitle-picker-header"><strong>Pengaturan video</strong><button type="button" onClick={()=>setAdvancedControls(false)}>Tutup</button></div>
    <label>Kecepatan
     <select aria-label="Kecepatan pemutaran" value={speed} onChange={e=>{const next=Number(e.target.value);setSpeed(next);void setPreference('playback-speed',String(next)).catch(()=>{})}}>
      {[0.5,0.75,1,1.25,1.5,2].map(value=><option key={value} value={value}>{value}×</option>)}
@@ -725,14 +799,9 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
     <button type="button" onClick={()=>changeOffset(0.1)} disabled={!anime||demo} aria-label="Subtitle 0.1 detik lebih lambat">+0.1</button>
     <button type="button" onClick={()=>changeOffset(0.5)} disabled={!anime||demo} aria-label="Subtitle 0.5 detik lebih lambat">+0.5</button>
    </div>}
-   </div>}
-   <button type="button" className={`player-subtitle-trigger ${stream.subtitleMode==='hard'?'hardsub':''}`} aria-controls="yoru-subtitle-panel" aria-expanded={subtitlePanel} onClick={()=>setSubtitlePanel(value=>!value)}>
-    <Subtitles size={15}/> Subtitle · {stream.subtitleMode==='hard'?'Hardsub (Menyatu)':selectedSubtitle?(selectedSubtitle.lang==='id'?'Indonesia':selectedSubtitle.lang==='en'?'English':'pribadi'):subtitleOff?'Off':subtitleSearch?'Mencari…':'Pilihan'}
-   </button>
-   {qualityNote&&<small role="status">{qualityNote}</small>}
   </div>}
   {displayNotice&&<div className="player-control-notice" role="status">{displayNotice}</div>}
-  {subtitlePanel&&<div className="player-subtitle-panel" id="yoru-subtitle-panel">
+  {subtitlePanel&&<div className="player-subtitle-panel" id="yoru-subtitle-panel" role="dialog" aria-label="Pilihan subtitle">
    <div className="subtitle-picker-header"><strong>Subtitle episode {episode}</strong><button type="button" onClick={()=>setSubtitlePanel(false)}>Tutup</button></div>
    {stream.format==='embed'?<p className="subtitle-embed-explainer" role="status">Pilihan subtitle diatur oleh pemutar video alternatif. Buka pengaturan di dalam video jika tersedia.</p>:<>
    {stream.subtitleMode==='hard'&&<div className="subtitle-hardsub-banner" role="status">
@@ -743,7 +812,7 @@ export default function Player({anime,episode,stream,demo=false,manualSource=fal
    <button type="button" onClick={disableSubtitle} aria-pressed={subtitleOff} disabled={stream.subtitleMode==='hard'} title={stream.subtitleMode==='hard'?'Subtitle bawaan tercetak di video dan tidak dapat dimatikan':undefined}>
     {stream.subtitleMode==='hard'?'Off (Tidak tersedia untuk hardsub)':'Off'}
    </button>
-   {stream.tracks.filter(item=>item.lang==='id'||item.lang==='en').map(item=><button type="button" key={item.url} onClick={()=>chooseNativeSubtitle(item.lang as 'id'|'en')} aria-pressed={!subtitleOff&&!selectedSubtitle&&subtitlePreference===item.lang}>{item.lang==='id'?'Bahasa Indonesia':'English'} · Bawaan video</button>)}
+   {stream.tracks.filter(item=>item.lang==='id'||item.lang==='en').map(item=><button type="button" key={item.url} onClick={()=>chooseNativeSubtitle(item.lang as 'id'|'en')} aria-pressed={!subtitleOff&&!selectedSubtitle&&subtitlePreference===item.lang}>{item.lang==='id'?'Bahasa Indonesia (Takarir Lembut)':'English'} · Bawaan video</button>)}
    {subtitleChoices.map(item=><button type="button" key={item.id} onClick={()=>{setSubtitleManual(true);void activateSubtitle(item,true)}} aria-pressed={selectedSubtitle?.id===item.id}>
     {item.label} · {item.provider==='stremio'?'Sumber tambahan':'Sumber subtitle'} · Pilihan {subtitleChoices.indexOf(item)+1}
    </button>)}

@@ -153,7 +153,7 @@ function AppLogo(){
 async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:string):Promise<Stream|null>{
  try{
   const providers=await providerEpisodes(malId)
-  const matches=providers.items.filter(item=>item.number===episode&&item.providerId!=='public-embed').slice(0,6)
+  const matches=providers.items.filter(item=>item.number===episode).slice(0,6)
   const resolved=await Promise.allSettled(matches.map(item=>streams(item.id)))
   const remembered=await readRememberedSource(malId,episode,key=>getPreference(key,''))
   const candidates=preferRememberedSource(rankNativeStreams(
@@ -164,6 +164,10 @@ async function resolveHealthyNative(malId:number,episode:number,exceptUrl?:strin
    if(visited.has(candidate.url))continue
    visited.add(candidate.url)
    if(visited.size>6)break
+   if(candidate.format==='embed'){
+    void saveRememberedSource(malId,episode,candidate,setPreference)
+    return candidate
+   }
    try{
     await verifyNativeSource(candidate,10000)
     void saveRememberedSource(malId,episode,candidate,setPreference)
@@ -354,17 +358,17 @@ function App(){
  },[playback,route.page,selected])
 
  const dailyAvailable=daily?.items.length===10
- const featured=dailyAvailable?daily.items:top.data.slice(0,10)
+ const featured=dailyAvailable?daily.items.slice(0,10):top.data.slice(0,10)
  const hero=featured[featuredIndex%Math.max(1,featured.length)]||season.data[0]
  const sourceDate=dailyAvailable?new Date(daily.date+'T00:00:00Z').toLocaleDateString('id-ID',{timeZone:'UTC',day:'numeric',month:'short',year:'numeric'}):''
  useEffect(()=>{
-  if(route.page!=='home'||selected||playback||heroHovered||heroFocused||heroTouching||featured.length<2)return
+  if(route.page!=='home'||selected||playback||heroHovered||heroFocused||heroTouching||featured.length<2||featuredIndex<0)return
   const motion=window.matchMedia('(prefers-reduced-motion: reduce)')
   const timer=window.setInterval(()=>{
    if(!document.hidden&&!motion.matches)setFeaturedIndex(index=>(index+1)%featured.length)
-  },8000)
+  },10000)
   return()=>window.clearInterval(timer)
- },[route.page,selected,playback,heroHovered,heroFocused,heroTouching,featured.length])
+ },[route.page,selected,playback,heroHovered,heroFocused,heroTouching,featured.length,featuredIndex])
  const continueList=useMemo(()=>progress.filter(isResumableProgress).slice(0,6),[progress])
 
  async function resumeRow(row:ProgressEntry){
@@ -544,10 +548,16 @@ function App(){
         setFeaturedIndex(i=>(i+(dx<0?1:-1)+featured.length)%featured.length)
        }}
        onTouchCancel={()=>{heroTouchStart.current=null;setHeroTouching(false)}}
-       style={hero.cover?{backgroundImage:`linear-gradient(90deg,#0e1014 0%,rgba(14,16,20,.94) 36%,rgba(14,16,20,.7) 64%,rgba(14,16,20,.2) 100%),linear-gradient(0deg,#0e1014 0%,transparent 60%),url("${hero.cover.replaceAll('"','%22')}")`}:undefined}>
+       style={hero.cover?{backgroundImage:`linear-gradient(90deg,#0a0d14 0%,rgba(10,13,20,.94) 38%,rgba(10,13,20,.72) 64%,rgba(10,13,20,.2) 100%),linear-gradient(0deg,#0a0d14 0%,transparent 60%),url("${hero.cover.replaceAll('"','%22')}")`}:undefined}>
       <div className="hero-copy">
-       <div className="hero-badge"><span className="pulse"/> {dailyAvailable?'TREN HARIAN ANILIST':'ANIME POPULAR'}</div>
+       <div className="hero-badge-row">
+        <span className="hero-rank-badge">{dailyAvailable?`#${(featuredIndex%Math.max(1,featured.length))+1} HARI INI`:`#${(featuredIndex%Math.max(1,featured.length))+1} TERPOPULER`}</span>
+        <span className="hero-badge"><span className="pulse"/> {dailyAvailable?'TREN HARIAN ANILIST':'POPULER SEPANJANG MASA'}</span>
+       </div>
        <h2>{hero.title}</h2>
+       <div className="hero-genres">
+        {hero.genres?.slice(0,3).map(g=><span key={g} className="hero-genre-pill">{g}</span>)}
+       </div>
        <div className="hero-meta">
         <span className="hero-rating"><Star size={14} fill="currentColor"/> {scoreDisplay(hero.score)}</span>
         <span>{hero.year||'Anime'}</span>
@@ -555,17 +565,31 @@ function App(){
         <span>{hero.episodes?`${hero.episodes} Episode`:'Sedang tayang'}</span>
        </div>
        <p>{description(hero.synopsis).slice(0,210)+(hero.synopsis.length>210?'…':'')}</p>
-       <div className="hero-source"><span>{dailyAvailable?`Aktivitas AniList · ${sourceDate} (UTC)`:'Popularitas katalog · MyAnimeList'}</span>{dailyAvailable&&<a href={daily.sourceUrl} target="_blank" rel="noopener noreferrer">Lihat sumber</a>}</div>
+       <div className="hero-source"><span>{dailyAvailable?`Aktivitas AniList · ${sourceDate}`:'Popularitas katalog · MyAnimeList (Populer Sepanjang Masa)'}</span>{dailyAvailable&&<a href={daily.sourceUrl} target="_blank" rel="noopener noreferrer">Lihat sumber</a>}</div>
        <div className="hero-actions">
-        <button type="button" className="btn btn-primary" onClick={()=>openDetail(hero)}>
-         <Play size={16} fill="currentColor"/> Buka anime
+        <button type="button" className="hero-btn-play" onClick={()=>openDetail(hero)}>
+         <Play size={18} fill="currentColor"/> <span>Putar Sekarang</span>
         </button>
-        <button type="button" className="btn btn-outline" onClick={()=>void toggleSave(hero)}>
-         <Plus size={16}/> Koleksiku
+        <button type="button" className="hero-btn-details" onClick={()=>openDetail(hero)}>
+         <span>Detail Anime</span>
+        </button>
+        <button type="button" className="hero-btn-save" onClick={()=>void toggleSave(hero)} aria-label="Koleksiku" title="Simpan ke koleksi">
+         <Plus size={18}/>
         </button>
        </div>
+       <div className="hero-carousel-dots" role="tablist" aria-label={dailyAvailable?'10 Teratas Hari Ini':'10 Terpopuler Sepanjang Masa'}>
+        {featured.slice(0,10).map((item,idx)=>{
+         const active=idx===(featuredIndex%Math.max(1,featured.length))
+         return(
+          <button key={item.id} type="button" role="tab" aria-selected={active} aria-label={`Peringkat #${idx+1}: ${item.title}`} className={`hero-carousel-dot ${active?'active':''}`} onClick={()=>setFeaturedIndex(idx)}>
+           <span className="dot-pill"/>
+           {active&&<span className="dot-label">#{idx+1}</span>}
+          </button>
+         )
+        })}
+       </div>
       </div>
-      <div className="hero-corner"><span>{dailyAvailable?'TREN HARIAN · ANILIST':'POPULARITAS KATALOG'}</span><ArrowDownRight size={20}/></div>
+      <div className="hero-corner"><span>{dailyAvailable?'TREN HARIAN · ANILIST':'POPULER SEPANJANG MASA'}</span><ArrowDownRight size={20}/></div>
      </section>}
      {continueList.length>0&&<Section eyebrow="TERAKHIR DITONTON" title="Lanjut menonton">
       <div className="continue-grid">
@@ -590,7 +614,7 @@ function App(){
      </Section>
 
      <Section
-      eyebrow={dailyAvailable?`AKTIVITAS ANILIST · ${sourceDate} UTC`:"BERDASARKAN POPULARITAS KATALOG"}
+      eyebrow="BERDASARKAN POPULARITAS KATALOG"
       title="Anime Popular"
       action={<button type="button" className="text-link" onClick={()=>navigateState({page:'browse',browseKind:'top',libraryView:'all',searchQuery:''})}>Lihat semua <ArrowRight size={16}/></button>}
      >
@@ -1170,9 +1194,12 @@ function DetailBody({
  async function checkAndWatch(stream:Stream,ep:number,manual=false,requestId=++sourceRequest.current){
   if(requestId!==sourceRequest.current)return
   if(stream.format==='embed'){
-   // D02: an uncontrolled third-party iframe cannot be a playable source.
-   setError('Video alternatif tanpa kontrol subtitle tidak dapat diputar melalui Yoru.')
-   setSourceFeedback({episode:ep,phase:'no-direct',message:'Gunakan sumber video langsung yang dapat diperiksa.'})
+   setPlaying(String(ep))
+   setError('')
+   setSourceFeedback({episode:ep,phase:'verified',message:'Video mirror siap diputar.'})
+   void saveRememberedSource(info.malId,ep,stream,setPreference)
+   onWatch({anime:info,episode:ep,stream,manualSource:manual})
+   setPlaying('')
    return
   }
   setPlaying(String(ep))
@@ -1194,7 +1221,7 @@ function DetailBody({
  }
  async function play(ep:Episode){
   const requestId=++sourceRequest.current
-  const sources=(availableMap.get(ep.number)||[]).filter(source=>source.providerId!=='public-embed')
+  const sources=availableMap.get(ep.number)||[]
   setPlaying(String(ep.number))
   setError('')
   setChoices(null)
@@ -1203,7 +1230,7 @@ function DetailBody({
    if(!sources.length){
     if(requestId!==sourceRequest.current)return
     setChoices({episode:ep.number,items:[]})
-    setSourceFeedback({episode:ep.number,phase:'no-direct',message:'Belum ada sumber video langsung. Video alternatif tanpa kontrol subtitle tidak ditawarkan.'})
+    setSourceFeedback({episode:ep.number,phase:'no-direct',message:'Belum ada sumber video yang dapat ditemukan.'})
     return
    }
    const results=await Promise.allSettled(sources.map(source=>streams(source.id)))
@@ -1212,17 +1239,19 @@ function DetailBody({
    const remembered=await readRememberedSource(info.malId,ep.number,key=>getPreference(key,''))
    if(requestId!==sourceRequest.current)return
    const native=preferRememberedSource(rankNativeStreams(summary.items),remembered)
-   if(!native.length){
+   const fallback=summary.items.filter(s=>s.format==='embed')
+   const candidates=native.length>0?native:fallback
+   if(!candidates.length){
     setChoices({episode:ep.number,items:[],unavailable:summary.unavailable})
     setSourceFeedback({episode:ep.number,phase:summary.state,message:summary.message})
     return
    }
-   if(native.length===1){
+   if(candidates.length===1){
     // Preserve picker if the sole candidate fails browser verification.
-    setChoices({episode:ep.number,items:native,unavailable:summary.unavailable})
-    await checkAndWatch(native[0],ep.number,false,requestId)
+    setChoices({episode:ep.number,items:candidates,unavailable:summary.unavailable})
+    await checkAndWatch(candidates[0],ep.number,false,requestId)
    }else{
-    setChoices({episode:ep.number,items:native,unavailable:summary.unavailable})
+    setChoices({episode:ep.number,items:candidates,unavailable:summary.unavailable})
     setSourceFeedback({episode:ep.number,phase:summary.state,message:summary.message})
    }
   }catch{
@@ -1257,7 +1286,7 @@ function DetailBody({
      </section>
      <nav className="detail-actions" aria-label="Aksi anime">
       <button type="button" className="btn btn-primary" disabled={loading||!targetEpisode} onClick={()=>{if(targetEpisode)void play(targetEpisode)}}>
-       <Play size={16} fill="currentColor"/> {loading?'Memuat episode…':resumableProgress?`Lanjutkan Episode ${resumableProgress.episode}`:displayed.length?'Periksa sumber episode':'Episode belum tersedia'}
+       <Play size={16} fill="currentColor"/> {loading?'Memuat episode…':resumableProgress?`Lanjutkan Episode ${resumableProgress.episode}`:displayed.length?'Periksa sumber episode':(info.status==='NOT_YET_RELEASED'||info.status==='Not yet aired'?'Anime belum tayang':'Episode belum tersedia')}
       </button>
       <button type="button" className="btn btn-outline" onClick={onToggleSave}>
        {isSaved?<Check size={16}/>:<Plus size={16}/>} {isSaved?'Tersimpan':'Koleksiku'}
@@ -1273,7 +1302,7 @@ function DetailBody({
       <h2 id="episodes-heading">Daftar episode</h2>
      </div>
      <span className="episode-count">
-      {available.filter(e=>e.providerId!=='public-embed').length>0?'Ada kandidat sumber · belum diperiksa':'Belum menemukan kandidat video'}
+      {info.status==='NOT_YET_RELEASED'||info.status==='Not yet aired'?'Anime belum tayang':available.filter(e=>e.providerId!=='public-embed').length>0?'Ada kandidat sumber · belum diperiksa':'Belum menemukan kandidat video'}
      </span>
     </div>
     {error&&<p className="detail-error"><AlertTriangle size={15}/>{error}</p>}
@@ -1330,7 +1359,7 @@ function DetailBody({
        <span className="episode-action">{playing===String(ep.number)?<LoaderCircle size={16} className="spin"/>:<MonitorPlay size={15}/>}</span>
       </button>
      })}
-    </div>:<Empty icon={Film} title="Episode belum tersedia" body="Daftar episode belum ditemukan dalam metadata."/>}
+    </div>:<Empty icon={Film} title={info.status==='NOT_YET_RELEASED'||info.status==='Not yet aired'?'Anime ini belum dirilis':'Episode belum tersedia'} body={info.status==='NOT_YET_RELEASED'||info.status==='Not yet aired'?'Jadwal penayangan resmi belum dimulai. Belum ada episode yang tersedia untuk ditonton.':'Daftar episode belum ditemukan dalam metadata.'}/>}
 
     {hasNext&&<button type="button" className="load-episodes" disabled={loading||loadingMore} aria-busy={loadingMore} onClick={()=>void loadNext()}>{loadingMore?'Memuat episode…':'Muat episode berikutnya'} <ChevronDown size={15}/></button>}
    </section>
@@ -1564,7 +1593,7 @@ function SettingsPage({
      <div className="setting-row">
       <div>
        <strong>Sumber tersedia</strong>
-       <small>{providerList.length?providerList.map(p=>`${p.id==='public-embed'?'Video alternatif':p.id==='miruro'?'Pilihan langsung':p.id.startsWith('stremio-')?'Add-on video':'Sumber pribadi'}${p.animeCount===null?'':` · ${p.animeCount} judul`}`).join(', '):'Belum ada sumber video tambahan'}</small>
+       <small>{providerList.length?providerList.map(p=>`${p.id==='public-embed'?'Video alternatif':p.id==='universal'?'Streaming otomatis (Semua Anime)':p.id==='miruro'?'Pilihan langsung':p.id.startsWith('indo-')?'Subtitle Indonesia (Fansub)':p.id.startsWith('stremio-')?'Add-on video':'Sumber pribadi'}${p.animeCount===null?'':` · ${p.animeCount} judul`}`).join(', '):'Belum ada sumber video tambahan'}</small>
       </div>
       <button type="button" className="icon-button" aria-label="Perbarui daftar sumber video" onClick={refresh}><RefreshCw size={17}/></button>
      </div>
