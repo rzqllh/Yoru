@@ -554,7 +554,7 @@ test('library uses its own responsive layout without changing navigation',async(
 })
 
 
-test('AniList hero rotates every 8 seconds, pauses on hover and supports swipe',async({page})=>{
+test('AniList hero rotates every 10 seconds, pauses on hover and supports swipe',async({page})=>{
  await page.route('**/api/anime/daily-trends',route=>route.fulfill({json:{
   items:Array.from({length:10},(_,i)=>({...anime,id:'mal:'+(i+100),malId:i+100,title:'Tren AniList '+(i+1)})),
   source:'AniList',sourceUrl:'https://anilist.co',date:'2026-10-29',metric:'daily-media-activity'
@@ -564,13 +564,13 @@ test('AniList hero rotates every 8 seconds, pauses on hover and supports swipe',
  const hero=page.getByRole('region',{name:/Anime unggulan/})
  await expect(page.getByText(/Aktivitas AniList · 29 Okt 2026/)).toBeVisible()
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 1')
- await page.clock.fastForward(8000)
+ await page.clock.fastForward(10000)
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 2')
  await hero.hover()
- await page.clock.fastForward(16000)
+ await page.clock.fastForward(20000)
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 2')
  await page.mouse.move(0,0)
- await page.clock.fastForward(8000)
+ await page.clock.fastForward(10000)
  await expect(page.locator('.hero-copy h2')).toHaveText('Tren AniList 3')
  await hero.evaluate(el=>{
   const touch=(x,y)=>new Touch({identifier:1,target:el,clientX:x,clientY:y})

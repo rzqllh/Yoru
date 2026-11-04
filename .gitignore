@@ -17,4 +17,8 @@ configs/providers.local.json
 configs/stremio.local.json
 playwright-report/
 test-results/
+.playwright-mcp/
+.superpowers/
 
+
+.vercel
