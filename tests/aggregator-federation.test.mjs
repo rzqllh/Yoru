@@ -174,9 +174,9 @@ test('isPublicHost rejects loopback, private IPv4, and internal domains to preve
   assert.equal(await isPublicHost('169.254.169.254'), false)
   assert.equal(await isPublicHost('service.local'), false)
   assert.equal(await isPublicHost('internal.service.invalid'), false)
-  // Public IPv4 literal
-  assert.equal(await isPublicHost('8.8.8.8'), true)
-  assert.equal(await isPublicHost('1.1.1.1'), true)
+  // Direct IP literals must not bypass hostname allowlisting and TLS validation.
+  assert.equal(await isPublicHost('8.8.8.8'), false)
+  assert.equal(await isPublicHost('1.1.1.1'), false)
 })
 
 test('rewriteM3u8Manifest rewrites segment URLs to signed proxy URLs', () => {
