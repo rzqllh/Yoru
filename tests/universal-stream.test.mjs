@@ -128,13 +128,13 @@ test('cleanAnimeTitle strips season and part qualifiers to improve parent franch
   assert.equal(cleanAnimeTitle('Bleach: Thousand-Year Blood War - Part 2'), 'Bleach Thousand-Year Blood War')
 })
 
-test('resolveUniversalStream guarantees direct native HLS stream under D02 fail-closed without raw archive files', async () => {
-  const streams = await resolveUniversalStream('universal:61987:1', 'The Apothecary Diaries Season 3')
-  assert.ok(streams.length >= 1, 'Must provide at least one valid stream')
-  assert.equal(streams[0].id, 'universal:61987:1:hls')
-  assert.equal(streams[0].format, 'hls')
-  assert.ok(streams[0].url.includes('/api/proxy/stream'))
-  assert.equal(streams[0].providerId, 'universal')
-  assert.ok(streams[0].tracks.length >= 1)
-  assert.equal(streams[0].tracks[0].lang, 'id')
+test('resolveUniversalStream does not fabricate native HLS when upstream is unavailable', async () => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async () => { throw new Error('Simulated external source outage') }
+  try {
+    const streams = await resolveUniversalStream('universal:61987:1', 'The Apothecary Diaries Season 3')
+    assert.deepEqual(streams, [], 'Unverified upstream source must be reported unavailable')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
 })

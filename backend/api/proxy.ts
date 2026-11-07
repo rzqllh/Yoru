@@ -1,11 +1,16 @@
 /**
  * HMAC-Signed SSRF-Hardened Stream Proxy.
  * Relays HLS/MP4 streams that require specific Referer/Origin headers.
- * Protects against SSRF with DNS pinning, loopback/private IP blocking, and short TTL tokens.
+ * Only explicitly authorized HTTPS hosts may be relayed. DNS is pinned to the TLS connection;
+ * redirects and private IP literals are rejected. Not an authorization bypass for upstream media.
  */
 import type { Context } from 'hono'
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { lookup } from 'node:dns/promises'
+import { request as httpsRequest } from 'node:https'
+import { isIP } from 'node:net'
+import { Readable, Transform } from 'node:stream'
+import type { IncomingMessage } from 'node:http'
 
 export function isPublicIPv4(value: string): boolean {
   const parts = value.split('.')
@@ -19,6 +24,8 @@ export function isPublicIPv4(value: string): boolean {
   if (a === 192 && (b === 168 || (b === 0 && c === 0) || (b === 0 && c === 2))) return false
   if (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) return false
   if (a === 203 && b === 0 && c === 113) return false
+  if (a === 192 && b === 0 && c === 0) return false
+  if (a === 192 && b === 88 && c === 99) return false
   return true
 }
 
@@ -79,45 +86,53 @@ export function verifyProxyToken(
   return expected.length === actual.length && timingSafeEqual(expected, actual)
 }
 
-export async function isPublicHost(hostname: string): Promise<boolean> {
-  if (
-    !hostname ||
-    hostname === 'localhost' ||
-    hostname.endsWith('.local') ||
-    hostname.endsWith('.internal') ||
-    hostname.endsWith('.localhost') ||
-    hostname.endsWith('.invalid')
-  ) {
-    return false
-  }
+// No implicit public relay: a reviewed, exact host allowlist must be configured.
+// Only IPv4 connections are supported here; IPv6-only targets fail closed.
+const approvedHosts = new Set(
+  (process.env.STREAM_PROXY_ALLOWED_HOSTS || '')
+    .split(',')
+    .map(host => host.trim().toLowerCase())
+    .filter(host => /^[a-z0-9.-]+$/.test(host) && host.length > 0)
+)
+const MAX_MANIFEST_BYTES = 1024 * 1024
+const MAX_STREAM_BYTES = 128 * 1024 * 1024
+type PinnedAddress = { address: string; family: 4 }
 
-  // If already an IPv4 literal
-  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) {
-    return isPublicIPv4(hostname)
-  }
-
+async function selectPinnedPublicAddress(hostname: string): Promise<PinnedAddress | null> {
+  const host = hostname.toLowerCase()
+  if (!approvedHosts.has(host) || isIP(host) !== 0 || host.endsWith('.local') ||
+      host.endsWith('.internal') || host.endsWith('.localhost') || host === 'localhost') return null
   try {
-    const res = await lookup(hostname, { all: true })
-    if (!res || res.length === 0) return false
-    for (const record of res) {
-      if (record.family === 4) {
-        if (!isPublicIPv4(record.address)) return false
-      } else if (record.family === 6) {
-        const addr = record.address.toLowerCase()
-        if (
-          addr === '::1' ||
-          addr.startsWith('fe80:') ||
-          addr.startsWith('fc') ||
-          addr.startsWith('fd')
-        ) {
-          return false
-        }
-      }
-    }
-    return true
+    const records = await lookup(host, { all: true })
+    const ipv4 = records.filter((record) => record.family === 4)
+    if (!ipv4.length || ipv4.some(record => !isPublicIPv4(record.address))) return null
+    return { address: ipv4[0].address, family: 4 }
   } catch {
-    return false
+    return null
   }
+}
+
+export async function isPublicHost(hostname: string): Promise<boolean> {
+  return (await selectPinnedPublicAddress(hostname)) !== null
+}
+
+// HTTPS connects to a previously validated address while retaining the original
+// hostname for TLS certificate verification/SNI. No automatic redirects.
+async function requestPinned(url: URL, headers: Record<string, string>, pinned: PinnedAddress): Promise<IncomingMessage> {
+  return new Promise((resolve, reject) => {
+    const req = httpsRequest(url, {
+      method: 'GET',
+      headers,
+      lookup: (_host, _options, callback) => callback(null, pinned.address, pinned.family)
+    }, resolve)
+    const timer = setTimeout(() => req.destroy(new Error('UPSTREAM_HEADER_TIMEOUT')), 12_000)
+    req.once('response', () => clearTimeout(timer))
+    req.once('error', error => {
+      clearTimeout(timer)
+      reject(error)
+    })
+    req.end()
+  })
 }
 
 export function rewriteM3u8Manifest(
@@ -172,10 +187,7 @@ export async function handleStreamProxy(c: Context): Promise<Response> {
   const token = c.req.query('token') || ''
   const referer = c.req.query('referer') || ''
 
-  if (!urlParam || !expires || !token) {
-    return c.json({ error: 'INVALID_PROXY_REQUEST' }, 400)
-  }
-
+  if (!urlParam || !expires || !token) return c.json({ error: 'INVALID_PROXY_REQUEST' }, 400)
   if (!verifyProxyToken(urlParam, expires, token, referer)) {
     return c.json({ error: 'INVALID_OR_EXPIRED_PROXY_GRANT' }, 403)
   }
@@ -183,21 +195,19 @@ export async function handleStreamProxy(c: Context): Promise<Response> {
   let parsedUrl: URL
   try {
     parsedUrl = new URL(urlParam)
-    if (parsedUrl.protocol !== 'https:' || parsedUrl.username || parsedUrl.password) {
+    if (parsedUrl.protocol !== 'https:' || parsedUrl.username || parsedUrl.password ||
+        (parsedUrl.port && parsedUrl.port !== '443')) {
       return c.json({ error: 'UNSUPPORTED_PROXY_PROTOCOL' }, 400)
     }
   } catch {
     return c.json({ error: 'INVALID_PROXY_URL' }, 400)
   }
 
-  const isSafe = await isPublicHost(parsedUrl.hostname)
-  if (!isSafe) {
-    return c.json({ error: 'SSRF_TARGET_REJECTED' }, 403)
-  }
+  const pinned = await selectPinnedPublicAddress(parsedUrl.hostname)
+  if (!pinned) return c.json({ error: 'SSRF_TARGET_REJECTED' }, 403)
 
   const headers: Record<string, string> = {
-    'User-Agent':
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+    'User-Agent': 'Yoru-Verified-Stream-Client/1.0',
     Accept: '*/*'
   }
   if (referer) {
@@ -208,63 +218,88 @@ export async function handleStreamProxy(c: Context): Promise<Response> {
         headers.Origin = refUrl.origin
       }
     } catch {
-      // ignore invalid referer
+      return c.json({ error: 'INVALID_REFERER' }, 400)
     }
   }
-
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 12000)
+  const range = c.req.header('range')
+  if (range) {
+    if (!/^bytes=\d+-\d*$/.test(range)) return c.json({ error: 'INVALID_RANGE' }, 416)
+    headers.Range = range
+  }
 
   try {
-    const upstream = await fetch(parsedUrl.toString(), {
-      headers,
-      signal: controller.signal,
-      redirect: 'follow'
-    })
-
-    if (!upstream.ok) {
-      return c.json(
-        { error: 'UPSTREAM_PROXY_ERROR', status: upstream.status },
-        upstream.status >= 500 ? 502 : 500
-      )
+    const upstream = await requestPinned(parsedUrl, headers, pinned)
+    const status = upstream.statusCode || 502
+    if (status < 200 || status > 299) {
+      // In particular, fail closed on Location redirects (no redirect chaining).
+      upstream.destroy()
+      return c.json({ error: status >= 300 && status < 400 ? 'UPSTREAM_REDIRECT_BLOCKED' : 'UPSTREAM_PROXY_ERROR' }, 502)
     }
 
-    const contentType = upstream.headers.get('content-type') || ''
-    const isM3u8 =
-      parsedUrl.pathname.endsWith('.m3u8') ||
+    const contentType = String(upstream.headers['content-type'] || '')
+    const isM3u8 = parsedUrl.pathname.endsWith('.m3u8') ||
       contentType.includes('application/vnd.apple.mpegurl') ||
       contentType.includes('application/x-mpegurl')
 
     if (isM3u8) {
-      const manifestText = await upstream.text()
-      const rewritten = rewriteM3u8Manifest(manifestText, parsedUrl.toString(), referer)
-      return new Response(rewritten, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/vnd.apple.mpegurl',
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'private, no-cache, no-store, max-age=0'
+      const chunks: Buffer[] = []
+      let length = 0
+      for await (const chunk of upstream) {
+        const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+        length += buf.length
+        if (length > MAX_MANIFEST_BYTES) {
+          upstream.destroy()
+          return c.json({ error: 'MANIFEST_TOO_LARGE' }, 413)
         }
-      })
+        chunks.push(buf)
+      }
+      return new Response(
+        rewriteM3u8Manifest(Buffer.concat(chunks).toString('utf8'), parsedUrl.toString(), referer),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/vnd.apple.mpegurl',
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'private, no-store',
+            'X-Content-Type-Options': 'nosniff'
+          }
+        }
+      )
     }
 
-    // Binary segment or MP4
-    const responseHeaders: Record<string, string> = {
+    const advertisedLength = Number(upstream.headers['content-length'] || 0)
+    if (!Number.isFinite(advertisedLength) || advertisedLength > MAX_STREAM_BYTES) {
+      upstream.destroy()
+      return c.json({ error: 'UPSTREAM_BODY_TOO_LARGE' }, 413)
+    }
+
+    let streamed = 0
+    const bounded = new Transform({
+      transform(chunk: Buffer, _encoding, callback) {
+        streamed += chunk.length
+        if (streamed > MAX_STREAM_BYTES) {
+          callback(new Error('UPSTREAM_BODY_TOO_LARGE'))
+        } else {
+          callback(null, chunk)
+        }
+      }
+    })
+    upstream.pipe(bounded)
+    const outHeaders: Record<string, string> = {
       'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': 'private, no-store',
       'X-Content-Type-Options': 'nosniff'
     }
-    if (contentType) responseHeaders['Content-Type'] = contentType
-    const contentLength = upstream.headers.get('content-length')
-    if (contentLength) responseHeaders['Content-Length'] = contentLength
+    if (contentType) outHeaders['Content-Type'] = contentType
+    if (upstream.headers['content-length']) outHeaders['Content-Length'] = String(upstream.headers['content-length'])
+    if (upstream.headers['content-range']) outHeaders['Content-Range'] = String(upstream.headers['content-range'])
+    if (upstream.headers['accept-ranges']) outHeaders['Accept-Ranges'] = String(upstream.headers['accept-ranges'])
 
-    return new Response(upstream.body, {
-      status: 200,
-      headers: responseHeaders
+    return new Response(Readable.toWeb(bounded) as ReadableStream<Uint8Array>, {
+      status: status === 206 ? 206 : 200,
+      headers: outHeaders
     })
   } catch {
     return c.json({ error: 'UPSTREAM_FETCH_FAILED' }, 502)
-  } finally {
-    clearTimeout(timer)
   }
 }
