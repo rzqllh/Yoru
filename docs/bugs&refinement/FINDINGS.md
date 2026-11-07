@@ -68,7 +68,7 @@
 
 - **Status:** ACCEPTANCE_OPEN / DESIGN_DECISION.
 - **Batas bukti:** Planning 4 Nov mengklasifikasi aggregator APIs, extractor, framework, reference implementations. Menghitung lima mirror dari upstream sama sebagai lima sumber independen adalah misleading.
-- **Rujukan:** [planning master](../../planning/MASTER_PLAN.md), [release #20](https://github.com/rzqllh/Yoru/issues/20).
+- **Rujukan:** [planning master](../planning/MASTER_PLAN.md), [release #20](https://github.com/rzqllh/Yoru/issues/20).
 - **DoD:** Definisikan independence & authorized playback, provider IDs, observed per-title coverage, supported format/browser and explicit iframe decision. Jangan memigrasi ke Workers hanya untuk mengejar count.
 
 ### YOR-P0-10 — Signed media grants, proxy leakage dan arbitrary upstream request masih memerlukan live negative testing
@@ -147,7 +147,7 @@
 
 - **Status:** DRAFT / RECHECK.
 - **Batas bukti:** Planning menuntut AniList daily trending yang benar, MAL all-time tidak disamakan daily, JST/UTC tepat, Top 10 bukan data fabricated, dedup, refresh dan fallback terpisah. Belum semuanya independently verified pada candidate.
-- **Rujukan:** `backend/pipeline/daily-trends.ts`, [planning tracking](../../planning/TRACKING.md), [PR #158](https://github.com/rzqllh/Yoru/pull/158).
+- **Rujukan:** `backend/pipeline/daily-trends.ts`, [planning tracking](../planning/TRACKING.md), [PR #158](https://github.com/rzqllh/Yoru/pull/158).
 - **DoD:** Data provenance snapshots across JST boundary, list source attribution, cache TTL, no fake ranking and exact count.
 
 ### YOR-P1-11 — Browser native player source selection memory dan continuation states
@@ -277,7 +277,7 @@
 
 - **Status:** PROPOSED_REFINEMENT.
 - **Batas bukti:** Planning 4 Nov menyebut lima kategori; count source candidates independen harus transparan.
-- **Rujukan:** [planning](../../planning/MASTER_PLAN.md).
+- **Rujukan:** [planning](../planning/MASTER_PLAN.md).
 - **DoD:** Tag provider evidence class, permissions and real health; hide synthetic totals.
 
 ### YOR-P3-02 — Copy dan status badges Play-ready vs candidate/unknown/unavailable
@@ -319,7 +319,7 @@
 
 - **Status:** PROPOSED_REFINEMENT.
 - **Batas bukti:** A planning document or AI-generated approval is not permission to migrate infra, enable stream provider or choose Torrentio resolver.
-- **Rujukan:** [planning](../../planning/TRACKING.md), [epic #44](https://github.com/rzqllh/Yoru/issues/44).
+- **Rujukan:** [planning](../planning/TRACKING.md), [epic #44](https://github.com/rzqllh/Yoru/issues/44).
 - **DoD:** Use Decision/PROPOSED/VERIFIED markers per source and acceptance, keep older plans as historical.
 
 ## Release / governance checklist
