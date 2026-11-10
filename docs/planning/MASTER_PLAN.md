@@ -142,7 +142,7 @@ Future AniList hybrid filters require validated provenance, pagination/cursors, 
 
 ## 11. 2026-11-10 — Daily-Tools 177-JS audit and Yoru source integration scope
 
-**Owner intent:** Otakudesu FULL target for Yoru, but native HLS/MP4 availability, rights, real browser support and downstream reliability remain unverified. Anichin and the other eight Yoru-related scripts are candidate/reference BACKLOG; not automatically authorized integrations. Yomirra nhentai integration belongs to its separate repository. The cross-project upstream Daily-Tools source audit covers all 177 JavaScript files.
+**Owner intent:** Otakudesu FULL target for Yoru, but native HLS/MP4 availability, rights, real browser support and downstream reliability remain unverified. Anichin and the other eight Yoru-related scripts are candidate/reference BACKLOG; not automatically authorized integrations. The cross-project upstream Daily-Tools source audit covers all 177 JavaScript files.
 
 Canonical scoped PRD (including user journeys, requirements, API/identity mapping, 11 acceptance criteria, architecture, rights/privacy/security gates, 177-file inventory, risk register and rollback):
 [Daily-Tools Integration PRD (2026-11-10)](DAILY_TOOLS_INTEGRATION_PRD_2026-11-10.md).

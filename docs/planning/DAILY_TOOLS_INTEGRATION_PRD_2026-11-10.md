@@ -94,63 +94,27 @@ Existing approved intent: Otakudesu FULL target (not a declaration that third-pa
 AGY must perform: DISCOVER remote/local -> PROTECT local changes -> FETCH/DOWNLOAD -> RECONCILE exact source and documentation SHAs -> READ this PRD plus MASTER_PLAN, PHASE_PLAN, ACCEPTANCE_MATRIX, TRACKING, CURRENT_STATE, docs/public/providers.md, docs/public/security.md and issue #20 -> only then implement approved bounded slices -> QA + evidence and explicit release gate. Prefer fresh worktrees/branches, never destructive alignment. If conflicts, stop and ask for a decision, retaining both copies. Reporting format: initial HEADs/status, local preservation, remote HEADs/status, doc versions, changed files, commands and exit codes, test evidence, blockers, next approval.
 
 
-## Appendix A — Exhaustive Daily-Tools JavaScript inventory (177 files)
+## Appendix A — Daily-Tools audit scope and Yoru-relevant source inventory
 
-Audit method: read-only enumeration of the complete recursive Git tree and static inspection of the source files. A category is an integration disposition, not a malware finding or live-test PASS. Names after a folder header are relative to that folder. Counts reconcile to 177.
+The read-only research inspected **177 JavaScript files** in the upstream Daily-Tools Git tree at commit ef0e7b52048a856dd39d2b75e11b11e6982e057e. Exactly **9** were shortlisted for Yoru source discovery, metadata, episode or schedule evaluation; the remaining **168** are excluded from this Yoru integration plan. The excluded upstream files are deliberately not enumerated in this product document. Being inventoried does not authorize installing, importing, or distributing upstream code.
 
-### A1. Yoru source-related — 9
-- anichin.js; kusonime.js; otakudesu.js
-- lib/: wibu.js
-- needs to check/: anilist.js; bstation.js; info-anime.js; jadwal-anime.js; kusonime.js
+| File | Role | Integration decision |
+| --- | --- | --- |
+| otakudesu.js | Anime latest, search, detail, episodes, candidate media extraction | Primary FULL target, live native playback unverified |
+| anichin.js | Donghua metadata, popular, episodes, downloads | Candidate only; separate approval |
+| kusonime.js | Anime search, detail, download metadata | Candidate only; not native playback |
+| lib/wibu.js | Anime search | Discovery-only candidate |
+| needs to check/anilist.js | AniList metadata queries | Review against existing Yoru D03 contract |
+| needs to check/bstation.js | Bstation search | Discovery-only; not verified video |
+| needs to check/info-anime.js | Jikan metadata | May duplicate existing catalog |
+| needs to check/jadwal-anime.js | Release schedule | Optional schedule feature |
+| needs to check/kusonime.js | Alternative metadata/download scraper | Compare with primary variant before any code |
 
-### A2. Yomirra source-related — 4
-- nhentai.js
-- needs to check/: harimanga.js; info-manga.js; komikcast.js
+**General upstream reliability findings:** the original entrypoint points at absent index.js, the npm test script is a failing placeholder, CommonJS and ESM are mixed, and several generated wrappers reference nonexistent local modules. Specific unrelated files contain obfuscation, runtime evaluation of fetched scripts, or embedded credentials. Never wholesale-import the collection. The Otakudesu videoData regex contains private-use U+E001 markers and is not verified to resolve working HLS/MP4. A package license declaration alone does not prove rights to every contributed snippet.
 
-### A3. Yomirra adjacent / novel / experiments — 6
-- lib/: wattpad.js
-- needs to check/: wattpad-list.js; wattpad-read.js; wattpad-search.js
-- scratch/: test_komikcast_v3.js; test_komikcast_v3_full.js
-
-### A4. Block direct adoption / high-maintenance or unsuitable — 22
-- lib/: hdvid.js; hehe.js; nekopoi.js; spotify.js; tiktok.js
-- needs to check/: enhance.js; fakektp.js; hdvid.js; nekopoi-search.js; qcr.js; qcs.js; removenoise.js; resizevideo.js; rule34.js; togif.js; tomp3.js; topdf.js; toptt.js; tovideo.js
-- root: rule34.js; z-library-copy.js; z-library.js
-
-### A5. Shared helpers (selective reuse of concepts only) — 26
-- root: check_duplicate_files.js; check_local_downloads.js; display_metadata.js; drop_metadata.js; gdrive.js; group_lookup_duplicates.js; justpaste.js
-- lib/: gdrive.js; krakendl.js; pixeldrain.js; scrape-old.js; scrape.js; terabox.js; uploadFile.js; uploadImage.js
-- needs to check/: base64.js; fetch.js; gdrive.js; krakendl.js; mediafire.js; pastebin.js; pixeldrain.js; qrcode.js; sfile.js; terabox.js; translate.js
-
-### A6. Optional creative/image-related, out of approved integration scope — 35
-- backup/: pinterest.js
-- lib/: bingimage.js; huggingFace.js; moewalls.js; pixiv.js; wallq.js
-- needs to check/: _openaiimage.js; bingimg.js; bingimg2.js; brat.js; chord.js; editimage.js; faceswap.js; hytam.js; jadianime.js; logogen.js; moewalls.js; nulis.js; photooxy.js; pinterest.js; pinterest2.js; pixivid.js; postimg.js; putih.js; randomimage.js; remini.js; removebg.js; ssweb.js; stablediffusion.js; styletext.js; toanime.js; txt2img.js; wallpaperanime.js; wallq.js
-- root: pinterest.js
-
-### A7. Optional audio/video/social, out of approved integration scope — 35
-- lib/: YTDL.js; igstalk.js; threads.js; voiceba.js; xminus.js; y2mate.js
-- needs to check/: _autodl.js; _kobovoice.js; applemusic.js; capcut.js; downloader-spotify.js; fb.js; ig.js; ighightlight.js; igstalk.js; igstory.js; play-musekk .js; play.js; playstore.js; playtiktok.js; search-spotify.js; threadsdl.js; tiktok2.js; tiktokimg.js; tiktokstalk.js; tts.js; tts2.js; twitter.js; voiceBA.js; yta.js; yts.js; ytv.js
-- root: playstore.js; playtiktok.js; search-spotify.js
-
-### A8. Other utility / no Yoru-Yomirra product fit — 40
-- lib/: aielaina.js; chatbot.js; lyrics.js; npmstalk.js; randomm.js; sasangeyouu.js; steam.js; wuwa.js
-- needs to check/: _openai-character-ai.js; aillama.js; alkitab.js; blackbox.js; brainly.js; calc.js; cocstalk.js; cookpad.js; corona.js; cuaca.js; dongeng.js; gemini.js; gemini2.js; gitclone.js; githubstalk.js; gmaps.js; google.js; gpt4.js; honkai-star-rail.js; jadwalsholat.js; kbbi.js; kodebahasa.js; kodepos.js; lirik.js; mahasiswa.js; npmsearch.js; npmstalk.js; steam.js; toimg2.js; wikipedia.js; yahoo.js
-- scratch/: convert_all_plugins.js
-
-Reconciliation: 9 + 4 + 6 + 22 + 26 + 35 + 35 + 40 = **177**.
-
-### A9. Concrete findings, not runtime results
-- Daily-Tools main tree: ef0e7b52048a856dd39d2b75e11b11e6982e057e (2026-11-10 inspection). Package entry references an absent index.js; npm test is a non-test error placeholder; CommonJS/ESM and wrapper forms are mixed.
-- Otakudesu: videoData regular expression contains private-use U+E001 markers; native video extraction cannot be considered working. The module invokes runCLI without an export. Its output may be iframe, download URL, or unverified candidate, not a validated native source.
-- nhentai: gallery-ID details/pages and PDF export exist; full search, popular, latest and filter contracts do not.
-- Komikcast: search/detail/chapter metadata exists, but its PDF path is not a chapter-pages scraper. Harimanga also lacks a complete page-reader contract.
-- lib/hdvid.js is obfuscated; lib/hehe.js begins with invalid JavaScript syntax; lib/tiktok.js evaluates remotely obtained script with Function; lib/spotify.js embeds application credentials; several generated wrappers import modules absent from the tree.
-- z-library files use public proxy rotation and locally persisted account/cookie material; file/image helpers send payloads to third-party hosts. No wholesale import, open proxy or credential reuse.
-- The package declares ISC in package.json, but no root LICENSE file was in the inspected tree; third-party contributions may have independent rights. Do not verbatim-copy until provenance and reuse permissions are checked.
-- No fresh upstream live probe, permission confirmation, install, static analyzer, unit tests, browser tests, device tests or production verification was performed as part of this research.
+**Evidence limits:** metadata and source-file inspection only. No upstream live availability, source permission, real native playback, browser/device verification, installation or integration tests were established. Follow the PRD's rights, provenance, security, owner-approval, exact-SHA QA and release gates.
 
 
 ## 9. Document maintenance
 
-This document is the scoped source-integration PRD, not a replacement for docs/planning/MASTER_PLAN.md or archival handoffs. Append dated evidence to the existing planning tracker and acceptance matrix at actual implementation time, and preserve prior tickets/UX decisions. Link the paired Yomirra contract: https://github.com/rzqllh/Yomirra/blob/main/docs/planning/DAILY_TOOLS_INTEGRATION_PRD_2026-11-10.md .
+This document is the scoped source-integration PRD, not a replacement for docs/planning/MASTER_PLAN.md or archival handoffs. Append dated evidence to the existing planning tracker and acceptance matrix at actual implementation time, and preserve prior tickets/UX decisions.
