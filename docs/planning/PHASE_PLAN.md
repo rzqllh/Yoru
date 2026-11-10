@@ -75,3 +75,11 @@ Per-phase handoff must record: baseline SHA, scope, actual changed paths/PR SHA,
 - Gate rollout on [AniList terms](https://docs.anilist.co/guide/terms-of-use) applicability to a tracking/library-like app and [current rate limit](https://docs.anilist.co/guide/rate-limiting) (degraded temporary 30 req/min at this checkpoint), batching/caching/429 handling, data migration rollback, source-outage behavior, tests, and owner approval. Never silently rebrand Tenrai data as AniList.
 
 **Dependency order:** 00 contract/compliance → 01 source eligibility → 02 subtitle federation (P0); 00 → 03 UI foundations → 04 AniList metadata/ID bridge → 05 mobile full-page detail → 06 watch guide; 04 ↔ 07 legacy backup/cloud compatibility; 01–07 → 08 integrated QA → 09 release. PR #123 remains separately reviewed. No destructive or production changes authorized.
+
+## 2026-11-10 — Additive source-adapter execution dependency (YOR-DT)
+
+Source integration is a separate bounded workstream, not an implicit rewrite of Phase 01/02/04/05 or a new release permission. The approved target is Otakudesu FULL; the complete requirement/acceptance/risks and 177-JS inventory are in [Daily-Tools Integration PRD](DAILY_TOOLS_INTEGRATION_PRD_2026-11-10.md).
+
+Dependency: YOR-DT-00 **inspect remote/local, preserve all dirty/untracked work, fetch and align** -> YOR-DT-01 **provenance, rights, terms, allowed hosts and permission review** -> YOR-DT-02/03/04 **typed parsing, canonical identity and episodes** -> YOR-DT-05/06 **approved bounded native HLS/MP4 verification** -> YOR-DT-07/08/09 **provider recovery, subtitle/resume regression, UX/security** -> YOR-DT-10 **rollback/release readiness**.
+
+NO-GO for unverified stream playback, third-party rights, unrestricted iframe/video downloads, arbitrary URL proxy, new torrent engine, unsafe redirects or missing owner decisions. The existing #20 release gate G1-G7 remains separate and blocked; no auto-deploy.
