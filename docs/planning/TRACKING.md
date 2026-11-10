@@ -1,5 +1,11 @@
 > **Quick latest status:** [CURRENT_STATE.md](CURRENT_STATE.md) — dated, plain-language Done / Partial / Blocker / Next. Verify HEAD before use.
 
+### 2026-11-10 — Daily-Tools source integration planning checkpoint
+
+**PLANNED / NO CODE EXECUTION.** Read-only inventory of 177 Daily-Tools .js files maps 9 to Yoru source candidates. Owner approved scope target Otakudesu FULL; Anichin, Jikan/AniList metadata, Bstation, Kusonime, schedule and wibu are candidates only. Native media availability, source rights and iPhone support have not been verified.
+
+Canonical PRD + exhaustive inventory: [Daily-Tools Integration PRD](DAILY_TOOLS_INTEGRATION_PRD_2026-11-10.md). Requirements YOR-DT-00..10. Priority blocker: safe AGY remote/local reconciliation, legal/source permission and genuine native video (not iframe/download), preserving D01/D02 and existing provider/security contracts. Release #20 remains NO-GO. Record implementation evidence and final SHAs in a subsequent dated tracker entry, not by rewriting this planning snapshot.
+
 # Yoru — Requirement, Evidence and Blocker Tracker
 
 ### 2026-11-01 — Phase 05 D04 Closure: Genuine Mobile Document Page vs Desktop Modal Dialog (#154)
