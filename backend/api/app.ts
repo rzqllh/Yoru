@@ -12,6 +12,9 @@ import { getLocalProvider, getProviderEpisodes, getProviderStreams } from '../pr
 import {getStremioConfig,getStremioEpisodes,getStremioSourceCandidates} from '../providers/stremio.js'
 import {externalStream} from '../providers/public-embed.js'
 import {getMiruroEpisodes,getMiruroStreams,isMiruroConfigured} from '../providers/miruro.js'
+import {getIndonesianEpisodes,getIndonesianStreams,isIndonesiaConfigured} from '../providers/indonesia.js'
+import {getUniversalEpisodes,resolveUniversalStream} from '../providers/universal.js'
+import {handleStreamProxy} from './proxy.js'
 import {downloadSubtitle,findSubtitles,toWebVtt,subtitleStatus,verifySubtitleGrant,type SubtitleProvider} from '../providers/subtitles.js'
 
 
@@ -85,29 +88,43 @@ app.get('/api/providers',async c=>{
   getStremioConfig().then(config=>(config?.addons??[]).map(addon=>({
    id:`stremio-${addon.id}`,name:addon.name,animeCount:addon.anime.length
   }))),
-  Promise.resolve(isMiruroConfigured()?[{id:'miruro',name:'Miruro-compatible HTTPS API (opt-in)',animeCount:null}]:[])
+  Promise.resolve(isMiruroConfigured()?[{id:'miruro',name:'Miruro-compatible HTTPS API (opt-in)',animeCount:null}]:[]),
+  Promise.resolve(isIndonesiaConfigured()?[{id:'indo-otakudesu',name:'Indonesian Fansub Provider (D01)',animeCount:null}]:[]),
+  Promise.resolve([{id:'universal',name:'Universal Stream Provider (Otomatis)',animeCount:null}])
  ])
- const result=combineProviderResults(results,['local','stremio','miruro'])
+ const result=combineProviderResults(results,['local','stremio','miruro','indonesia','universal'])
  return c.json({providers:[...result.items,{id:'public-embed',name:'External anime player (unverified)',animeCount:null}],warnings:result.warnings},200)
 })
 app.get('/api/anime/:id/provider-episodes',async c=>{
  const id=validId(c.req.param('id'));if(!id)return c.json({error:'INVALID_ID'},400)
  const animeId=`mal:${id}`
+ const animeMeta=await getAnime(id).catch(()=>null)
  const results=await Promise.allSettled([
   getProviderEpisodes(animeId),
   getStremioEpisodes(animeId),
-  getMiruroEpisodes(id)
+  getMiruroEpisodes(id),
+  getIndonesianEpisodes(id,animeMeta?.title),
+  Promise.resolve(getUniversalEpisodes(id,animeMeta?.title,animeMeta?.episodes,animeMeta?.status))
  ])
- const result=combineProviderResults(results,['local','stremio','miruro'])
+ const result=combineProviderResults(results,['local','stremio','miruro','indonesia','universal'])
  return c.json({items:result.items,warnings:result.warnings},200)
 })
 app.get('/api/streams',async c=>{
  const ref=c.req.query('episodeRef')||''
  const start=Number(c.req.query('start')||'0')
  if(ref.length>160||!(/^[a-z0-9-]+:[1-9]\d*:[1-9]\d*$/.test(ref)))return c.json({error:'INVALID_EPISODE_REF'},400)
- try{if(ref.startsWith('stremio-'))return c.json(await getStremioSourceCandidates(ref))
-  return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('miruro-')||ref.startsWith('aggregator-')?await getMiruroStreams(ref):await getProviderStreams(ref)})}catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
+ try{
+  if(ref.startsWith('stremio-'))return c.json(await getStremioSourceCandidates(ref))
+  if(ref.startsWith('indo-'))return c.json({items:await getIndonesianStreams(ref)})
+  if(ref.startsWith('universal:')){
+   const malId=Number(ref.split(':')[1])
+   const anime=await getAnime(malId).catch(()=>null)
+   return c.json({items:await resolveUniversalStream(ref,anime?.title)})
+  }
+  return c.json({items:ref.startsWith('public-embed:')?externalStream(ref,start):ref.startsWith('miruro-')||ref.startsWith('aggregator-')?await getMiruroStreams(ref):await getProviderStreams(ref)})
+ }catch{return c.json({error:'SOURCE_UNAVAILABLE'},502)}
 })
+app.get('/api/proxy/stream',handleStreamProxy)
 
 app.get('/api/subtitles/status',c=>c.json({configured:subtitleStatus()}))
 app.get('/api/anime/:id/subtitles',async c=>{
@@ -135,6 +152,37 @@ app.get('/api/subtitles/file',async c=>{
   c.header('Cache-Control','private, max-age=180')
   return c.body(content)
  }catch{return c.json({error:'SUBTITLE_FILE_UNAVAILABLE'},502)}
+})
+
+app.get('/api/subtitles/vtt',async c=>{
+ const malId=Number(c.req.query('malId')||'0')
+ const episode=Number(c.req.query('episode')||'1')
+ c.header('Content-Type','text/vtt; charset=utf-8')
+ c.header('X-Content-Type-Options','nosniff')
+ c.header('Cache-Control','public, max-age=3600')
+
+ if(malId===16498&&episode===1){
+  try{
+   const fs=await import('node:fs/promises')
+   const path=await import('node:path')
+   return c.body(await fs.readFile(path.resolve('frontend/public/subtitles/attack-on-titan-ep1-id.vtt'),'utf-8'))
+  }catch{}
+ }
+ if(malId===1&&episode===1){
+  try{
+   const fs=await import('node:fs/promises')
+   const path=await import('node:path')
+   return c.body(await fs.readFile(path.resolve('frontend/public/subtitles/cowboy-bebop-ep1-id.vtt'),'utf-8'))
+  }catch{}
+ }
+ if(malId===1535&&episode===1){
+  try{
+   const fs=await import('node:fs/promises')
+   const path=await import('node:path')
+   return c.body(await fs.readFile(path.resolve('frontend/public/subtitles/death-note-ep1-id.vtt'),'utf-8'))
+  }catch{}
+ }
+ return c.body(`WEBVTT\nKind: captions\nLanguage: id\n\n00:00:02.000 --> 00:00:06.000\nEpisode ${episode}\n`)
 })
 
 app.notFound(c=>c.json({error:'NOT_FOUND'},404))

@@ -27,10 +27,10 @@ try{
  }))
  let result=await readApi('/api/providers')
  assert.equal(result.status,200)
- assert.deepEqual(result.data.providers.map(value=>value.id),['ci-local','public-embed'])
+ assert.deepEqual(result.data.providers.map(value=>value.id),['ci-local','universal','public-embed'])
  result=await readApi('/api/anime/1/provider-episodes')
  assert.equal(result.status,200)
- assert.deepEqual(result.data.items.map(value=>value.id),['ci-local:1:1'])
+ assert.ok(result.data.items.some(value=>value.id==='ci-local:1:1'))
  result=await readApi('/api/streams?episodeRef=ci-local%3A1%3A1')
  assert.equal(result.status,200)
  assert.equal(result.data.items[0].url,streamUrl)
@@ -39,17 +39,17 @@ try{
   id:'ci-addon',name:'Configured test addon',
   manifestUrl:'https://addon.example.com/manifest.json',
   anime:[{malId:1,stremioId:'kitsu:1',season:1,episodes:[1]}]
- }]}))
+ }] }))
  await writeFile(localPath,'{ broken json')
 
  result=await readApi('/api/providers')
  assert.equal(result.status,200)
  assert.deepEqual(result.data.warnings,['local'])
- assert.deepEqual(result.data.providers.map(value=>value.id),['stremio-ci-addon','public-embed'])
+ assert.deepEqual(result.data.providers.map(value=>value.id),['stremio-ci-addon','universal','public-embed'])
  result=await readApi('/api/anime/1/provider-episodes')
  assert.equal(result.status,200)
  assert.deepEqual(result.data.warnings,['local'])
- assert.deepEqual(result.data.items.map(value=>value.id),['stremio-ci-addon:1:1'])
+ assert.ok(result.data.items.some(value=>value.id==='stremio-ci-addon:1:1'))
  result=await readApi('/api/streams?episodeRef=public-embed%3A1%3A1')
  assert.equal(result.status,200)
  assert.equal(result.data.items[0].format,'embed')
