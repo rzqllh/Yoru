@@ -1,5 +1,12 @@
 # Yoru — Current State & New-Chat Recovery
 
+### New planning checkpoint — 2026-11-10 Daily-Tools source integration
+
+- **Scope selected:** Otakudesu FULL for Yoru. Anichin and other Daily-Tools modules are inventoried candidates, not auto-approved code tasks.
+- **Docs added:** [Daily-Tools Integration PRD and 177-JS inventory](DAILY_TOOLS_INTEGRATION_PRD_2026-11-10.md), linked in the master plan, phases, acceptance and tracker.
+- **Not done:** source-code implementation, native HLS/MP4 live verification, source licensing/rights approval, device acceptance, deployment. Release #20 is still NO-GO.
+- **AGY next:** preserve dirty/untracked local work -> fetch/download approved remote versions -> align exact SHAs and read contracts -> implement only after rights/security/architecture gates -> test and report real evidence. Do not overwrite local UX work or infer state from this GitHub documentation-only checkpoint.
+
 ### 2026-11-01 — Phase 05 D04 Closure: Genuine Mobile Document Page vs Desktop Modal Dialog (#154)
 
 - **Verified main HEAD:** `1e7e65ae2414964e3f3e4c93acc3a103efd92119`, following merged [PR #154](https://github.com/rzqllh/Yoru/pull/154).
