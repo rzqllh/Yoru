@@ -1,5 +1,23 @@
 # Yoru — Acceptance Matrix and Evidence Templates
 
+### 2026-11-10 — New YOR-DT source integration acceptance contract (PLANNED only)
+
+Evidence source: [Daily-Tools 177-file audit and Integration PRD](DAILY_TOOLS_INTEGRATION_PRD_2026-11-10.md), Daily-Tools main ef0e7b5, Yoru read-only main ff9575f. Owner target: Otakudesu FULL, with real native playback still UNVERIFIED and additional source integrations NOT authorized.
+
+- YOR-DT-00 safe remote/local download-alignment (branch/SHA/status and preserved uncommitted/untracked files) — NOT RUN.
+- YOR-DT-01 permitted source use, host/terms/copyright and source-code license/provenance — BLOCKED pending proof.
+- YOR-DT-02 latest/search/detail fixture parsing and corrected CLI isolation — NOT RUN.
+- YOR-DT-03 canonical AniList/MAL and episode/season matching — NOT RUN.
+- YOR-DT-04 stable episode references, ordering, extras and dedup — NOT RUN.
+- YOR-DT-05 bounded SSRF-safe stream candidate resolution, error budgets — NOT RUN.
+- YOR-DT-06 live authorized HLS/MP4 plus CORS/codec/segment and real Safari media evidence — BLOCKED.
+- YOR-DT-07 outage/retry/403/429/timeout and other-provider isolation — NOT RUN.
+- YOR-DT-08 subtitles consent/Off and resume compatibility — NOT RUN.
+- YOR-DT-09 accessibility, mobile and performance regressions — NOT RUN.
+- YOR-DT-10 feature off-switch/rollback, exact-SHA report and release owner GO — NOT RUN; release #20 still NO-GO.
+
+Do not promote any item from PLANNED to PASS without genuine same-SHA commands, fixtures and browser/live evidence. PRD is the normative detail; this row is the canonical matrix pointer.
+
 ### 2026-11-01 — AC-SRC-05 Stremio config audit & opt-in manifest probe (#148, #149)
 
 - **PR #148 (Offline secret-safe configuration audit):** CLI `npm run verify:stremio:config` inspects `STREMIO_ADDONS_JSON` or local ignored `configs/stremio.local.json`. Never exposes manifest URLs, tokens, path segments, or raw configuration. PR head `1f27464`: [Linux/Windows CI #41289805155](https://github.com/rzqllh/Yoru/actions/runs/41289805155) **SUCCESS** and [Browser E2E #41289805202](https://github.com/rzqllh/Yoru/actions/runs/41289805202) **SUCCESS**. Exit code 2 when unconfigured; exit code 0 when valid config loaded without leaking secrets.
