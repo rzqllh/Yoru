@@ -1,7 +1,7 @@
 import type {Anime,LibraryEntry,ProgressEntry} from '../types'
 
 type PreferenceRecord={key:string;value:string}
-type Backup={version:number;library:LibraryEntry[];progress:ProgressEntry[];preferences?:PreferenceRecord[]}
+export type Backup={version:number;library:LibraryEntry[];progress:ProgressEntry[];preferences?:PreferenceRecord[]}
 const isRecord=(value:unknown):value is Record<string,unknown>=>typeof value==='object'&&value!==null&&!Array.isArray(value)
 const isSafeNumber=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)&&value>=0
 function isAnime(value:unknown):value is Anime{

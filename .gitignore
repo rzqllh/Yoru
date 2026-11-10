@@ -18,3 +18,4 @@ configs/stremio.local.json
 playwright-report/
 test-results/
 
+supabase/.temp/
