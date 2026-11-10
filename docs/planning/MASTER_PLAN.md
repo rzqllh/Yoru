@@ -139,3 +139,14 @@ Future AniList hybrid filters require validated provenance, pagination/cursors, 
 - Mobile Detail: full-page shareable URL with backward-compatible MAL route and new AniList-only path, Back/Forward and Browse context, honest source status/resume CTA, episode list and Guide link. Guide distinguishes release order from cited editorial viewing routes; chronology is never inferred.
 
 **Do not interpret this section as permission for code changes, new dependencies, provider config, data migrations, torrent resolver, secrets, Vercel production or release.** See [phase plan](PHASE_PLAN.md), [acceptance](ACCEPTANCE_MATRIX.md), [tracker](TRACKING.md), and [current state](CURRENT_STATE.md).
+
+## 11. 2026-11-10 — Daily-Tools 177-JS audit and Yoru source integration scope
+
+**Owner intent:** Otakudesu FULL target for Yoru, but native HLS/MP4 availability, rights, real browser support and downstream reliability remain unverified. Anichin and the other eight Yoru-related scripts are candidate/reference BACKLOG; not automatically authorized integrations. Yomirra nhentai integration belongs to its separate repository. The cross-project upstream Daily-Tools source audit covers all 177 JavaScript files.
+
+Canonical scoped PRD (including user journeys, requirements, API/identity mapping, 11 acceptance criteria, architecture, rights/privacy/security gates, 177-file inventory, risk register and rollback):
+[Daily-Tools Integration PRD (2026-11-10)](DAILY_TOOLS_INTEGRATION_PRD_2026-11-10.md).
+
+This planning item **does not supersede** D01/D02, D03=3A AniList-primary planning and MAL legacy compatibility, existing local/Stremio/Miruro providers, historical phase handoffs or release issue #20. Do not copy the upstream CLI scraper directly: its native-video extraction regex contains U+E001 private-use markers and the file calls runCLI at top level. Respect verified stream-only Play, controlled outbound hosts and source consent.
+
+**AGY dependency:** inspect and protect local remote/local changes first, fetch/download and align both repositories safely, inspect the freshly aligned contracts and then implement only approved bounded slices. Local repository state, third-party permissions, architecture changes and release each have independent gates. No forced reset, silent stash, secret upload or automatic deployment. Current status: PLANNED / NO CODE CHANGED by this documentation entry. See the [phase plan](PHASE_PLAN.md), [acceptance matrix](ACCEPTANCE_MATRIX.md), [tracker](TRACKING.md) and [current state](CURRENT_STATE.md).
