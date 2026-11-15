@@ -2,6 +2,14 @@
 
 > **Status: DRAFT / OWNER REVIEW — documentation only.** This folder records the owner's 71 numbered decision slots (P66 resolved by RG05), ten re-grill decisions and unresolved engineering/access/security issues. **No decision in this folder is permission to deploy, use production credentials, modify user records, enable providers, bypass provider access controls, or release publicly.**
 
+## Owner topology amendment L01 — 2026-11-15 (latest)
+
+**Only one remotely hosted environment: PRODUCTION.** Preview/testing is **LOCAL ONLY**, on the developer's machine (local dev server / local production build). No separate hosted Vercel preview, staging deployment, or remote preview website is requested. Local preview is **not** a second deployment environment.
+
+This latest owner decision supersedes previously proposed **hosted preview** arrangements in P29, P40, P42, P51, P61, P71, RG03 and RG06 to the extent they concerned preview's topology, production-secret sharing, database access and branch restrictions. Historical selections remain in the register. **It does not grant a local process permission to read/write the production DB or use production credentials.** Unless separately authorized, local checks use local/test data and secrets. Access to real production data remains a separately gated/undecided security action. Production release/deployment and rollback still require explicit owner approval (P29/P50).
+
+See [Decision Register](DECISION_REGISTER.md), [Product Contract](PRODUCT_CONTRACT.md), [Open Conflicts](OPEN_CONFLICTS.md), and [Acceptance Matrix](ACCEPTANCE_MATRIX_V1.md).
+
 ## Read in this order
 
 1. [DECISION_REGISTER.md](DECISION_REGISTER.md) — complete P01–P71 and RG01–RG10 selections, precedence and supersession.
