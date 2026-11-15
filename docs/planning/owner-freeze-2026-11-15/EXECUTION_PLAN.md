@@ -1,13 +1,13 @@
 # Yoru vNext — P0/P1/P2 backlog and proposed execution roadmap
 
-**Status:** PLAN ONLY / NOT EXECUTION AUTHORIZATION. Owner Freeze v1 is a draft with C01–C04 critical blockers; do not treat 'agent autonomy' as permission to modify security policy, production data or third-party access. This plan does not imply timelines, staffing, service budgets or successful tests.
+**Status:** PLAN ONLY / NOT EXECUTION AUTHORIZATION. L01 **supersedes hosted preview**: only production remotely hosted, preview locally. C01 old shared-production preview risk is no longer a target; C02–C04 and release/cloud security remain blocked. Agent autonomy does not grant production data, security changes, third-party access or deployments. This plan implies no timelines or successful tests.
 
 ## P0 — integrity, security and release prerequisites
 
 | ID | Scope | Dependency | Definition of done (not currently claimed) |
 |---|---|---|---|
 | P0-01 | Reconcile owner decision register + old D01–D09 contract | None | Owner reviews supersession and unresolved choices; exact SHA recorded |
-| P0-02 | Preview/production threat model, access roles, least privilege | P0-01; C01 | No unauthorized read/write; test-only write enforced in DB; privacy basis, audit, restore drill |
+| P0-02 | **L01 local/prod separation verification** | P0-01; L01 | No hosted preview; local tests use local/test data/keys; no implicit prod credentials, prod user reads/writes or remote preview deployments; production retains owner gate |
 | P0-03 | Upstream entitlement/ToU/host/SSRF policy | P0-01; C03/C04 | Per-provider ALLOWED/BLOCKED decision with evidence; no forbidden bypass |
 | P0-04 | Independent coverage denominator, catalog scope and episode release evidence | P0-01; C02 | Eligible title/episode inventory, 0/0 fails, all missing/unverified counted transparently |
 | P0-05 | Stable anime/season/cour/movie/special/source identity | P0-03/P0-04 | No guessed joins, separate AniList/MAL IDs, reversible legacy migration |
@@ -53,7 +53,7 @@
 | Package | Scope | Entry gates | Exit evidence |
 |---|---|---|---|
 | E00 | Baseline and decision reconciliation | Read-only GitHub/local state | Branch/worktree/PR/current SHA inventory, no lost changes |
-| E01 | C01–C04 resolution + threat model | E00 | Owner/security approval or explicit BLOCKED decision |
+| E01 | L01 isolation verification and C02–C04 access/coverage resolution | E00 | Local-only workflow verified; upstream permission and 100% eligibility rules resolved or explicitly BLOCKED |
 | E02 | Episode/source/provider contract | E01 (per-provider permission) | Deterministic test matrix, no false Play |
 | E03 | End-to-end single real playable vertical slice | E02 | One authorized correct anime/episode → playable video → subtitle → resume in Chrome and physical Safari |
 | E04 | Incremental upstream expansion | E03 | Evidence of actual additional playable episode coverage and failover |
@@ -71,10 +71,18 @@
 2. Review this draft **and** open blockers. Do not interpret this docs-only PR as implementation permission.
 3. Isolate production code changes by dependency and branch; review exact HEAD of each PR; record touched files and test evidence.
 4. Run lint, typecheck, unit tests, frontend/backend build, Chromium/WebKit E2E; then **separate** authorized provider tests and physical iPhone sign-off. Never fabricate CI/QA results.
-5. No auto-enabling provider hosts, new proxy transport, cloud service role, schema migration, production deployment, protected preview or paid services without explicit approval.
+5. No auto-enabling provider hosts, new proxy transport, cloud service role, schema migration, production deployment, remote preview environment, production-data access from local, or paid services without explicit approval.
 6. Reconcile `docs/public` only against verified behavior after implementation; preserve evidence of older baselines.
 7. Production deploy and rollback require owner approval. Only previously approved narrowly scoped **disable-only** provider emergency switch may be used during incidents.
 8. Emit final GO/NO-GO, unresolved P0/P1, exact SHA, tested environment and proof links.
+
+## L01 — environment topology and promotion
+
+- **Single remotely hosted target:** production only. No separate remotely hosted preview or staging deployment.
+- **Pre-production observation:** local `npm run dev`, local build / local serve and deterministic tests with fixtures or separately authorized test accounts.
+- **No automatic production data parity:** local preview does not gain production secrets, unrestricted DB access, or real user records merely to reproduce production behavior.
+- **Promotion:** tests and evidence on exact SHA → reviewed integration → owner approval → production deployment; no remote preview gate implied.
+- **Static configuration:** `vercel.json` Git deployment disabled is consistent with this policy, but actual remote project settings must be verified before claiming no preview exists.
 
 ## Release policy
 
