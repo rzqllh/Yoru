@@ -1,6 +1,6 @@
 # Releases, Versioning and Distribution
 
-**Current designation: engineering preview. Public production release remains BLOCKED** by [G1–G6](production-readiness.md) and [Issue #20](https://github.com/rzqllh/Yoru/issues/20).
+**Current release status: public production launch remains BLOCKED** by [G1–G6](production-readiness.md) and [Issue #20](https://github.com/rzqllh/Yoru/issues/20). **Latest owner target (L01, 2026-11-15): preview/testing is local only; production is the single remotely hosted deployment.**
 
 ## What repository artifacts mean
 
@@ -9,7 +9,8 @@
 | Git source checkout or GitHub source ZIP | Developer source files | Requires Node, npm, build and backend |
 | GitHub Actions build artifact | Temporary CI output from a particular SHA | Engineering evidence, not a consumer installer |
 | Local built PWA | Vite frontend and Hono API served together | Local developer preview |
-| Hosted preview | Branch-specific HTTPS deployment subject to access control/quota | Not publicly production-certified |
+| Hosted preview (historical) | Older branch-specific HTTPS deployments may exist | **No longer a supported target under L01; do not create new remote previews** |
+| Production website/API | The only intended remotely hosted environment | Owner-approved deployment is not itself public release sign-off |
 | APK/IPA/Windows installer | Not currently released | Do not advertise as available |
 
 Historical release-candidate tags and archives may exist but are not evidence of a signed native installer or live source availability.
