@@ -69,23 +69,26 @@ Failures: `UNAVAILABLE | WRONG_IDENTITY | UNSUPPORTED | EXPIRED | PROVIDER_FAILE
 - Auto versioned snapshot and manual export/import; validate schema, owner, canonical ID, size and integrity; wrong/corrupt import must not destroy existing data. Bound retention (P70 cites 30d example; number/count still to approve).
 - Privacy: backend-only provider secrets (P48); do not put session keys, signed media URLs, private watch history in operational logs; technical error monitoring (P65) uses minimized data.
 
-## 7. Production-parity preview intent and restrictions
+## 7. Single hosted production; preview and QA local only (L01)
 
-The owner explicitly wants production-parity behavior to find bugs before promotion:
-- Same database instance is desired (P61/RG03).
-- Preview write permissions restricted to **test accounts only** (RG03).
-- Owner-only access to sensitive preview with strong authentication and access audits (RG06), trusted reviewed branches (P51).
-- Preview-wide read of production user data requested (P71).
+**Latest owner directive (2026-11-15):** Yoru has **only one remotely deployed environment: production.** All pre-production preview/testing happens **locally**, on a local development server and/or local production build. Do not create a separate hosted preview/staging deployment or production database connection merely to achieve preview parity.
 
-**This combined model is NOT security-approved.** Strong login and protected branches do not restrict a privileged backend service account from reading all rows. If privileges cannot be independently constrained and tested, preview must not be activated with production access. Read access of real users requires independent privacy justification and minimization. Do not treat a conceptual target as a working access policy.
+- Local testing aims to reproduce production **behavior, routes, feature flags, API contracts, and builds** where safe; it does not demand production credentials or private user records.
+- Default planned local dev and tests to **local/test data, controlled fixtures, and separate test credentials**. No production DB reads/writes, privileged keys, production account login or imported personal records unless separately explicitly authorized and reviewed.
+- A single remotely hosted production deployment is the only release destination; code is integrated through source review, test CI, local preview and owner-approved promotion.
+- Production secrets stay in production and must never be committed, copied into local docs, exposed in browser bundles or transmitted through source-control workflows.
+- Earlier hosted preview/shared-production-DB decisions P29/P40/P42/P51/P61/P71/RG03/RG06 are **superseded for preview architecture** by L01. Historical selections remain in the decision register; their earlier production-read privilege is not carried into local testing.
+- If future tests **need** real production data or credentials, treat that as a separate security change requiring explicit owner authorization, privacy assessment and least-privilege proof. Do not assume permission from L01.
+
+**Local preview is not production deployment.** Its errors can inform release readiness, but physical-device, authorized live source, cloud/RLS and production full-stack acceptance still need separately documented evidence.
 
 ## 8. Operations and release
 
 - Feature tests while building, full integration later, exact-SHA CI/unit/browser/physical-device and **live authorized source tests**.
 - Monitoring detects provider failures without collecting viewing histories or secrets.
-- Production promotion and rollback require explicit owner approval. The only preapproved narrow exception is emergency disable-only provider kill switch.
+- Only production is remotely hosted; local preview/test checks run before owner-approved production deployment or rollback. The only preapproved narrow exception is emergency disable-only provider kill switch.
 - Private beta may run under previously authorized constraints; **public release NO-GO** until security/access/coverage conflicts, live source+subtitle tests, iPhone physical, cloud security if deployed, infrastructure, and final signoff.
-- No automatically activating provider, source, migration, preview, database or production from approval of this document.
+- No automatically activating provider, source, migration, production data access, or production deployment from approval of this document. Local preview is allowed only within previously authorized local development scope.
 
 ## 9. Acceptance
 
