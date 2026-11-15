@@ -1,6 +1,6 @@
 # Yoru — Phase and Dependency Plan
 
-> Superseded vNext contract baseline 2026-11-01, inspected main `ce12d98`. Old baseline remains in historical handoffs; D03=3A is current authority. Entire product phases 00–09 remain subject to #20 release gates.
+> Historical vNext contract baseline 2026-11-01, inspected main `ce12d98`. Old baseline remains in historical handoffs; **new owner choices P01–P71/RG01–RG10 and L01 supersede affected D02/D03/D04 and hosted preview assumptions**. See [Decision Freeze v1](owner-freeze-2026-11-15/README.md). Entire product phases 00–09 remain subject to #20 release gates.
 
 ## Dependency route
 
@@ -23,7 +23,7 @@ Work inside a phase may be independent only where file/contract ownership and te
 | **06 — Watch Guide/franchise** | P1 | D05 release + evidence-backed editorial watch paths, branching/editions/optional steps, spoiler-safe flows, local route progress and return-to-detail | 04 + 05 | Source/canon distinctions, path links, progress and deep links validated | [06](handoffs/PHASE_06_HANDOFF.md) |
 | **07 — Local data & opt-in cloud** | P0 privacy / P1 feature | IndexedDB backup/restore/resume/first-run and privacy regression; draft #77 OTP/RLS/two users/two devices/CAS/conflict/deletion and separate automatic-sync decision | 00, API/data compatibility decisions | Local unaffected; draft stays blocked until real OTP/auth/device test and privacy review; no cloud activation without approval | [07](handoffs/PHASE_07_HANDOFF.md) |
 | **08 — Integrated verification** | P0 | Exact-head Linux/Windows tests, Chromium/WebKit, real iPhone acceptance, accessibility, perf measurements, API/security, recovery, docs | 01–07 applicable approved scope | Matrix evidence & unresolved exceptions classified; zero critical security/data blockers | [08](handoffs/PHASE_08_HANDOFF.md) |
-| **09 — Hosting, release & operations** | P0 release | Validate production SHA and health/catalog, quotas and protected previews, live provider/subtitle matrix, hosting/gateway/rollback/observability, public docs, final release decision | 08 + #20 gates | G1–G6 proven, owner GO; otherwise explicit NO-GO. Never auto-release from a main merge | [09](handoffs/PHASE_09_HANDOFF.md) |
+| **09 — Hosting, release & operations** | P0 release | Validate production SHA and health/catalog, quotas and **local-only preview under L01**, live provider/subtitle matrix, hosting/gateway/rollback/observability, public docs, final release decision | 08 + #20 gates | G1–G6 proven, owner GO; otherwise explicit NO-GO. Never auto-release from a main merge | [09](handoffs/PHASE_09_HANDOFF.md) |
 
 ## Global stage gates
 
@@ -45,7 +45,7 @@ Work inside a phase may be independent only where file/contract ownership and te
 - **R-G5:** public full-stack infrastructure, rate limiting, secrets, deployment URL and rollback.
 - **R-G6:** representative sample, zero unresolved P0/P1, exact-SHA CI and owner GO.
 
-A preview QA URL or `READY` deployment is not in itself a released, functioning service.
+Under **L01** no separate hosted preview QA URL is required or authorized by this plan; `READY` production hosting is not in itself a released, functioning service.
 
 ## Scheduling and change control
 
@@ -61,7 +61,7 @@ Per-phase handoff must record: baseline SHA, scope, actual changed paths/PR SHA,
 
 - A configured Stremio addon declares `stream` and/or `subtitles` via its `manifest.json`. **Torrentio is a candidate video stream addon, not an automatic OpenSubtitles/SubSource/SubDL API gateway**. Use separate Stremio `/stream` and `/subtitles` resources where declared; direct OpenSubtitles, SubSource and SubDL APIs remain independent backend adapters, or a distinct subtitle-only Stremio addon can be configured.
 - The current Yoru source files `backend/providers/stremio.ts`, `stremio-core.ts` and `backend/providers/subtitles.ts` already implement configured addon candidate classification, addon subtitle resources and independent direct API adapters. Label this **CODED/PARTIAL**; no live Torrentio/third-party API compatibility, actual playback, provider rights or physical iPhone PASS may be assumed.
-- Exact validated anime identity, season/cour/movie/special, episode, language and subtitle release must match before joining candidates or ranking them. Rank by real native playability, source health, subtitle control/Indonesian match, then prior healthy source. D01 requires explicit English consent; Off persists. D02 excludes uncontrolled iframe/hard-sub from Play.
+- Exact validated anime identity, season/cour/movie/special, episode, language and subtitle release must match before joining candidates or ranking them. Rank by verified playback, source health, subtitle control/Indonesian match, then prior healthy source. D01 requires explicit English consent; Off persists. **D02's blanket fallback exclusion is superseded by P02/P03/P11/RG08:** authorized, consented and actually verified iframe or hardsub playback can count with truthful capability limits.
 - An HTTPS HLS/MP4 `url` is only a **candidate** until safety and actual browser decoding checks. `infoHash`/`fileIdx` is a **torrent descriptor, not a Safari-playable video URL**. `externalUrl` is navigation, not native Play. A manifest or metadata listing is not playable-video proof.
 - Any torrent resolver/engine, seed/peer access, arbitrary proxy, external service, credentials, hosting, cost, user-data exposure or content authorization requires an **isolated owner-approved architecture/security/licensing decision**. This docs change neither installs nor invokes a resolver.
 - Require end-to-end provider contracts, 401/403/429/timeout/expired-source failures, bounded fetch/SSRF guards, signed subtitle grants, physical Safari tests and release gate #20 before public streaming claims.
