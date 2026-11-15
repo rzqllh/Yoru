@@ -8,6 +8,8 @@
 > **2026-11-15 OWNER DECISION FREEZE v1 — DRAFT (NOT IMPLEMENTATION AUTHORIZATION):** The newer P01–P71 and RG01–RG10 product choices, explicit supersession of old D02/D03/D04 behavior, unresolved security/source-access/coverage blockers, read-only source audit and proposed acceptance are recorded in [owner-freeze-2026-11-15/README.md](owner-freeze-2026-11-15/README.md). This is a proposal for owner review, **not** proof of live playback, a production permission, or a silent replacement of historical evidence. Current runtime may still follow the older contracts; see the linked code alignment audit.
 
 
+> **AGENT/HARNESS SPECIFICATION PACK (2026-11-15, DRAFT):** [Root AGENTS.md](../../AGENTS.md) defines guardrails and stop-the-line escalation. [12-document spec index](../specs/README.md) covers PRD, Design, Requirements, Features, User Flow, Business Rules, Database, API, Architecture, Security, Roadmap and Testing. New proposed data/API names are not implemented interfaces. All agent unknowns/conflicts must be `BLOCKED` for owner confirmation; no silent assumptions.
+
 ## 0. Purpose, authority, and maintenance
 
 This persistent **owner-requested** planning directory records product, architecture, verification, blockers and handoffs. It complements rather than replaces canonical [#44 product epic](https://github.com/rzqllh/Yoru/issues/44), [#20 release gate](https://github.com/rzqllh/Yoru/issues/20), [#78 cross-device acceptance](https://github.com/rzqllh/Yoru/issues/78), code, PR discussion and exact-SHA CI.
