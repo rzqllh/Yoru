@@ -72,8 +72,8 @@ Record **case ID, owner decision IDs, tested exact commit SHA, environment/provi
 | DF-SYNC-06 | P32 | Real email OTP delivery, expiry/rate error, two real users and devices | BLOCKED auth |
 | DF-SEC-01 | P09 | SSRF rejects private IP, DNS rebinding, redirect, encoded addresses, open proxy and oversize payload | NOT RUN |
 | DF-SEC-02 | P48/P65 | No secrets/cookies/private media links/viewing histories in bundle, network logs, snapshots | NOT RUN |
-| DF-SEC-03 | RG03 | Preview DB writes to non-test users fail at DB/service boundary, even if app input forged | BLOCKED design |
-| DF-SEC-04 | P71/RG06 | Owner-only preview auth and audited access, privacy/legal basis of broad production reads evaluated | **BLOCKED CRITICAL** |
+| DF-SEC-03 | L01 | Local preview uses local/test data and credentials; no production DB reads/writes in default workflow or accidental connection | NOT RUN |
+| DF-SEC-04 | L01/P48 | No hosted preview site or preview deployment required; no production service keys or real user records in local build, logs or CI | NOT RUN |
 | DF-SEC-05 | P50/P69 | Alert/incident workflow; production rollback owner-approved, emergency disable-only provider audit | NOT RUN |
 | DF-REL-01 | P26/P27 | Same exact SHA lint/typecheck/unit/build + Chromium/WebKit; live proof separately recorded | NOT RUN |
 | DF-REL-02 | P39 | Physical iPhone Safari and desktop Chrome signed off against actual candidate SHA | BLOCKED device |
@@ -88,7 +88,7 @@ Record **case ID, owner decision IDs, tested exact commit SHA, environment/provi
 - G2 metadata/release: stable identity, independent denominator, verified full eligible coverage.
 - G3 subtitle: live id/en search/download/matching/renderer.
 - G4 physical devices: iPhone Safari/PWA and Chrome desktop.
-- G5 cloud/data: RLS, OTP, two users/devices, recovery, privacy, preview least privilege.
+- G5 cloud/data: RLS, OTP, two users/devices, recovery, privacy, local-only preview data isolation and production credential protection.
 - G6 infrastructure: exact-SHA app and API, ingress protection, quotas, logs, rollback.
 - G7 owner GO: final explicit production/release approval.
 
@@ -96,4 +96,4 @@ Existing Yoru [ACCEPTANCE_MATRIX](../ACCEPTANCE_MATRIX.md), [Issue #20](https://
 
 ## Fail-closed rule
 
-If measurement method, provider entitlement, production-read safety, identity, real playback, device proof or explicit owner approval is missing: label BLOCKED/NOT RUN. Never estimate a PASS, 100% coverage or delivery date from documentation or fixtures.
+If measurement method, provider entitlement, local/prod isolation, cloud data safety, identity, real playback, device proof or explicit owner approval is missing: label BLOCKED/NOT RUN. Never estimate a PASS, 100% coverage or delivery date from documentation or fixtures.
