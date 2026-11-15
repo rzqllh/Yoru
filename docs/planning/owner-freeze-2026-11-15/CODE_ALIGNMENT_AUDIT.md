@@ -36,6 +36,12 @@ Links below point to `main` at the inspected SHA or repository paths; line range
 | CA-21 | P1 NOT VERIFIED | P65 minimal technical telemetry and P50 incident alert | [backend/api/app.ts](../../../backend/api/app.ts), [docs/public/operations.md](../../public/operations.md), [vercel.json](../../../vercel.json). Monitoring/alert routing with redaction, owner assignment and rollback evidence not established from inspected code; platform config wasn't examined. |
 | CA-22 | P1 PARTIAL | P35 subtitle matching proof | [providers/subtitles.ts](../../../backend/providers/subtitles.ts) 79–151 and [Player.tsx](../../../frontend/src/components/Player.tsx) 205–227 implement adapters/score filtering, yet live authorized search/download, wrong season/cour negative cases on real providers and iPhone overlay are not certified. |
 
+## Additional source mismatches / incomplete contracts
+
+| CA-23 | P1 PARTIAL | P36 exact next episode identity | [App.tsx](../../../frontend/src/App.tsx) 201–206 requests `playback.episode+1` directly; [Player.tsx](../../../frontend/src/components/Player.tsx) 480–498 verifies a stream and counts down. No independently checked next-episode listing or season/cour transition is visible at this callback. Preserve current verified-stream behavior, add canonical next-episode existence/mapping proof before claiming franchise-wide correctness. |
+| CA-24 | P1 MISMATCH | P20 unverified quality claim must be labeled | [App.tsx](../../../frontend/src/App.tsx) 1287–1301 renders `stream.quality` raw in source-picker title without explicit 'belum diverifikasi'; [source-ranking.ts](../../../frontend/src/lib/source-ranking.ts) 7–10 correctly distrusts provider quality fields, but display is still potentially authoritative-looking. Separate source-advertised resolution from actual rendition evidence. |
+| CA-25 | P0 PARTIAL | P17 exact source season/cour and special/movie mapping | [App.tsx](../../../frontend/src/App.tsx) 1196–1210 selects provider episodes by `number`; [stremio.ts](../../../backend/providers/stremio.ts) 66–90 has explicit mapped season, but a cross-provider canonical episode/edition evidence layer is not visible in the UI's chooser. Real wrong-season/OVA/movie negative cases remain release-blocking. |
+
 ## Existing aligned source work — preserve, test, extend
 
 | Contract | Evidence | Level |
@@ -53,9 +59,6 @@ Links below point to `main` at the inspected SHA or repository paths; line range
 | D08 separate upcoming route | [router.ts](../../../frontend/src/lib/router.ts) 106–114 | ALIGNED SOURCE |
 | RG01 FlyStream reference only | No FlyStream runtime adapter in inspected backend provider inventory | ALIGNED TARGET (intentional non-integration) |
 
-| CA-23 | P1 PARTIAL | P36 exact next episode identity | [App.tsx](../../../frontend/src/App.tsx) 201–206 requests `playback.episode+1` directly; [Player.tsx](../../../frontend/src/components/Player.tsx) 480–498 verifies a stream and counts down. No independently checked next-episode listing or season/cour transition is visible at this callback. Preserve current verified-stream behavior, add canonical next-episode existence/mapping proof before claiming franchise-wide correctness. |
-| CA-24 | P1 MISMATCH | P20 unverified quality claim must be labeled | [App.tsx](../../../frontend/src/App.tsx) 1287–1301 renders `stream.quality` raw in source-picker title without explicit 'belum diverifikasi'; [source-ranking.ts](../../../frontend/src/lib/source-ranking.ts) 7–10 correctly distrusts provider quality fields, but display is still potentially authoritative-looking. Separate source-advertised resolution from actual rendition evidence. |
-| CA-25 | P0 PARTIAL | P17 exact source season/cour and special/movie mapping | [App.tsx](../../../frontend/src/App.tsx) 1196–1210 selects provider episodes by `number`; [stremio.ts](../../../backend/providers/stremio.ts) 66–90 has explicit mapped season, but a cross-provider canonical episode/edition evidence layer is not visible in the UI's chooser. Real wrong-season/OVA/movie negative cases remain release-blocking. |
 
 ## Tests and regression work (do not change in this docs-only PR)
 
@@ -72,6 +75,6 @@ Links below point to `main` at the inspected SHA or repository paths; line range
 - Inventory: 223 tracked tree entries at baseline, including documentation, fixtures and assets. Risk-based source inspection focused on route, API, player, metadata, provider, storage, backup, service worker, CI and source/security tests. **Not all lines of all files were individually analyzed.**
 - No tests/builds were executed by this audit, and no runtime, provider, DB, cloud, platform or device evidence was collected. Findings marked source-aligned do not mean deployed.
 - Before implementation, run full dependency-aware source audit including tests and code owners on the then-current SHA, reproduce each mismatch, perform threat review, and obtain explicit approval.
-- **Suggested P0 order:** C01 privacy/security → C02 coverage metric → authorized provider and one real watch-path proof → cloud isolation → device → final release. P1 UI refinements can be independent only when source files do not overlap.
+- **Suggested P0 order:** L01 local/production isolation verification → C02 coverage definition → C03/C04 upstream entitlement → authorized provider and one real watch-path proof → cloud account isolation → physical devices → final release. The former C01 hosted shared-production preview architecture is superseded by L01. P1 UI refinements can be independent only when source files do not overlap.
 
 **Verdict:** MULTIPLE CONFIRMED SOURCE MISMATCHES; former shared-preview CA-06 is superseded by L01 and no longer a target; local-only deployment configuration needs separate verification. LIVE ACCEPTANCE NOT VERIFIED; OWNER-VNEXT CODE IMPLEMENTATION NOT AUTHORIZED.
