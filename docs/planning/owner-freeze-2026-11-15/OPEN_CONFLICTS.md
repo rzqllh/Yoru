@@ -4,7 +4,7 @@
 
 | ID | Severity | Affected decisions | Decision/observed conflict | Blocking condition |
 |---|---|---|---|---|
-| C01 | **CRITICAL / SECURITY** | P40/P42/P48/P51/P61/P71/RG03/RG06 | Same prod DB; owner-only preview; test-only writes; unrestricted reads | No proof of least privilege, read minimization, isolated credential, or recoverability |
+| C01 | **SUPERSEDED TOPOLOGY / GUARDED IF REINTRODUCED** | L01 supersedes hosted preview choices P40/P42/P51/P61/P71/RG03/RG06 | **Only production hosted; preview runs locally; no authorized local-to-prod data access** | Verify local environment isolation, no leaked prod credentials, and no unintended remote preview; any future prod-data use requires separate approval |
 | C02 | **CRITICAL / METRICS** | P19/P45/P55/P64/P67/P68/RG04/RG07/RG08 | 100% all aired anime versus defining aired episodes only after provider has video | Provider-dependent denominator can hide missing episodes |
 | C03 | **BLOCKED / ACCESS** | P07/P31/P62/RG02/RG09 | Agent requested to bypass anti-bot | No authorization to ignore upstream access restrictions |
 | C04 | **BLOCKED / DATA RIGHTS** | P18/P38/RG10 | Force AniList/MAL regardless of terms | Provider can deny/limit use; legal/ToU review and possibly provider permission required |
@@ -15,18 +15,15 @@
 | C09 | **PRODUCTION** | P29/P50/P69 | Release gates and security monitoring | Exact SHA production full stack/rollback/quotas and owner GO not verified |
 | C10 | **SOURCE DISCOVERY** | P18/P53/P19 | AniList/MAL field authority & complete catalog | Provenance, pagination, 429/ToU, stale-cache and reversible migration unresolved |
 
-## C01: production-data preview
+## C01: formerly proposed shared-production preview — superseded by L01
 
-**Freeze owner intent:** preview and production same physical DB; test-account writes only; preview may read any production data; reviewed branch; owner-only strong auth; audit trail.
+**Latest owner choice (2026-11-15):** Only production is remotely deployed. Preview/testing runs locally. No hosted preview/staging environment is part of the target. Earlier P42/P61/RG03/P71 shared production database and broad read requests are **historical, not active authorization** for local tests.
 
-**Risk:** An admin credential behind protected preview could bypass RLS, exposing or corrupting real users' data. UI auth cannot enforce database row scope. DB rollback is different from code rollback. Owner's permission does not establish legal/privacy basis to expose third-party users' records to experimental code.
+**Expected local boundary:** local server and local production-build checks use test/local accounts and nonproduction fixtures. They do **not** assume production data/secret parity. Treat any request to connect the local process to production user records, production service-role credentials, or privileged production APIs as **not authorized** absent separate explicit approval and privacy/security review.
 
-**Minimum design prerequisite (not automatic approval):**
-- Document concrete database roles/service credentials and their reachable read/write privileges.
-- Separate test-account identity and enforce write constraints server-side and at DB/RPC boundaries. Prove cross-account negative tests.
-- Independently assess **whether production personal-data read should be permitted at all**; default to minimized/obfuscated fixtures. A request for blanket read remains OPEN until justified and reviewed.
-- Require environment access controls, MFA/SSO where available, audit, redaction, isolation, rollback/recovery with restore drill.
-- If this cannot be achieved, maintain NO-GO for preview with production access. No service-role/admin credentials in browser or preview test runtime.
+**Still verify before release:** local workflow cannot accidentally trigger remote preview deploy; production credentials are not in local configuration/CI; no unreviewed production writes; production deployment remains owner-gated. If a future production-data preview is proposed, re-open a separate threat model, scope/RLS, data minimization, audit, and recovery gate.
+
+**Status:** old shared-preview architecture conflict is **resolved by supersession**, not by accepting its privacy risks. Remaining critical blockers C02–C04 and live release gates are unaffected.
 
 ## C02: 100% coverage denominator
 
@@ -69,9 +66,9 @@ P63 automatic login sync is limited by RG05 to account-owned data. Guest data re
 - Minimum playback observation duration/segment count/device coverage and evidence freshness.
 - Independent catalog boundary, eligible release date and uncertain metadata treatment.
 - Explicit incident alert destination, rollback authority and kill-switch scope.
-- Access privileges and legal/privacy justification for P71 broad production reads.
+- Verify local preview does not use production credentials or user records by default; any newly proposed local-to-production connection requires a separate access/privacy approval.
 - Exact upstream inventory and entitlement per host.
 - Consent scope and revocation for iframe fallback.
 - Code ownership and PR/branch/deployment authorization.
 
-**Current verdict: Decision Freeze DRAFT; security/coverage/source access blockers remain. No implementation or production release authorization.**
+**Current verdict: Decision Freeze DRAFT; hosted preview risk C01 superseded by L01. Coverage/source access, cloud security and live public-release blockers remain. No implementation or production release authorization.**
