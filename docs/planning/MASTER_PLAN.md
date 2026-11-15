@@ -4,6 +4,11 @@
 > **Repository:** [rzqllh/Yoru](https://github.com/rzqllh/Yoru) · **audited starting main:** [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572) (not live acceptance)
 > **Scope:** entire Yoru product and engineering lifecycle, not merely the current UX sprint.  
 > **State:** PLANNED. Engineering preview exists; public streaming release [#20](https://github.com/rzqllh/Yoru/issues/20) is BLOCKED.
+> **LATEST DEPLOYMENT DECISION L01 (2026-11-15):** **Production is the only remotely hosted target; preview/testing is local only.** Earlier hosted preview/shared production DB decisions are superseded for topology, and no local production database access is authorized by this change. See [Decision Register](owner-freeze-2026-11-15/DECISION_REGISTER.md), [local preview guidance](../public/vercel-preview.md) and [open conflicts](owner-freeze-2026-11-15/OPEN_CONFLICTS.md). Historical notes below remain dated evidence, not the current target.
+> **2026-11-15 OWNER DECISION FREEZE v1 — DRAFT (NOT IMPLEMENTATION AUTHORIZATION):** The newer P01–P71 and RG01–RG10 product choices, explicit supersession of old D02/D03/D04 behavior, unresolved security/source-access/coverage blockers, read-only source audit and proposed acceptance are recorded in [owner-freeze-2026-11-15/README.md](owner-freeze-2026-11-15/README.md). This is a proposal for owner review, **not** proof of live playback, a production permission, or a silent replacement of historical evidence. Current runtime may still follow the older contracts; see the linked code alignment audit.
+
+
+> **AGENT/HARNESS SPECIFICATION PACK (2026-11-15, DRAFT):** [Root AGENTS.md](../../AGENTS.md) defines guardrails and stop-the-line escalation. [12-document spec index](../specs/README.md) covers PRD, Design, Requirements, Features, User Flow, Business Rules, Database, API, Architecture, Security, Roadmap and Testing. New proposed data/API names are not implemented interfaces. All agent unknowns/conflicts must be `BLOCKED` for owner confirmation; no silent assumptions.
 
 ## 0. Purpose, authority, and maintenance
 
