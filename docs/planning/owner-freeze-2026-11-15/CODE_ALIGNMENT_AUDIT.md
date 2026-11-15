@@ -53,6 +53,10 @@ Links below point to `main` at the inspected SHA or repository paths; line range
 | D08 separate upcoming route | [router.ts](../../../frontend/src/lib/router.ts) 106–114 | ALIGNED SOURCE |
 | RG01 FlyStream reference only | No FlyStream runtime adapter in inspected backend provider inventory | ALIGNED TARGET (intentional non-integration) |
 
+| CA-23 | P1 PARTIAL | P36 exact next episode identity | [App.tsx](../../../frontend/src/App.tsx) 201–206 requests `playback.episode+1` directly; [Player.tsx](../../../frontend/src/components/Player.tsx) 480–498 verifies a stream and counts down. No independently checked next-episode listing or season/cour transition is visible at this callback. Preserve current verified-stream behavior, add canonical next-episode existence/mapping proof before claiming franchise-wide correctness. |
+| CA-24 | P1 MISMATCH | P20 unverified quality claim must be labeled | [App.tsx](../../../frontend/src/App.tsx) 1287–1301 renders `stream.quality` raw in source-picker title without explicit 'belum diverifikasi'; [source-ranking.ts](../../../frontend/src/lib/source-ranking.ts) 7–10 correctly distrusts provider quality fields, but display is still potentially authoritative-looking. Separate source-advertised resolution from actual rendition evidence. |
+| CA-25 | P0 PARTIAL | P17 exact source season/cour and special/movie mapping | [App.tsx](../../../frontend/src/App.tsx) 1196–1210 selects provider episodes by `number`; [stremio.ts](../../../backend/providers/stremio.ts) 66–90 has explicit mapped season, but a cross-provider canonical episode/edition evidence layer is not visible in the UI's chooser. Real wrong-season/OVA/movie negative cases remain release-blocking. |
+
 ## Tests and regression work (do not change in this docs-only PR)
 
 - Update legacy **D02 exclusion** assertions in `tests/browser/animeembed-player.spec.mjs` with isolated consent, matching content, supported controls and fail-closed negative cases **only after corresponding safe feature work**.
