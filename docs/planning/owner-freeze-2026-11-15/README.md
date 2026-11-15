@@ -10,6 +10,10 @@ This latest owner decision supersedes previously proposed **hosted preview** arr
 
 See [Decision Register](DECISION_REGISTER.md), [Product Contract](PRODUCT_CONTRACT.md), [Open Conflicts](OPEN_CONFLICTS.md), and [Acceptance Matrix](ACCEPTANCE_MATRIX_V1.md).
 
+## Agent/harness specification pack (new)
+
+The owner requested a **twelve-document spec pack** for generative agents and a mandatory ask-before-guess blocker policy. See [root AGENTS.md](../../../AGENTS.md) for agent instructions and [12-document PRD→Testing index](../../specs/README.md). Agents must distinguish target requirements from existing code, use L01 local-only preview, and emit `BLOCKED [YOR-BLK-###]` with evidence, impact, options and precise owner decision request when missing information or out-of-scope action prevents safe work. No source/code execution permission is implied.
+
 ## Read in this order
 
 1. [DECISION_REGISTER.md](DECISION_REGISTER.md) — complete P01–P71 and RG01–RG10 selections, precedence and supersession.
