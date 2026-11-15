@@ -4,6 +4,8 @@
 > **Repository:** [rzqllh/Yoru](https://github.com/rzqllh/Yoru) · **audited starting main:** [`ce12d98`](https://github.com/rzqllh/Yoru/commit/ce12d98678f6e89cefd81516fb641c62df972572) (not live acceptance)
 > **Scope:** entire Yoru product and engineering lifecycle, not merely the current UX sprint.  
 > **State:** PLANNED. Engineering preview exists; public streaming release [#20](https://github.com/rzqllh/Yoru/issues/20) is BLOCKED.
+> **2026-11-15 OWNER DECISION FREEZE v1 — DRAFT (NOT IMPLEMENTATION AUTHORIZATION):** The newer P01–P71 and RG01–RG10 product choices, explicit supersession of old D02/D03/D04 behavior, unresolved security/source-access/coverage blockers, read-only source audit and proposed acceptance are recorded in [owner-freeze-2026-11-15/README.md](owner-freeze-2026-11-15/README.md). This is a proposal for owner review, **not** proof of live playback, a production permission, or a silent replacement of historical evidence. Current runtime may still follow the older contracts; see the linked code alignment audit.
+
 
 ## 0. Purpose, authority, and maintenance
 
